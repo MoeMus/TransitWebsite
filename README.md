@@ -1,3 +1,10 @@
+# TODO: 
+- **Set up User and Courses models in models.py**
+- **Migrations**
+- **Set up Django REST Framework by creating serializers, views, and defining URL routes**
+- **Create REACT frontend project to communicate with Django backend using Axios**
+
+
 # SFU Transit Web App
 
 ## Overview
@@ -8,7 +15,7 @@ The SFU Transit Web App integrates students' course schedules with transit and d
 ### Front-End
 
 - **React**
-- **???** TODO: which HTTP client will we use?
+- **Axios** Use this HTTP client?
 - **React Router**
 
 ### Back-End

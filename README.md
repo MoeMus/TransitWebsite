@@ -2,7 +2,7 @@
 - **Set up User and Courses models in models.py**
 - **Register models in admin.py**
 - 
-- **Migrations**:```bash
+- **Migrations**:  
 python manage.py makemigrations
 python manage.py migrate
 - **Set up Django REST Framework by creating serializers (in core/serializerspy), views (in core/views.py), and defining URL routes (in core/urls.py) and include them in in backend/urls.py**

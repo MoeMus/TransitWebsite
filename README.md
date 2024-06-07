@@ -1,7 +1,11 @@
 # TODO: 
 - **Set up User and Courses models in models.py**
-- **Migrations**
-- **Set up Django REST Framework by creating serializers, views, and defining URL routes**
+- **Register models in admin.py**
+- 
+- **Migrations**:```bash
+python manage.py makemigrations
+python manage.py migrate
+- **Set up Django REST Framework by creating serializers (in core/serializerspy), views (in core/views.py), and defining URL routes (in core/urls.py) and include them in in backend/urls.py**
 - **Create REACT frontend project to communicate with Django backend using Axios**
 
 

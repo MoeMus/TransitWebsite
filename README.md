@@ -1,7 +1,7 @@
 # TODO: 
 - **Set up User and Courses models in models.py**
 - **Register models in admin.py**:  
-Users, Courses
+User, Courses
 - **Migrations**:  
 python manage.py makemigrations  
 python manage.py migrate

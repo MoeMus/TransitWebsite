@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-model = models.Model
+model = models.model
 
 
 class User(AbstractUser):
@@ -34,3 +34,6 @@ class Course(model):
         choices=Component.choices,
         default=Component.LAB
     )
+
+
+

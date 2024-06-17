@@ -12,11 +12,12 @@ class Course(model):
     class Semester(models.TextChoices):
         SPRING = "Spring"
         SUMMER = "Summer"
-        FALL = "FALL"
+        FALL = "Fall"
 
         SEMESTER_CHOICES = (
             (SPRING, 'Spring'),
             (SUMMER, 'Summer'),
+            (FALL, 'Fall')
         )
 
     class Component(models.Textchoices):

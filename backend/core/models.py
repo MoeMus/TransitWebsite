@@ -2,8 +2,10 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 model = models.model
 
+
 class User(AbstractUser):
     Courses = []
+
 
 class Course(model):
     # Semester inner class for defining Semester TextChoices
@@ -16,6 +18,7 @@ class Course(model):
             (SPRING, 'Spring'),
             (SUMMER, 'Summer'),
         )
+
     class Component(models.Textchoices):
         LAB = "Lab"
         TUTORIAL = "Tutorial"

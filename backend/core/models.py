@@ -5,6 +5,7 @@ model = models.model
 
 class User(AbstractUser):
     Courses = []
+    related_name='custom_user_set'
 
 
 class Course(model):
@@ -30,10 +31,12 @@ class Course(model):
     course_number = 0
     professor = ""
 
-    semester = models.Charfield(
+    semester = models.CharField(
+        max_length=10,
         choices=Semester.choices
     )
-    component = models.Charfield(
+    component = models.CharField(
+        max_length=10,
         choices=Component.choices
     )
 

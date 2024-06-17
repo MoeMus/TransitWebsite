@@ -10,17 +10,11 @@ class User(AbstractUser):
 class Course(model):
     # Semester inner class for defining Semester TextChoices
     class Semester(models.TextChoices):
-        SPRING = "Spring"
-        SUMMER = "Summer"
-        FALL = "Fall"
+        SPRING = "1", "Spring"
+        SUMMER = "2", "Summer"
+        FALL = "3", "Fall"
 
-        SEMESTER_CHOICES = (
-            (SPRING, 'Spring'),
-            (SUMMER, 'Summer'),
-            (FALL, 'Fall')
-        )
-
-    class Component(models.Textchoices):
+    class Component(models.TextChoices):
         LAB = "Lab"
         TUTORIAL = "Tutorial"
         SEMINAR = "Seminar"
@@ -30,12 +24,13 @@ class Course(model):
     course_number = 0
     professor = ""
 
-    semester = models.Charfield(
-        choices=Semester.choices
+    semester = models.CharField(
+        max_length=10,
+        choices=Semester.choices,
+        default=Semester.SUMMER
     )
-    component = models.Charfield(
-        choices=Component.choices
+    component = models.CharField(
+        max_length=10,
+        choices=Component.choices,
+        default=Component.LAB
     )
-
-
-

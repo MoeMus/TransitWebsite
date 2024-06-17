@@ -3,7 +3,7 @@ import mysql.connector
 mydb = mysql.connector.connect(
     host='localhost',
     user='root',
-    password='',  # Put your MySQL password here
+    password='VeniVidiVici4321',  # Put your MySQL password here
     port='3306',
     database='python_database',
 )
@@ -16,4 +16,6 @@ users = mycursor.fetchall()  # Returns a list of tuples (rows) of all users in d
 
 for user in users:
     print(user)
-    print('Password ' + user[1])
+    print('Username ' + user[1])
+
+    print('Password ' + user[2])

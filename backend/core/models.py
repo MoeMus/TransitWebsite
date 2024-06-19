@@ -1,10 +1,7 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser
-model = models.model
+from django.contrib.auth.models import AbstractUser,  Group, Permission
 
-
-class User(AbstractUser):
-    Courses = []
+model = models.Model
 
 
 class Course(model):
@@ -15,14 +12,14 @@ class Course(model):
         FALL = "3", "Fall"
 
     class Component(models.TextChoices):
-        LAB = "Lab"
-        TUTORIAL = "Tutorial"
-        SEMINAR = "Seminar"
+        LAB = "LAB", "Lab"
+        TUTORIAL = "TUT", "Tutorial"
+        SEMINAR = "SEM", "Seminar"
 
-    name = ""
-    department = ""
-    course_number = 0
-    professor = ""
+    name = models.CharField(max_length=100)
+    department = models.CharField(max_length=100)
+    course_number = models.IntegerField
+    professor = models.CharField(max_length=100)
 
     semester = models.CharField(
         max_length=10,
@@ -36,4 +33,21 @@ class Course(model):
     )
 
 
+class User(AbstractUser):
+    Courses = models.ManyToManyField('Course', related_name='users', blank=True)
 
+    groups = models.ManyToManyField(
+        Group,
+        related_name='core_users',
+        blank=True,
+        help_text='The groups this user belongs to. A user will get all permissions granted to each of their groups.',
+        verbose_name='groups',
+    )
+
+    user_permissions = models.ManyToManyField(
+        Permission,
+        related_name='core_users',
+        blank=True,
+        help_text='Specific permissions for this user.',
+        verbose_name='user permissions',
+    )

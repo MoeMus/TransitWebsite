@@ -1,12 +1,12 @@
 # TODO: 
-- **Set up User and Courses models in models.py**✅
-- **Register models in admin.py**: ✅ 
-User, Courses
-- **Migrations**:  ✅
+- **Set up User and Courses models in models.py**✅  
+- **Register models in admin.py**: ✅  
+User, Courses  
+- **Migrations**:  ✅  
 python manage.py makemigrations  
-python manage.py migrate
-- **Set up Django REST Framework by creating serializers (in core/serializerspy), views (in core/views.py), and defining URL routes (in core/urls.py) and include them in in backend/urls.py**
-- **Create REACT frontend project to communicate with Django backend using Axios**
+python manage.py migrate  
+- **Set up Django REST Framework by creating serializers (in core/serializerspy), views (in core/views.py), and defining URL routes (in core/urls.py) and include them in in backend/urls.py**  
+- **Create REACT frontend project to communicate with Django backend using Axios**  
 
 Backend must support login and authentication  
 Ability to add, remove courses, and get rid of all courses when semester is over  

@@ -3,7 +3,7 @@ from django.contrib.auth.models import AbstractUser,  Group, Permission
 
 model = models.Model
 
-
+#Class representing a course a student is taking
 class Course(model):
     # Semester inner class for defining Semester TextChoices
     class Semester(models.TextChoices):

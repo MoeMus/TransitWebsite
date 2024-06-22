@@ -33,5 +33,7 @@ yarn-error.log
 .idea/
 *.iml
 
+*.xml
+
 # Other
 *.swp

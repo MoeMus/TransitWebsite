@@ -3,6 +3,7 @@ from .models import User, Course
 
 
 # extra_kwargs is for extra keyword arguments on 'password' to make it 128 characters
+# https://www.django-rest-framework.org/api-guide/serializers/#additional-keyword-arguments
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User

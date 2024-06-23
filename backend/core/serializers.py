@@ -24,3 +24,7 @@ class CourseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Course
         fields = ["name", "department", "course_number", "professor", "semester", "component"]
+
+    def create(self, validated_data):
+        course = Course.objects.create(**validated_data)
+        return course

@@ -22,5 +22,9 @@ from core import views
 urlpatterns = [
     path('', views.test_view),
     path("admin/", admin.site.urls),
-    path("add/user/", views.create_new_user, name="add-user")
+    path("add/user/", views.create_new_user, name="add-user"),
+    path("/delete/user/<int:id>/", views.delete_user, name="delete-user"),
+    path("/delete/user/<int:id>/courses/", views.delete_all_courses, name="delete-all-courses"),
+    path("/add/user/<int:id>/course/<int:course_id>/", views.add_course, name="add-course"),
+    path("/delete/user/<int:id>/course/<int:course_id>/", views.remove_course, name="remove-course"),
 ]

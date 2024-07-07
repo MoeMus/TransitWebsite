@@ -1,5 +1,6 @@
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST, require_http_methods, require_GET
 from rest_framework.exceptions import ParseError
 import requests # Used to make requests to SFU Course API
@@ -16,6 +17,7 @@ CURRENT_TERM = get_current_semester_code()
 
 
 @require_POST
+@csrf_exempt
 def create_new_user(request):
     stream = io.BytesIO(request.body)
     try:
@@ -56,6 +58,7 @@ def delete_all_courses(request, pk):
 #Expects the request body to be a JSON representation of a course as defined in the models.py
 #Front-end must create this format
 @require_POST
+@csrf_exempt
 def add_course_to_user(request, pk1):
     course = None
     course_id = request.GET.get('pk')
@@ -96,6 +99,7 @@ def remove_course(request, pk1, pk2):
 
 #Expected request body is a JSON format consisting of {department: <value>, number: <value>}, attributes can be omitted
 @require_GET
+@csrf_exempt
 def get_all_courses_with_key_word(request):
     department = request.GET.get("department", "")
     number = request.GET.get("number", "")

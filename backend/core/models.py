@@ -1,10 +1,13 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser,  Group, Permission
+from django.contrib.auth.models import AbstractUser, Group, Permission
 
 model = models.Model
 
+
 #Class representing a course a student is taking
-class Course(model):
+class Course(models.Model):
+    objects = models.Manager()  # Explicitly adding objects manager
+
     # Semester inner class for defining Semester TextChoices
     class Semester(models.TextChoices):
         SPRING = "1", "Spring"

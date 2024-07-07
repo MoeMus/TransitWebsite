@@ -20,6 +20,7 @@ from django.urls import path, include
 from core import views
 
 urlpatterns = [
+
     path('', views.test_view),
     path("admin/", admin.site.urls),
     path("add/user/", views.create_new_user, name="add-user"),

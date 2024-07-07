@@ -18,16 +18,16 @@ Backend must check for incompatible course times
 Check if a course section is not there anymore, if true then remove the course from the user's schedule  
 Ability to create a user account  
 
-**July 6, 2024**
-Calculate course start and end times
-Calculate travel time for user depending on course start time
-Ability for user to delete their account
-Backend must check for incompatible course times 
-View and change courses schedule in settings
-Change password
-Look into Geolocation API, Google Maps API, Translink API
-Setting car, transit options
-Search bar for courses with auto recommendations
+**July 6, 2024**  
+Calculate course start and end times  
+Calculate travel time for user depending on course start time  
+Ability for user to delete their account  
+Backend must check for incompatible course times   
+View and change courses schedule in settings  
+Change password  
+Look into Geolocation API, Google Maps API, Translink API  
+Setting car, transit options  
+Search bar for courses with auto recommendations  
 
 
 # SFU Transit Web App

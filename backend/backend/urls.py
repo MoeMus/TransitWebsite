@@ -28,4 +28,5 @@ urlpatterns = [
     path("/add/user/<int:id>/course/", views.add_course_to_user, name="add-course"),
     path("/delete/user/<int:id>/course/<int:course_id>/", views.remove_course, name="remove-course"),
     path("/get/courses/filter", views.get_all_courses_with_key_word, name="filter-courses")
+    path('api/', include('core.urls')),
 ]

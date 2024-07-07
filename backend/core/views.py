@@ -2,7 +2,7 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.views.decorators.http import require_POST, require_http_methods, require_GET
 from rest_framework.exceptions import ParseError
-import requests
+import requests # Used to make requests to SFU Course API
 from .models import User, Course
 from .serializers import CourseSerializer, UserSerializer
 import io

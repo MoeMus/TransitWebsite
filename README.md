@@ -62,3 +62,61 @@ The SFU Transit Web App integrates students' course schedules with transit and d
 
 - **npm**: A package manager for JavaScript.
 
+## Installation
+
+Follow these steps to set up the project and install the required packages for Racoon.
+
+### Prerequisites
+
+- Python 3.10
+- Node.js (for React front-end)
+- MySQL
+
+### Backend Setup
+
+1. **Clone the repository**
+
+   ```bash
+   git clone https://github.com/MoeMus/TransitWebsite.git
+   cd sfu-transit-app/backend
+
+2. **Create the virtual environment**
+
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate  # On Linux
+   venv\Scripts\activate # On Windows
+
+3. **Install the packages**
+
+   ```bash
+   pip install -r requirements.txt
+
+4. **Configure the MySQL database**
+   **We recommend using a secret key for the database password. Please do not publish your database password publicly**
+
+   ```python
+   DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'sfu_transit_app',
+        'USER': 'your_mysql_username',
+        'PASSWORD': 'your_mysql_password',
+        'HOST': 'localhost',
+        'PORT': '3306',
+     }
+   }
+
+5. **Make migrations**
+
+```bash
+python manage.py makemigrations
+python manage.py migrate
+
+6. **Run the server**
+```bash
+python manage.py runserver
+
+
+   
+   

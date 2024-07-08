@@ -92,7 +92,7 @@ Follow these steps to set up the project and install the required packages for R
    ```bash
    pip install -r requirements.txt
 
-4. **Configure the MySQL database**
+4. **Configure the MySQL database**  
    **We recommend using a secret key for the database password. Please do not publish your database password publicly**
 
    ```python
@@ -109,13 +109,13 @@ Follow these steps to set up the project and install the required packages for R
 
 5. **Make migrations**
 
-```bash
-python manage.py makemigrations
-python manage.py migrate
+   ```bash
+   python manage.py makemigrations
+   python manage.py migrate
 
 6. **Run the server**
-```bash
-python manage.py runserver
+   ```bash
+   python manage.py runserver
 
 
    

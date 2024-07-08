@@ -62,6 +62,7 @@ The SFU Transit Web App integrates students' course schedules with transit and d
 
 - **npm**: A package manager for JavaScript.
 
+
 ## Installation
 
 Follow these steps to set up the project and install the required packages for Racoon.

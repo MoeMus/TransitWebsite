@@ -5,7 +5,7 @@ User, Courses
 - **Migrations**:  ✅  
 python manage.py makemigrations  
 python manage.py migrate  
-- **Set up Django REST Framework by creating serializers (in core/serializerspy)✅, views (in core/views.py), and defining URL routes (in core/urls.py) and include them in in backend/urls.py**  
+- **Set up Django REST Framework by creating serializers (in core/serializerspy)✅, views (in core/views.py)✅, and defining URL routes (in core/urls.py) and include them in in backend/urls.py**  
 - **Create REACT frontend project to communicate with Django backend using Axios**  
 
 Backend must support login and authentication  
@@ -17,6 +17,17 @@ Ability for user to delete their account
 Backend must check for incompatible course times  
 Check if a course section is not there anymore, if true then remove the course from the user's schedule  
 Ability to create a user account  
+
+**July 6, 2024**  
+Calculate course start and end times  
+Calculate travel time for user depending on course start time  
+Ability for user to delete their account  
+Backend must check for incompatible course times   
+View and change courses schedule in settings  
+Change password  
+Look into Geolocation API, Google Maps API, Translink API  
+Setting car, transit options  
+Search bar for courses with auto recommendations  
 
 
 # SFU Transit Web App
@@ -51,3 +62,61 @@ The SFU Transit Web App integrates students' course schedules with transit and d
 
 - **npm**: A package manager for JavaScript.
 
+## Installation
+
+Follow these steps to set up the project and install the required packages for Racoon.
+
+### Prerequisites
+
+- Python 3.10
+- Node.js (for React front-end)
+- MySQL
+
+### Backend Setup
+
+1. **Clone the repository**
+
+   ```bash
+   git clone https://github.com/MoeMus/TransitWebsite.git
+   cd sfu-transit-app/backend
+
+2. **Create the virtual environment**
+
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate  # On Linux
+   venv\Scripts\activate # On Windows
+
+3. **Install the packages**
+
+   ```bash
+   pip install -r requirements.txt
+
+4. **Configure the MySQL database in `backend/settings.py` using your database username and database password**  
+   **We recommend using a secret key for the database password. Please do not publish your database password publicly**
+
+   ```python
+   DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'sfu_transit_app',
+        'USER': 'your_mysql_username',
+        'PASSWORD': 'your_mysql_password',
+        'HOST': 'localhost',
+        'PORT': '3306',
+     }
+   }
+
+5. **Make migrations**
+
+   ```bash
+   python manage.py makemigrations
+   python manage.py migrate
+
+6. **Run the server**
+   ```bash
+   python manage.py runserver
+
+
+   
+   

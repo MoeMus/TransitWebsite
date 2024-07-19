@@ -38,7 +38,19 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     'core',
     'rest_framework',
+    #  'rest_framework_simplejwt', Optional authentication method
 ]
+
+''' **********Optional authentication method*********
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+}
+'''
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -123,11 +135,3 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = 'core.User'
 
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
-    'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',
-    ),
-}

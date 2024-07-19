@@ -6,7 +6,7 @@ User, Courses
 python manage.py makemigrations  
 python manage.py migrate  
 - **Set up Django REST Framework by creating serializers (in core/serializerspy)✅,**  
-- **views (in core/views.py) **July 19 2024: Views is in progress**,  
+- **views (in core/views.py)** **July 19 2024: Views is in progress**,  
 - and **defining URL routes (in core/urls.py) and include them in in backend/urls.py** ✅**July 19, 2024**  
 - **Create REACT frontend project to communicate with Django backend using Axios**  
 

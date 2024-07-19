@@ -25,7 +25,7 @@ from core import views
 urlpatterns = [
     path('', views.test_view, name='test-view'),
     path("admin/", admin.site.urls),
-    path("add/user/", views.create_new_user, name="add-user"),
+    path("add/user/", views.create_new_user, name="create-user"),
     path("delete/user/<int:id>/", views.delete_user, name="delete-user"),
     path("delete/user/<int:id>/courses/", views.delete_all_courses, name="delete-all-courses"),
     path("add/user/<int:id>/course/", views.add_course_to_user, name="add-course"),

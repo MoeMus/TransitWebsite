@@ -13,6 +13,9 @@ Class-based views
 Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
+
+This backend/urls.py file routes high-level/project-level URLs to the appropriate app-level URL configurations.
+It includes the URLs for the admin interface and the core app.
 """
 from django.contrib import admin
 from django.urls import path, include

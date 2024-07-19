@@ -2,7 +2,7 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.views.decorators.http import require_POST, require_http_methods, require_GET
 from rest_framework.exceptions import ParseError
-import requests # Used to make requests to SFU Course API
+import requests  # Used to make requests to SFU Course API
 from .models import User, Course
 from .serializers import CourseSerializer, UserSerializer
 import io
@@ -23,8 +23,9 @@ def create_new_user(request):
         serialized = UserSerializer(data=data)
         if serialized.is_valid():
             serialized.save()
+            return HttpResponse(status=201)  # Successfully created user
         else:
-            raise ParseError
+            return JsonResponse(serialized.errors, status=400)  # Return Json serialized error for more detailed error
     except ParseError:
         return HttpResponse(status=400)
 
@@ -53,14 +54,14 @@ def delete_all_courses(request, pk):
         return HttpResponse(status=404)
 
 
-#Expects the request body to be a JSON representation of a course as defined in the models.py
-#Front-end must create this format
+# Expects the request body to be a JSON representation of a course as defined in the models.py
+# Front-end must create this format
 @require_POST
 def add_course_to_user(request, pk1):
     course = None
     course_id = request.GET.get('pk')
 
-    #If the course doesn't already exist in the database
+    # If the course doesn't already exist in the database
     if not Course.objects.filter(id=course_id).exists():
         stream = io.BytesIO(request.body)
         try:
@@ -94,31 +95,23 @@ def remove_course(request, pk1, pk2):
         return HttpResponse(status=404)
 
 
-#Expected request body is a JSON format consisting of {department: <value>, number: <value>}, attributes can be omitted
+# Expected request body is a JSON format consisting of {department: <value>, number: <value>}, attributes can be omitted
 @require_GET
 def get_all_courses_with_key_word(request):
     department = request.GET.get("department", "")
     number = request.GET.get("number", "")
 
     if not department:
-        return
+        return HttpResponse("The department is required", status=400)
 
-    if not number:
+    try:
+        if not number:
+            api_url = f"http://www.sfu.ca/bin/wcm/course-outlines?{CURRENT_YEAR}/{CURRENT_TERM}/{department}"
+        else:
+            api_url = f"http://www.sfu.ca/bin/wcm/course-outlines?{CURRENT_YEAR}/{CURRENT_TERM}/{department}/{number}"
 
-        try:
-            matchingCourse = requests.get(
-                "/bin/wcm/course-outlines?" + CURRENT_YEAR + "/" + CURRENT_TERM + "/" + department)
-            matchingCourse.raise_for_status()
-        except HttpResponse(status=404):
-            return HttpResponse(status=404)
-
-    else:
-
-        try:
-            matchingCourse = requests.get(
-                "/bin/wcm/course-outlines?" + CURRENT_YEAR + "/" + CURRENT_TERM + "/" + department + "/" + number)
-            matchingCourse.raise_for_status()
-        except HttpResponse(status=404):
-            return HttpResponse(status=404)
-
-    return JsonResponse(matchingCourse.json())
+        matching_course = requests.get(api_url)
+        matching_course.raise_for_status()
+        return JsonResponse(matching_course.json(), safe=False)
+    except requests.exceptions.RequestException:
+        return HttpResponse(status=404)

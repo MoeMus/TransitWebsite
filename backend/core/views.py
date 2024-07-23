@@ -1,3 +1,4 @@
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.views.decorators.http import require_POST, require_http_methods, require_GET
@@ -24,9 +25,17 @@ CURRENT_TERM = get_current_semester_code()
 class UserView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    # Retrieve user info if logged in
+    # Uses query string with keys 'username' and 'email
     def get(self, request):
-        serializer = UserSerializer(request.user)
-        return Response({"user": serializer.data}, status=status.HTTP_200_OK)
+        username = request.query_params.get('username')
+        email = request.query_params.get('email')
+        if User.objects.filter(username=username).exists():
+            current_user = User.objects.get(username=username)
+            # Only returns username and email
+            return Response({'user': current_user.username, 'email': current_user.email}, status=status.HTTP_200_OK)
+        else:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
 
 
 class LogoutView(APIView):
@@ -67,6 +76,7 @@ class DeleteUserView(APIView):
             user = User.objects.get(username=request.data["username"])
             user.delete()
             return Response(status=status.HTTP_200_OK)
+
         else:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
@@ -143,11 +153,10 @@ class GetCourseView(APIView):
 
     permission_classes = (IsAuthenticated,)
 
-    # Expected request body is a JSON format consisting of {department: <value>, courseNumber: <value>}, attributes
-    # can be omitted
+
     def get(self, request):
-        department = request.GET.get("department", "")
-        number = request.GET.get("courseNumber", "")
+        department = request.query_params.get("department")
+        number = request.query_params.get("courseNumber")
 
         if not department:
             return HttpResponse("The department is required", status=400)

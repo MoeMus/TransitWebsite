@@ -1,3 +1,4 @@
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.views.decorators.http import require_POST, require_http_methods, require_GET
@@ -34,6 +35,7 @@ def test_view(request):
     return HttpResponse('Test view')
 
 
+@login_required
 @require_http_methods(['DELETE'])
 def delete_user(pk, request):
     if User.objects.filter(id=pk).exists():
@@ -43,7 +45,7 @@ def delete_user(pk, request):
     else:
         return HttpResponse(status=404)
 
-
+@login_required
 @require_http_methods(['DELETE'])
 def delete_all_courses(request, pk):
     if User.objects.filter(id=pk).exists():
@@ -56,6 +58,7 @@ def delete_all_courses(request, pk):
 
 # Expects the request body to be a JSON representation of a course as defined in the models.py
 # Front-end must create this format
+@login_required
 @require_POST
 def add_course_to_user(request, pk1):
     course = None
@@ -83,7 +86,7 @@ def add_course_to_user(request, pk1):
     else:
         return HttpResponse(status=400)
 
-
+@login_required
 @require_http_methods(['DELETE'])
 def remove_course(request, pk1, pk2):
     if User.objects.filter(id=pk1).exists() and Course.objects.filter(id=pk2).exists():
@@ -94,7 +97,7 @@ def remove_course(request, pk1, pk2):
     else:
         return HttpResponse(status=404)
 
-
+@login_required
 # Expected request body is a JSON format consisting of {department: <value>, number: <value>}, attributes can be omitted
 @require_GET
 def get_all_courses_with_key_word(request):

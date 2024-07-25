@@ -125,13 +125,13 @@ Follow these steps to set up the project and install the required packages for R
    ```bash
    source ~/.bashrc
 
-***Windows:***
-   1. Open `Win + X`, click `System` then `Advanced System Settings`
-   2. Click on `Environment Variables`
-   3. Click on `New` under User or System variables, depending on whether you want it to be system-wide or for the current user only
-   4. Set `MYSQL_PASSWORD_TRANSIT` as the variable name and your MySQL password as the value.
-   5. Set `Set DJANGO_SECRET_KEY` as the variable name and your Django secret key as the value.
-   6. Click `OK` on all of the New System Variable, Environment Variables, and System Properties windows
+   ***Windows:***
+      1. Open `Win + X`, click `System` then `Advanced System Settings`
+      2. Click on `Environment Variables`
+      3. Click on `New` under User or System variables, depending on whether you want it to be system-wide or for the current user only
+      4. Set `MYSQL_PASSWORD_TRANSIT` as the variable name and your MySQL password as the value.
+      5. Set `Set DJANGO_SECRET_KEY` as the variable name and your Django secret key as the value.
+      6. Click `OK` on all of the New System Variable, Environment Variables, and System Properties windows
    
 5. **Make migrations**
    ```bash

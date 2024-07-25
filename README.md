@@ -110,15 +110,52 @@ Follow these steps to set up the project and install the required packages for R
      }
    }
 
-5. **Make migrations**
+5. **Set Environment Variables**
+   *Linux/MacOS:*
+   Open the text editor:
+   ```bash
+   nano ~/.bashrc
 
+   Add the following, replacing the mysql password and Django secret key with your key:
+   ```bash
+   export MYSQL_PASSWORD_TRANSIT='your_mysql_password'
+   export DJANGO_SECRET_KEY='your_django_secret_key'
+
+   Save the file and reload it:
+   ```bash
+   source ~/.bashrc
+
+   *Linux/MacOS:*
+   1. Open `Win + X`, click `System` then `Advanced System Settings`
+   2. Click on `Environment Variables`
+   3. Click on `New` under User or System variables, depending on whether you want it to be system-wide or for the current user only
+   4. Set `MYSQL_PASSWORD_TRANSIT` as the variable name and your MySQL password as the value.
+   5. Set `Set DJANGO_SECRET_KEY` as the variable name and your Django secret key as the value.
+   6. Click `OK` on all of the New System Variable, Environment Variables, and System Properties windows
+   
+5. **Make migrations**
    ```bash
    python manage.py makemigrations
    python manage.py migrate
 
-6. **Run the server**
+7. **Run the server**
    ```bash
    python manage.py runserver
+
+### Frontend Setup
+1. Navigate to the directory for frontend
+   ```bash
+   cd ../frontend
+
+2. Install the NodeJS packages
+   ```bash
+   npm install
+
+3. Start the React development server
+   ```bash
+   npm start
+
+
 
 
    

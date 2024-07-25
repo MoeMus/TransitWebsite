@@ -112,9 +112,11 @@ Follow these steps to set up the project and install the required packages for R
 
 5. **Set Environment Variables**  
    **Linux/MacOS:**
+   
    Open the text editor:
    ```bash
    nano ~/.bashrc
+
 
    Add the following, replacing the mysql password and Django secret key with your key:
    ```bash

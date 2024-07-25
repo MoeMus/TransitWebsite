@@ -19,15 +19,19 @@ It includes the URLs for the admin interface and the core app.
 """
 from django.contrib import admin
 from django.urls import path, include
+from rest_framework_simplejwt import views as jwt_views
+
 ## ONLY IF WE'RE USING SIMPLEJWT FOR AUTHENTICATION
 # If you're getting unresolved reference 'rest_framework_simplejwt', do the following in your terminal:
 # pip3 install --upgrade djangorestframework-simplejwt
-# from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+#from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 ##
 
 from core import views
 
 urlpatterns = [
+    path('token/', jwt_views.TokenObtainPairView.as_view(), name ='token_obtain_pair'),
+    path('token/refresh/', jwt_views.TokenRefreshView.as_view(), name ='token_refresh'),
     path("admin/", admin.site.urls),
     path('api/', include('core.urls')),
     # path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'), Only if using simplejwt

@@ -113,18 +113,18 @@ Follow these steps to set up the project and install the required packages for R
 5. **Set Environment Variables**  
    **Linux/MacOS:**
 
-   1. Open the text editor:
-   ```bash
-   nano ~/.bashrc  
+      1. Open the text editor:
+      ```bash
+      nano ~/.bashrc  
 
-   2. Add the following, replacing the mysql password and Django secret key with your key:
-   ```bash
-   export MYSQL_PASSWORD_TRANSIT='your_mysql_password'
-   export DJANGO_SECRET_KEY='your_django_secret_key'
-
-   3. Save the file and reload it:
-   ```bash
-   source ~/.bashrc
+      2. Add the following, replacing the mysql password and Django secret key with your key:
+      ```bash
+      export MYSQL_PASSWORD_TRANSIT='your_mysql_password'
+      export DJANGO_SECRET_KEY='your_django_secret_key'
+   
+      3. Save the file and reload it:
+      ```bash
+      source ~/.bashrc
 
    **Windows:**
       1. Open `Win + X`, click `System` then `Advanced System Settings`

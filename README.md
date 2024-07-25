@@ -111,7 +111,7 @@ Follow these steps to set up the project and install the required packages for R
    }
 
 5. **Set Environment Variables**  
-   **Linux/MacOS:**
+   ![Linux](https://img.icons8.com/color/48/000000/linux.png) ![Mac](https://img.icons8.com/ios-filled/50/000000/mac-os.png) **Linux/MacOS:**
 
    1. Open the text editor:
       ```bash
@@ -129,7 +129,7 @@ Follow these steps to set up the project and install the required packages for R
       source ~/.bashrc
       ```
 
-   **Windows:**
+   ![Windows](https://img.icons8.com/color/48/000000/windows-10.png) **Windows:**
    1. Open `Win + X`, click `System` then `Advanced System Settings`
    2. Click on `Environment Variables`
    3. Click on `New` under User or System variables, depending on whether you want it to be system-wide or for the current user only

@@ -110,7 +110,7 @@ Follow these steps to set up the project and install the required packages for R
      }
    }
 
-5. **Set Environment Variables**
+5. **Set Environment Variables**  
    ***Linux/MacOS:***
    Open the text editor:
    ```bash

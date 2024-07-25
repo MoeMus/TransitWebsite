@@ -115,7 +115,7 @@ Follow these steps to set up the project and install the required packages for R
    
    Open the text editor:
    ```bash
-   nano ~/.bashrc
+   nano ~/.bashrc  
 
 
    Add the following, replacing the mysql password and Django secret key with your key:

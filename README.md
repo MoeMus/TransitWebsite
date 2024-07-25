@@ -95,20 +95,20 @@ Follow these steps to set up the project and install the required packages for R
    ```bash
    pip install -r requirements.txt
 
-4. **Configure the MySQL database in `backend/settings.py` using your database username and database password**  
-   **We recommend using a secret key for the database password. Please do not publish your database password publicly**
+4. **Make sure you're using the port you want to use in `backend/settings.py`**  
+   **Environment variables for MySQL and Django will be set in the next step**
 
    ```python
    DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'sfu_transit_app',
-        'USER': 'your_mysql_username',
-        'PASSWORD': 'your_mysql_password',
+    "default": {
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": 'python_database',
+        'USER': 'root',
+        'PASSWORD': pw,
         'HOST': 'localhost',
         'PORT': '3306',
-     }
-   }
+    }
+}
 
 5. **Set Environment Variables**  
    ![Linux](https://img.icons8.com/color/48/000000/linux.png) ![Mac](https://img.icons8.com/ios-filled/50/000000/mac-os.png) **Linux/MacOS:**

@@ -108,7 +108,7 @@ Follow these steps to set up the project and install the required packages for R
         'HOST': 'localhost',
         'PORT': '3306',
     }
-   }
+   }  
 
 
 5. **Set Environment Variables**  

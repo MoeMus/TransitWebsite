@@ -111,7 +111,7 @@ Follow these steps to set up the project and install the required packages for R
    }
 
 5. **Set Environment Variables**
-   *Linux/MacOS:*
+   ***Linux/MacOS:***
    Open the text editor:
    ```bash
    nano ~/.bashrc
@@ -125,7 +125,7 @@ Follow these steps to set up the project and install the required packages for R
    ```bash
    source ~/.bashrc
 
-   *Linux/MacOS:*
+***Windows:***
    1. Open `Win + X`, click `System` then `Advanced System Settings`
    2. Click on `Environment Variables`
    3. Click on `New` under User or System variables, depending on whether you want it to be system-wide or for the current user only
@@ -154,9 +154,3 @@ Follow these steps to set up the project and install the required packages for R
 3. Start the React development server
    ```bash
    npm start
-
-
-
-
-   
-   

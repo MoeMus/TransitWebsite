@@ -26,7 +26,7 @@ class UserView(APIView):
     permission_classes = (IsAuthenticated,)
 
     # Retrieve user info if logged in
-    # Uses query string with keys 'username' and 'email
+    # Uses query string with keys 'username' and 'email'
     def get(self, request):
         username = request.query_params.get('username')
         email = request.query_params.get('email')

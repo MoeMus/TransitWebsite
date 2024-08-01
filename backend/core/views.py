@@ -1,6 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST, require_http_methods, require_GET
 from rest_framework import status
 from rest_framework.exceptions import ParseError
@@ -26,30 +27,31 @@ class UserView(APIView):
     permission_classes = (IsAuthenticated,)
 
     # Retrieve user info if logged in
-    # Uses query string with keys 'username' and 'email
+    # Uses query string with keys 'username' and 'email'
     def get(self, request):
         username = request.query_params.get('username')
         email = request.query_params.get('email')
-        if User.objects.filter(username=username).exists():
-            current_user = User.objects.get(username=username)
-            # Only returns username and email
-            return Response({'user': current_user.username, 'email': current_user.email}, status=status.HTTP_200_OK)
+
+        if User.objects.filter(username=username, email=email).exists():
+            current_user = User.objects.filter(username=username, email=email)
+            serializer = UserSerializer(current_user)
+            jsonUser = serializer.data
+            return Response(jsonUser, status=status.HTTP_200_OK)
         else:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
 
 class LogoutView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request):
-
         try:
             refresh_token = request.data["refresh_token"]
             token = RefreshToken(refresh_token)
             token.blacklist()
             return Response(status=status.HTTP_205_RESET_CONTENT)
         except Exception as e:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class RegisterView(APIView):

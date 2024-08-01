@@ -36,7 +36,7 @@ export function Login(){
             localStorage.setItem('access_token', data.access);
             localStorage.setItem('refresh_token', data.refresh);
 
-            //Require that all axios request also contain the access token in order to send authorized requests
+            //Require that all axios requests also contain the access token in order to send authorized requests
             axios.defaults.headers.common['Authorization'] = `Bearer ${data.access}`
 
             window.location.href = '/account'
@@ -51,10 +51,14 @@ export function Login(){
 
         <>
             <div className="Auth-form-container" style={{
-                position: 'absolute', left: '50%', top: '50%',
-                transform: 'translate(-50%, -50%)',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                height: '100%', // Ensure this takes the full height of the parent container
                 boxShadow: '0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)',
-                padding: '20px'
+                padding: '20px',
+                margin: '40px',
+                width: "800px"
             }}>
 
                 <form onSubmit={submit} className="Auth-form">
@@ -62,7 +66,7 @@ export function Login(){
                     <div className="Auth-form-content">
 
                         <h3 className="Auth-form-title" style={{margin: '50px',
-                            marginBottom: '200px',
+                            marginBottom: '50px',
                             fontWeight: 'bolder'}
                         }>
                             Enter your username and password to continue
@@ -98,11 +102,9 @@ export function Login(){
 
                         <div className="d-grid gap-2 mt-3">
 
-                            <button type="submit"
-
-                                    className="btn btn-primary"> Continue
-
-                            </button>
+                            <button type="submit" className="btn btn-primary" style={{
+                                width: '120px'
+                            }}> Continue </button>
                         </div>
 
                     </div>

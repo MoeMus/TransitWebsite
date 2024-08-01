@@ -22,7 +22,6 @@ function App() {
           <Navigation isAuthenticated={isAuth}/>
 
         {isAuth ? null: <Login /> }
-        <Login />
       </>
 
 

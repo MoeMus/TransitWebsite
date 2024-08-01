@@ -36,7 +36,7 @@ export function Login(){
             localStorage.setItem('access_token', data.access);
             localStorage.setItem('refresh_token', data.refresh);
 
-            //Require that all axios request also contain the access token in order to send authorized requests
+            //Require that all axios requests also contain the access token in order to send authorized requests
             axios.defaults.headers.common['Authorization'] = `Bearer ${data.access}`
 
             window.location.href = '/account'

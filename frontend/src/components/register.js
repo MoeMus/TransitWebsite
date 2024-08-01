@@ -1,9 +1,10 @@
 
 import {useState} from "react";
-import {axios} from "axios";
-import {Navigate} from "react-router-dom";
+import axios from "axios";
+import { Navigate } from "react-router-dom";
 import Button from 'react-bootstrap/Button';
 import Container from 'react-bootstrap/Container';
+import Form from 'react-bootstrap/Form';
 
 export function Register(){
     const [username, setUsername] = useState('');
@@ -15,7 +16,7 @@ export function Register(){
 
     function submitCredentials(evt){
         evt.preventDefault();
-        const userCredentials = {usename: username, email: email, password: password};
+        const userCredentials = {username: username, email: email, password: password};
         axios.post('/api/user/register', userCredentials, {
                 headers: {
                     "Content-Type": "application/json",
@@ -39,8 +40,6 @@ export function Register(){
 
             <Container fluid>
 
-                <p> Please enter a username, email, and password to register </p>
-
                 <div className="form-container" style={{
                     position: 'absolute', left: '50%', top: '50%',
                     transform: 'translate(-50%, -50%)',
@@ -48,37 +47,42 @@ export function Register(){
                     padding: '20px'
                 }}>
 
-                    ${isError ? null : <Navigate to="/register/success" replace={true}/>}
+                    {isError ? null : <Navigate to="/login" replace={true}/>}
 
-                    <form onSubmit={submitCredentials}>
+                    <Form onSubmit={submitCredentials}>
+
+                        <p> Please enter a username, email, and password to register </p>
 
                         <fieldset>
                             <legend>Username</legend>
-                            <input type="submit" value={username} onInput={(event) => setEmail(event.target.value)}/>
+                            <Form.Control type="text" value={username}
+                                          onInput={(event) => setUsername(event.target.value)}/>
                         </fieldset>
 
                         <fieldset>
                             <legend>Email</legend>
-                            <input type="submit" value={email} onInput={(event) => setEmail(event.target.value)}/>
+                            <Form.Control type="email" value={email}
+                                          onInput={(event) => setEmail(event.target.value)}/>
                         </fieldset>
 
 
                         <fieldset>
                             <legend>Password</legend>
-                            <input type="submit" value={password} onInput={(event) => setPassword(event.target.value)}/>
+                            <Form.Control type="password" value={password}
+                                          onInput={(event) => setPassword(event.target.value)}/>
                         </fieldset>
 
-                        ${password !== '' ? (<fieldset>
-                        <legend>Confirm Password</legend>
-                        <input type="submit" value={confirmPassword}
-                               onInput={(event) => setConfirmPassword(event.target.value)}/>
-                    </fieldset>) : null};
+                        {password !== '' ? (<fieldset>
+                            <legend>Confirm Password</legend>
+                            <Form.Control type="submit" value={confirmPassword}
+                                          onInput={(event) => setConfirmPassword(event.target.value)}/>
+                        </fieldset>) : null}
 
-                        <Button variant="success">Register</Button>{' '}
+                        <Button variant="success" style={{marginTop: '10px', marginBottom: '10px'}}>Register</Button>{' '}
 
-                    </form>
+                    </Form>
 
-                    <p> ${status} </p>
+                    <p> {status} </p>
 
                 </div>
 

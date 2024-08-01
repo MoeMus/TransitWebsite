@@ -5,10 +5,9 @@ import {useState} from "react";
 import Button from "react-bootstrap/Button";
 export function RegistrationPage (){
 
-    const navigate = useNavigate();
-
+    const [register, setRegister] = useState(false)
   function handleClick() {
-    navigate("/signup");
+    setRegister(true);
   }
 
 
@@ -31,6 +30,7 @@ export function RegistrationPage (){
 
                 <Button onClick={handleClick}> Sign Up </Button>
 
+                {register ? <Navigate to='/signup' replace={true} /> : null}
             </Container>
 
 

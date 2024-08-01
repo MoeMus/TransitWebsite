@@ -1,5 +1,5 @@
 
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import axios from "axios";
 import { Navigate } from "react-router-dom";
 import Button from 'react-bootstrap/Button';
@@ -13,17 +13,41 @@ export function Register(){
     const [email, setEmail] = useState('');
     const [status, setStatus] = useState('');
     const [isError, setIsError] = useState(false);
+    const [isApproved, setIsApproved] = useState(false)
 
+    useEffect(()=>{
+        if(confirmPassword !== password){
+            setStatus("Passwords must match");
+            setIsError(true);
+        } else if (password === ''){
+            setStatus("Password must be entered");
+            setIsError(true);
+        } else {
+            setIsError(false);
+            setStatus('');
+        }
+        disableButton();
+
+    }, )
+
+    function disableButton(){
+        if(isError){
+            document.querySelector('.button').setAttribute('disabled', '');
+        } else {
+            document.querySelector('.button').removeAttribute('disabled');
+        }
+    }
     function submitCredentials(evt){
         evt.preventDefault();
         const userCredentials = {username: username, email: email, password: password};
-        axios.post('/api/user/register', userCredentials, {
+        axios.post('http://127.0.0.1:8000/api/user/register/', userCredentials, {
+                method: 'post',
                 headers: {
                     "Content-Type": "application/json",
                 },
                 withCredentials: true
         }).then(() => {
-
+            setIsApproved(true)
         }).catch((error)=>{
              if (error.response) {
                 setStatus(`Error: ${error.response.status} - ${error.response.data.message}`);
@@ -47,7 +71,7 @@ export function Register(){
                     padding: '20px'
                 }}>
 
-                    {isError ? null : <Navigate to="/login" replace={true}/>}
+                    {isApproved ? <Navigate to="/login" replace={true}/> : null }
 
                     <Form onSubmit={submitCredentials}>
 
@@ -74,11 +98,11 @@ export function Register(){
 
                         {password !== '' ? (<fieldset>
                             <legend>Confirm Password</legend>
-                            <Form.Control type="submit" value={confirmPassword}
+                            <Form.Control type="password" value={confirmPassword}
                                           onInput={(event) => setConfirmPassword(event.target.value)}/>
                         </fieldset>) : null}
 
-                        <Button variant="success" style={{marginTop: '10px', marginBottom: '10px'}}>Register</Button>{' '}
+                        <Button className='button' variant="success" style={{marginTop: '10px', marginBottom: '10px'}}>Register</Button>{' '}
 
                     </Form>
 

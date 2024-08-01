@@ -15,17 +15,21 @@ export function RegistrationPage (){
     return(
         <>
             <Container fluid style={{
-                width: '500px'
-            }}>
+                    display: 'flex',
+                    justifyContent: 'center',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+
+                }}>
 
                 {/*Change name once we have decided on it*/}
                 <h1> Welcome to SFU Transit App </h1>
 
-                <Login />
+                <div>
+                    <Login />
+                </div>
 
                 <Button onClick={handleClick}> Sign Up </Button>
-
-
 
             </Container>
 

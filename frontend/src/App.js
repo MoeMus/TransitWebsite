@@ -23,13 +23,8 @@ function App() {
 
           <Navigation isAuthenticated={isAuth}/>
 
-
-
-
-
-
-
           {isAuth ? null: <Navigate to="/registration" replace={true} /> }
+
 
           {/*When components are created, make the routers here*/}
           <Routes>

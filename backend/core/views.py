@@ -1,6 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST, require_http_methods, require_GET
 from rest_framework import status
 from rest_framework.exceptions import ParseError
@@ -26,7 +27,7 @@ class UserView(APIView):
     permission_classes = (IsAuthenticated,)
 
     # Retrieve user info if logged in
-    # Uses query string with keys 'username' and 'email
+    # Uses query string with keys 'username' and 'email'
     def get(self, request):
         username = request.query_params.get('username')
         email = request.query_params.get('email')

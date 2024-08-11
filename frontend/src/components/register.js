@@ -19,29 +19,57 @@ export function Register(){
         if(confirmPassword !== password){
             setStatus("Passwords must match");
             setIsError(true);
-        } else if (password === ''){
+        } else if (username === ''){
+            setStatus("Username must be entered");
+            setIsError(true);
+        } else if (email === ''){
+            setStatus("Email must be entered");
+            setIsError(true);
+        }else if (password === ''){
             setStatus("Password must be entered");
             setIsError(true);
         } else {
             setIsError(false);
             setStatus('');
         }
-        disableButton();
+        changeButton();
 
     }, )
 
-    function disableButton(){
+
+    function changeButton(){
         if(isError){
             document.querySelector('.button').setAttribute('disabled', '');
         } else {
             document.querySelector('.button').removeAttribute('disabled');
         }
     }
+
+    function loginUser( userCredentials ){
+
+        axios.post('http://127.0.0.1:8000/token/', userCredentials, {
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                withCredentials: true
+            }).then(()=>{
+
+            }).catch((error)=>{
+                if (error.response) {
+                setStatus(`Error: ${error.response.status} - ${error.response.data.message}`);
+                } else {
+                    setStatus(`Error: ${error.message}`);
+                }
+                setIsError(true);
+            })
+
+    }
+
     function submitCredentials(evt){
         evt.preventDefault();
         const userCredentials = {username: username, email: email, password: password};
         axios.post('http://127.0.0.1:8000/api/user/register/', userCredentials, {
-                method: 'post',
+                method: 'POST',
                 headers: {
                     "Content-Type": "application/json",
                 },
@@ -102,7 +130,7 @@ export function Register(){
                                           onInput={(event) => setConfirmPassword(event.target.value)}/>
                         </fieldset>) : null}
 
-                        <Button className='button' variant="success" style={{marginTop: '10px', marginBottom: '10px'}}>Register</Button>{' '}
+                        <Button className='button' type="submit" variant="success" style={{marginTop: '10px', marginBottom: '10px'}}>Register</Button>{' '}
 
                     </Form>
 

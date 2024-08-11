@@ -5,7 +5,7 @@ import { Navigate } from "react-router-dom";
 import Button from 'react-bootstrap/Button';
 import Container from 'react-bootstrap/Container';
 import Form from 'react-bootstrap/Form';
-
+import apiClient from "../configAxios";
 export function Register(){
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -47,7 +47,7 @@ export function Register(){
 
     async function loginUser( userCredentials ){
         try{
-            const response = await axios.post('http://127.0.0.1:8000/token/', userCredentials, {
+            const response = await apiClient.post('http://127.0.0.1:8000/token/', userCredentials, {
                 headers: {
                     "Content-Type": "application/json",
                 },
@@ -57,10 +57,12 @@ export function Register(){
                 throw new Error(response.data);
             }
             const {data} = response;
-            localStorage.clear();
-            localStorage.setItem('access_token', data.access);
-            localStorage.setItem('refresh_token', data.refresh);
+            sessionStorage.clear();
+            sessionStorage.setItem('access_token', data.access);
+            sessionStorage.setItem('refresh_token', data.refresh);
             setIsApproved(true);
+            apiClient.defaults.headers.common['Authorization'] = `Bearer ${data.access}`;
+
         } catch (err){
             throw err;
         }
@@ -69,7 +71,7 @@ export function Register(){
     function submitCredentials(evt){
         evt.preventDefault();
         const userCredentials = {username: username, email: email, password: password};
-        axios.post('http://127.0.0.1:8000/api/user/register/', userCredentials, {
+        apiClient.post('http://127.0.0.1:8000/api/user/register/', userCredentials, {
                 method: 'POST',
                 headers: {
                     "Content-Type": "application/json",

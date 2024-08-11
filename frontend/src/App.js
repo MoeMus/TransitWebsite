@@ -13,7 +13,7 @@ function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-     if (localStorage.getItem('access_token') !== null) {
+     if (sessionStorage.getItem('access_token') !== null) {
         setIsAuth(true);
      } else {
          setIsAuth(false);
@@ -36,6 +36,7 @@ function App() {
 
           {/*When components are created, make the routers here*/}
           <Routes>
+              <Route path="/" element={<App />} />
               <Route path="/dashboard" element={<Dashboard />}/>
               <Route path="/signup" element={<Register />} />
               <Route path="/registration" element={<RegistrationPage />}/>

@@ -1,5 +1,6 @@
 import axios from "axios";
 import {useState} from "react";
+import apiClient from '../configAxios';
 
 
 export function Login(){
@@ -18,7 +19,7 @@ export function Login(){
 
         try{
              //Send credentials to retrieve access and login tokens at /token/
-            const response = await axios.post('http://127.0.0.1:8000/token/', userCredentials, {
+            const response = await apiClient.post('http://127.0.0.1:8000/token/', userCredentials, {
                 headers: {
                     "Content-Type": "application/json",
                 },
@@ -32,12 +33,11 @@ export function Login(){
             }
 
             const {data} = response;
-            localStorage.clear();
-            localStorage.setItem('access_token', data.access);
-            localStorage.setItem('refresh_token', data.refresh);
+            sessionStorage.clear();
+            sessionStorage.setItem('access_token', data.access);
+            sessionStorage.setItem('refresh_token', data.refresh);
 
-            //Require that all axios requests also contain the access token in order to send authorized requests
-            axios.defaults.headers.common['Authorization'] = `Bearer ${data.access}`
+            apiClient.defaults.headers.common['Authorization'] = `Bearer ${data.access}`;
 
             window.location.href = '/account'
         } catch (err){

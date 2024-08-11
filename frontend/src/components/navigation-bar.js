@@ -5,8 +5,19 @@ import 'bootstrap/dist/css/bootstrap.css';
 import {useNavigate} from "react-router-dom";
 import apiClient from "../configAxios";
 
-export function Navigation(isAuthenticated){
+export function Navigation(){
     let navigate = useNavigate();
+    const [isAuth, setIsAuth] = useState(false);
+
+    useEffect(() => {
+        let token = sessionStorage.getItem('access_token');
+        if(token !== null){
+            setIsAuth(true);
+        } else {
+            setIsAuth(false);
+        }
+    }, []);
+
     function logout(){
 
         const request = {access_token: sessionStorage.getItem('access_token'), refresh_token: sessionStorage.getItem('refresh_token')}
@@ -30,20 +41,20 @@ export function Navigation(isAuthenticated){
 
         <>
 
-            <Navbar bg="dark" variant={"dark"}>
+            <Navbar bg="light" variant={"light"}>
 
-                <Navbar.Brand> SFU Transit app </Navbar.Brand>
+                <Navbar.Brand style={{marginLeft: '10px'}}> SFU Transit app </Navbar.Brand>
 
                 <Nav className="me-auto">
-                    {isAuthenticated ? <Nav.Link href="/">Home</Nav.Link> : null}
+                    {isAuth ?  <Nav.Link href="/">Home</Nav.Link> : null }
                 </Nav>
 
                 <Nav>
-                    {isAuthenticated ? <Nav.Link onClick={logout}> Logout</Nav.Link> : null}
+                    {isAuth ? <Nav.Link onClick={logout}> Logout</Nav.Link> : null}
                 </Nav>
 
                 <Nav>
-                    {isAuthenticated ? <Nav.Link href="/account"> Account </Nav.Link> : null}
+                    {isAuth ? <Nav.Link href="/account"> Account </Nav.Link> : null}
                 </Nav>
 
             </Navbar>

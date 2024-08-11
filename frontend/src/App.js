@@ -22,31 +22,23 @@ function App() {
   }, []);
 
   if (loading) {
-      return <div>Loading...</div>; // Or any loading spinner/component
+      return <div>Loading...</div>;
   }
 
   return (
+    <>
+      <Navigation isAuthenticated={isAuth} />
 
-      <>
-
-          <Navigation isAuthenticated={isAuth}/>
-
-          {isAuth ? <Navigate to="/dashboard" replace={true} /> : <Navigate to="/registration" replace={true} /> }
-
-
-          {/*When components are created, make the routers here*/}
-          <Routes>
-              <Route path="/" element={<App />} />
-              <Route path="/dashboard" element={<Dashboard />}/>
-              <Route path="/signup" element={<Register />} />
-              <Route path="/registration" element={<RegistrationPage />}/>
-              <Route path="/login" element={<Login />}/>
-              {/*<Route path="/logout" element={<Logout/>}/>*/}
-              {/*<Route path="/welcome" element={<WelcomePage />} />*/}
-          </Routes>
-      </>
-
-
+      <Routes>
+        <Route path="/" element={isAuth ? <Navigate to="/dashboard" replace={true} /> : <Navigate to="/registration" replace={true} />} />
+        <Route path="/dashboard" element={isAuth ? <Dashboard /> : <Navigate to="/registration" replace={true} />} />
+        <Route path="/signup" element={<Register />} />
+        <Route path="/registration" element={<RegistrationPage />} />
+        <Route path="/login" element={<Login />} />
+        {/* Uncomment and add other routes as needed */}
+        {/* <Route path="/welcome" element={<WelcomePage />} /> */}
+      </Routes>
+    </>
   );
 }
 

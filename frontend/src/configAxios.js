@@ -1,4 +1,3 @@
-// src/axiosConfig.js
 import axios from 'axios';
 
 // Create an Axios instance

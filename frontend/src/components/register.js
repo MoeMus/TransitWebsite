@@ -1,6 +1,5 @@
 import '../styles/loginStyles.css';
 import {useEffect, useState} from "react";
-import axios from "axios";
 import { Navigate } from "react-router-dom";
 import Button from 'react-bootstrap/Button';
 import Container from 'react-bootstrap/Container';
@@ -48,9 +47,6 @@ export function Register(){
     async function loginUser( userCredentials ){
         try{
             const response = await apiClient.post('http://127.0.0.1:8000/token/', userCredentials, {
-                headers: {
-                    "Content-Type": "application/json",
-                },
                 withCredentials: true
             });
             if(response.status !== 200){
@@ -73,9 +69,6 @@ export function Register(){
         const userCredentials = {username: username, email: email, password: password};
         apiClient.post('http://127.0.0.1:8000/api/user/register/', userCredentials, {
                 method: 'POST',
-                headers: {
-                    "Content-Type": "application/json",
-                },
                 withCredentials: true
         }).then(() => {
             loginUser(userCredentials);
@@ -106,10 +99,7 @@ export function Register(){
 
                     <Form onSubmit={submitCredentials}>
 
-                        <p style={{
-                            fontSize: '30px',
-                            marginBottom: '40px'
-                        }}> Please enter a username, email, and password to register </p>
+                        <p className="Auth-form-title"> Please enter a username, email, and password to register </p>
 
                         <fieldset>
                             <legend className='input-text'>Username</legend>
@@ -140,7 +130,9 @@ export function Register(){
 
                     </Form>
 
-                    <p> {status} </p>
+                    <p style={{
+                        color: "indianred"
+                    }}> {status} </p>
 
                 </div>
 

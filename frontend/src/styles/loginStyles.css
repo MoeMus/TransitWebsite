@@ -1,2 +1,24 @@
 
+.input-text{
+    font-size: medium;
+}
 
+.welcome-title{
+    margin: 50px;
+    font-size: xxx-large;
+}
+
+.Auth-form-container{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    padding: 20px;
+    margin: 40px;
+    width: 800px;
+}
+
+.Auth-form-content{
+    margin-bottom: 40px;
+}

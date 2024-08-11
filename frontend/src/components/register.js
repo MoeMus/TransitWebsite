@@ -1,4 +1,4 @@
-
+import '../styles/loginStyles.css';
 import {useEffect, useState} from "react";
 import axios from "axios";
 import { Navigate } from "react-router-dom";
@@ -45,24 +45,25 @@ export function Register(){
         }
     }
 
-    function loginUser( userCredentials ){
-
-        axios.post('http://127.0.0.1:8000/token/', userCredentials, {
+    async function loginUser( userCredentials ){
+        try{
+            const response = await axios.post('http://127.0.0.1:8000/token/', userCredentials, {
                 headers: {
                     "Content-Type": "application/json",
                 },
                 withCredentials: true
-            }).then(()=>{
-
-            }).catch((error)=>{
-                if (error.response) {
-                setStatus(`Error: ${error.response.status} - ${error.response.data.message}`);
-                } else {
-                    setStatus(`Error: ${error.message}`);
-                }
-                setIsError(true);
-            })
-
+            });
+            if(response.status !== 200){
+                throw new Error(response.data);
+            }
+            const {data} = response;
+            localStorage.clear();
+            localStorage.setItem('access_token', data.access);
+            localStorage.setItem('refresh_token', data.refresh);
+            setIsApproved(true);
+        } catch (err){
+            throw err;
+        }
     }
 
     function submitCredentials(evt){
@@ -75,7 +76,7 @@ export function Register(){
                 },
                 withCredentials: true
         }).then(() => {
-            setIsApproved(true)
+            loginUser(userCredentials);
         }).catch((error)=>{
              if (error.response) {
                 setStatus(`Error: ${error.response.status} - ${error.response.data.message}`);
@@ -99,33 +100,36 @@ export function Register(){
                     padding: '20px'
                 }}>
 
-                    {isApproved ? <Navigate to="/login" replace={true}/> : null }
+                    {isApproved ? <Navigate to="/welcome" replace={true}/> : null }
 
                     <Form onSubmit={submitCredentials}>
 
-                        <p> Please enter a username, email, and password to register </p>
+                        <p style={{
+                            fontSize: '30px',
+                            marginBottom: '40px'
+                        }}> Please enter a username, email, and password to register </p>
 
                         <fieldset>
-                            <legend>Username</legend>
+                            <legend className='input-text'>Username</legend>
                             <Form.Control type="text" value={username}
                                           onInput={(event) => setUsername(event.target.value)}/>
                         </fieldset>
 
                         <fieldset>
-                            <legend>Email</legend>
+                            <legend className='input-text'>Email</legend>
                             <Form.Control type="email" value={email}
                                           onInput={(event) => setEmail(event.target.value)}/>
                         </fieldset>
 
 
                         <fieldset>
-                            <legend>Password</legend>
+                            <legend className='input-text'>Password</legend>
                             <Form.Control type="password" value={password}
                                           onInput={(event) => setPassword(event.target.value)}/>
                         </fieldset>
 
                         {password !== '' ? (<fieldset>
-                            <legend>Confirm Password</legend>
+                            <legend className='input-text'>Confirm Password</legend>
                             <Form.Control type="password" value={confirmPassword}
                                           onInput={(event) => setConfirmPassword(event.target.value)}/>
                         </fieldset>) : null}

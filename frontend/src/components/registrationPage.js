@@ -3,6 +3,7 @@ import {Login} from "./login-form";
 import {Navigate, useNavigate} from 'react-router-dom';
 import {useState} from "react";
 import Button from "react-bootstrap/Button";
+import '../styles/loginStyles.css';
 export function RegistrationPage (){
 
     const [register, setRegister] = useState(false)
@@ -22,7 +23,7 @@ export function RegistrationPage (){
                 }}>
 
                 {/*Change name once we have decided on it*/}
-                <h1> Welcome to SFU Transit App </h1>
+                <h1 className='welcome-title'> Welcome to SFU Transit App </h1>
 
                 <div>
                     <Login />

@@ -19,11 +19,11 @@ export function Navigation(isAuthenticated){
                 </Nav>
 
                 <Nav>
-                    {isAuthenticated ? <Nav.Link href="/logout">Logout</Nav.Link>: null}
+                    {isAuthenticated ? <Nav.Link href="/logout">Logout</Nav.Link> : null}
                 </Nav>
 
                 <Nav>
-                    {isAuthenticated ? <Nav.Link href="/account"> Account </Nav.Link>: null}
+                    {isAuthenticated ? <Nav.Link href="/account"> Account </Nav.Link> : null}
                 </Nav>
 
             </Navbar>

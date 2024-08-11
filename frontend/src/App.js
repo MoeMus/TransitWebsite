@@ -5,17 +5,25 @@ import {Login} from "./components/login-form";
 import React, {useEffect, useState} from "react";
 import {Register} from "./components/register";
 import {RegistrationPage} from "./components/registrationPage";
+import {Dashboard} from "./components/dashboard";
 
 function App() {
 
   const [isAuth, setIsAuth] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
      if (localStorage.getItem('access_token') !== null) {
         setIsAuth(true);
-      }
-    }, [isAuth]);
+     } else {
+         setIsAuth(false);
+     }
+     setLoading(false);
+  }, []);
 
+  if (loading) {
+      return <div>Loading...</div>; // Or any loading spinner/component
+  }
 
   return (
 
@@ -23,16 +31,17 @@ function App() {
 
           <Navigation isAuthenticated={isAuth}/>
 
-          {isAuth ? null: <Navigate to="/registration" replace={true} /> }
+          {isAuth ? <Navigate to="/dashboard" replace={true} /> : <Navigate to="/registration" replace={true} /> }
 
 
           {/*When components are created, make the routers here*/}
           <Routes>
-              {/*<Route path="/" element={<Home/>}/>*/}
+              <Route path="/dashboard" element={<Dashboard />}/>
               <Route path="/signup" element={<Register />} />
               <Route path="/registration" element={<RegistrationPage />}/>
-              <Route path="/login" element={<Login/>}/>
+              <Route path="/login" element={<Login />}/>
               {/*<Route path="/logout" element={<Logout/>}/>*/}
+              {/*<Route path="/welcome" element={<WelcomePage />} />*/}
           </Routes>
       </>
 

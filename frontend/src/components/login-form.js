@@ -50,16 +50,7 @@ export function Login(){
     return (
 
         <>
-            <div className="Auth-form-container" style={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                height: '100%', // Ensure this takes the full height of the parent container
-                boxShadow: '0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)',
-                padding: '20px',
-                margin: '40px',
-                width: "800px"
-            }}>
+            <div className="Auth-form-container">
 
                 <form onSubmit={submit} className="Auth-form">
 

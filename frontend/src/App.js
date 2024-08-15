@@ -38,7 +38,7 @@ function App() {
         <Route path="/registration" element={<RegistrationPage />} />
         <Route path="/login" element={<Login />} />
         {/* Uncomment and add other routes as needed */}
-        {/* <Route path="/welcome" element={<WelcomePage />} /> */}
+        {/* <Route path="/welcome" element={ isAuth ? <WelcomePage /> : <Navigate to="/registration" replace={true} /> } />*/}
       </Routes>
     </>
   );

@@ -24,13 +24,11 @@ export function Register(){
             setStatus("Passwords must match");
             setIsError(true);
         } else if (username === ''){
-            setStatus("Username must be entered");
             setIsError(true);
         } else if (email === ''){
-            setStatus("Email must be entered");
             setIsError(true);
         }else if (password === ''){
-            setStatus("Password must be entered");
+            setStatus(' ');
             setIsError(true);
         } else {
             setIsError(false);

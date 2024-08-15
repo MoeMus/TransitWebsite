@@ -1,16 +1,18 @@
 import './App.css';
 import {Navigate, Route, Routes} from "react-router-dom";
 import {Navigation} from "./components/navigation-bar";
-import {Login} from "./components/login-form";
+import {Login} from "./login-registration-page/login-form";
 import React, {useEffect, useState} from "react";
-import {Register} from "./components/register";
-import {RegistrationPage} from "./components/registrationPage";
+import {Register} from "./login-registration-page/register";
+import {RegistrationPage} from "./login-registration-page/registrationPage";
 import {Dashboard} from "./components/dashboard";
-
+import refreshAccessToken from "./configurations/refreshAccessToken";
 function App() {
 
   const [isAuth, setIsAuth] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  refreshAccessToken(); //Refreshes access and refresh tokens before they expire
 
   useEffect(() => {
      if (sessionStorage.getItem('access_token') !== null) {

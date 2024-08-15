@@ -3,12 +3,14 @@ import Navbar from 'react-bootstrap/Navbar';
 import React, { useState, useEffect} from 'react';
 import 'bootstrap/dist/css/bootstrap.css';
 import {useNavigate} from "react-router-dom";
-import apiClient from "../configAxios";
+import apiClient from "../configurations/configAxios";
+import {useDispatch} from "react-redux";
+import updateAccessToken from "../storeConfig/updateAccessToken";
 
 export function Navigation(){
-    let navigate = useNavigate();
+    const navigate = useNavigate();
     const [isAuth, setIsAuth] = useState(false);
-
+    const dispatch = useDispatch();
     useEffect(() => {
         let token = sessionStorage.getItem('access_token');
         if(token !== null){
@@ -28,6 +30,7 @@ export function Navigation(){
         }).then(()=>{
             sessionStorage.removeItem('access_token');
             sessionStorage.removeItem('refresh_token');
+            dispatch(updateAccessToken());
             navigate('/');
             window.location.reload();
         })

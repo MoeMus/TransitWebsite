@@ -24,9 +24,6 @@ export function Navigation(){
 
         apiClient.post("http://127.0.0.1:8000/api/logout/", request,{
             method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
             withCredentials: true
         }).then(()=>{
             sessionStorage.removeItem('access_token');

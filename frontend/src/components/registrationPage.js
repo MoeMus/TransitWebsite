@@ -6,6 +6,7 @@ import Button from "react-bootstrap/Button";
 export function RegistrationPage (){
 
     const [register, setRegister] = useState(false)
+
   function handleClick() {
     setRegister(true);
   }

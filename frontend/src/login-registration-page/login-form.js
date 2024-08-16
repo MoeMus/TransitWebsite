@@ -1,12 +1,15 @@
 import {useState} from "react";
-import apiClient from '../configAxios';
+import apiClient from '../configurations/configAxios';
 import {useNavigate} from "react-router-dom";
-
+import {useDispatch} from "react-redux";
+import updateAccessToken from "../storeConfig/updateAccessToken";
 export function Login(){
 
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
-    let navigate = useNavigate();
+
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
     const submit = async e =>{
 
         e.preventDefault()
@@ -32,7 +35,7 @@ export function Login(){
             sessionStorage.clear();
             sessionStorage.setItem('access_token', data.access);
             sessionStorage.setItem('refresh_token', data.refresh);
-
+            dispatch(updateAccessToken());
             apiClient.defaults.headers.common['Authorization'] = `Bearer ${data.access}`;
 
             navigate("/dashboard");

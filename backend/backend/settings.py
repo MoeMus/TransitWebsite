@@ -103,7 +103,7 @@ pw = os.getenv(key)
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
-        "NAME": 'python_database',
+        "NAME": 'racoon_database',
         'USER': 'root',
         'PASSWORD': pw,  # Input your MySQL password here
         'HOST': 'localhost',

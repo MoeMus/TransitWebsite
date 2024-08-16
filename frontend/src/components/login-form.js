@@ -1,12 +1,12 @@
-import axios from "axios";
 import {useState} from "react";
-
+import apiClient from '../configAxios';
+import {useNavigate} from "react-router-dom";
 
 export function Login(){
 
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
-
+    let navigate = useNavigate();
     const submit = async e =>{
 
         e.preventDefault()
@@ -18,28 +18,26 @@ export function Login(){
 
         try{
              //Send credentials to retrieve access and login tokens at /token/
-            const response = await axios.post('http://127.0.0.1:8000/token/', userCredentials, {
-                headers: {
-                    "Content-Type": "application/json",
-                },
+            const response = await apiClient.post('http://127.0.0.1:8000/token/', userCredentials, {
                 withCredentials: true
             });
 
-            //Clear local storage in the browser and update the access and refresh tokens there
 
             if(response.status !== 200){
-                throw new Error("Incorrect username of password");
+                throw new Error("Incorrect username or password");
             }
 
+            //Clear local storage in the browser and update the access and refresh tokens there
             const {data} = response;
-            localStorage.clear();
-            localStorage.setItem('access_token', data.access);
-            localStorage.setItem('refresh_token', data.refresh);
+            sessionStorage.clear();
+            sessionStorage.setItem('access_token', data.access);
+            sessionStorage.setItem('refresh_token', data.refresh);
 
-            //Require that all axios requests also contain the access token in order to send authorized requests
-            axios.defaults.headers.common['Authorization'] = `Bearer ${data.access}`
+            apiClient.defaults.headers.common['Authorization'] = `Bearer ${data.access}`;
 
-            window.location.href = '/account'
+            navigate("/dashboard");
+            window.location.reload();
+
         } catch (err){
             console.log(err);
         }
@@ -50,28 +48,16 @@ export function Login(){
     return (
 
         <>
-            <div className="Auth-form-container" style={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                height: '100%', // Ensure this takes the full height of the parent container
-                boxShadow: '0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)',
-                padding: '20px',
-                margin: '40px',
-                width: "800px"
-            }}>
+
+            <div className="Auth-form-container">
 
                 <form onSubmit={submit} className="Auth-form">
 
                     <div className="Auth-form-content">
 
-                        <h3 className="Auth-form-title" style={{margin: '50px',
-                            marginBottom: '50px',
-                            fontWeight: 'bolder'}
-                        }>
+                        <p className="Auth-form-title">
                             Enter your username and password to continue
-
-                        </h3>
+                        </p>
 
                         <div className="form-group mt-3">
 

@@ -1,11 +1,10 @@
-
+import '../styles/loginStyles.css';
 import {useEffect, useState} from "react";
-import axios from "axios";
 import { Navigate } from "react-router-dom";
 import Button from 'react-bootstrap/Button';
 import Container from 'react-bootstrap/Container';
 import Form from 'react-bootstrap/Form';
-
+import apiClient from "../configAxios";
 export function Register(){
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -19,35 +18,60 @@ export function Register(){
         if(confirmPassword !== password){
             setStatus("Passwords must match");
             setIsError(true);
-        } else if (password === ''){
+        } else if (username === ''){
+            setStatus("Username must be entered");
+            setIsError(true);
+        } else if (email === ''){
+            setStatus("Email must be entered");
+            setIsError(true);
+        }else if (password === ''){
             setStatus("Password must be entered");
             setIsError(true);
         } else {
             setIsError(false);
             setStatus('');
         }
-        disableButton();
+        changeButton();
 
     }, )
 
-    function disableButton(){
+
+    function changeButton(){
         if(isError){
             document.querySelector('.button').setAttribute('disabled', '');
         } else {
             document.querySelector('.button').removeAttribute('disabled');
         }
     }
+
+    async function loginUser( userCredentials ){
+        try{
+            const response = await apiClient.post('http://127.0.0.1:8000/token/', userCredentials, {
+                withCredentials: true
+            });
+            if(response.status !== 200){
+                throw new Error(response.data);
+            }
+            const {data} = response;
+            sessionStorage.clear();
+            sessionStorage.setItem('access_token', data.access);
+            sessionStorage.setItem('refresh_token', data.refresh);
+            setIsApproved(true);
+            apiClient.defaults.headers.common['Authorization'] = `Bearer ${data.access}`;
+
+        } catch (err){
+            throw err;
+        }
+    }
+
     function submitCredentials(evt){
         evt.preventDefault();
         const userCredentials = {username: username, email: email, password: password};
-        axios.post('http://127.0.0.1:8000/api/user/register/', userCredentials, {
-                method: 'post',
-                headers: {
-                    "Content-Type": "application/json",
-                },
+        apiClient.post('http://127.0.0.1:8000/api/user/register/', userCredentials, {
+                method: 'POST',
                 withCredentials: true
         }).then(() => {
-            setIsApproved(true)
+            loginUser(userCredentials);
         }).catch((error)=>{
              if (error.response) {
                 setStatus(`Error: ${error.response.status} - ${error.response.data.message}`);
@@ -71,42 +95,44 @@ export function Register(){
                     padding: '20px'
                 }}>
 
-                    {isApproved ? <Navigate to="/login" replace={true}/> : null }
+                    {isApproved ? <Navigate to="/welcome" replace={true}/> : null }
 
                     <Form onSubmit={submitCredentials}>
 
-                        <p> Please enter a username, email, and password to register </p>
+                        <p className="Auth-form-title"> Please enter a username, email, and password to register </p>
 
                         <fieldset>
-                            <legend>Username</legend>
+                            <legend className='input-text'>Username</legend>
                             <Form.Control type="text" value={username}
                                           onInput={(event) => setUsername(event.target.value)}/>
                         </fieldset>
 
                         <fieldset>
-                            <legend>Email</legend>
+                            <legend className='input-text'>Email</legend>
                             <Form.Control type="email" value={email}
                                           onInput={(event) => setEmail(event.target.value)}/>
                         </fieldset>
 
 
                         <fieldset>
-                            <legend>Password</legend>
+                            <legend className='input-text'>Password</legend>
                             <Form.Control type="password" value={password}
                                           onInput={(event) => setPassword(event.target.value)}/>
                         </fieldset>
 
                         {password !== '' ? (<fieldset>
-                            <legend>Confirm Password</legend>
+                            <legend className='input-text'>Confirm Password</legend>
                             <Form.Control type="password" value={confirmPassword}
                                           onInput={(event) => setConfirmPassword(event.target.value)}/>
                         </fieldset>) : null}
 
-                        <Button className='button' variant="success" style={{marginTop: '10px', marginBottom: '10px'}}>Register</Button>{' '}
+                        <Button className='button' type="submit" variant="success" style={{marginTop: '10px', marginBottom: '10px'}}>Register</Button>{' '}
 
                     </Form>
 
-                    <p> {status} </p>
+                    <p style={{
+                        color: "indianred"
+                    }}> {status} </p>
 
                 </div>
 

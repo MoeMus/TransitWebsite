@@ -5,7 +5,7 @@ import {Login} from "./login-registration-page/login-form";
 import React, {useEffect, useState} from "react";
 import {Register} from "./login-registration-page/register";
 import {RegistrationPage} from "./login-registration-page/registrationPage";
-import {Dashboard} from "./components/dashboard";
+import {Dashboard} from "./dashboard/dashboard";
 import refreshAccessToken from "./configurations/refreshAccessToken";
 function App() {
 

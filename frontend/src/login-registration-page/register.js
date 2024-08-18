@@ -57,6 +57,7 @@ export function Register(){
             }
             const {data} = response;
             sessionStorage.clear();
+            sessionStorage.setItem('user', userCredentials.username);
             sessionStorage.setItem('access_token', data.access);
             sessionStorage.setItem('refresh_token', data.refresh);
             dispatch(updateAccessToken());

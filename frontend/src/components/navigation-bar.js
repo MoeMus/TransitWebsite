@@ -28,8 +28,7 @@ export function Navigation(){
             method: "POST",
             withCredentials: true
         }).then(()=>{
-            sessionStorage.removeItem('access_token');
-            sessionStorage.removeItem('refresh_token');
+            sessionStorage.clear();
             dispatch(updateAccessToken());
             navigate('/');
             window.location.reload();

@@ -33,6 +33,7 @@ export function Login(){
             //Clear local storage in the browser and update the access and refresh tokens there
             const {data} = response;
             sessionStorage.clear();
+            sessionStorage.setItem('user', username);
             sessionStorage.setItem('access_token', data.access);
             sessionStorage.setItem('refresh_token', data.refresh);
             dispatch(updateAccessToken());

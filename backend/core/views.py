@@ -27,18 +27,15 @@ class UserView(APIView):
     permission_classes = (IsAuthenticated,)
 
     # Retrieve user info if logged in
-    # Uses query string with keys 'username' and 'email'
     def get(self, request):
         username = request.query_params.get('username')
-        email = request.query_params.get('email')
 
-        if User.objects.filter(username=username, email=email).exists():
-            current_user = User.objects.filter(username=username, email=email)
+        try:
+            current_user = User.objects.get(username=username)
             serializer = UserSerializer(current_user)
-            jsonUser = serializer.data
-            return Response(jsonUser, status=status.HTTP_200_OK)
-        else:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
 
 class LogoutView(APIView):
@@ -57,13 +54,15 @@ class LogoutView(APIView):
 class RegisterView(APIView):
 
     def post(self, request):
+        if User.objects.filter(username=request.data["username"]).exists():
+            return Response({"error": "This username is already taken"}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "There was an issue processing your request"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 def test_view(request):
@@ -74,13 +73,13 @@ class DeleteUserView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def delete(self, request):
-        if User.objects.filter(username=request.data["username"]).exists():
+        try:
             user = User.objects.get(username=request.data["username"])
             user.delete()
             return Response(status=status.HTTP_200_OK)
 
-        else:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+        except User.DoesNotExist:
+            return Response({"error": "Account not found"}, status=status.HTTP_404_NOT_FOUND)
 
 
 class DeleteAllCoursesView(APIView):
@@ -88,12 +87,12 @@ class DeleteAllCoursesView(APIView):
 
     def delete(self, request):
 
-        if User.objects.filter(username=request.data["username"]).exists():
+        try:
             user = User.objects.get(username=request.data["username"])
             user.courses.all().delete()
             user.save()
             return Response(status=status.HTTP_200_OK)
-        else:
+        except User.DoesNotExist:
             return Response(self, status=status.HTTP_404_NOT_FOUND)
 
 
@@ -104,22 +103,13 @@ class AddCourseView(APIView):
     # Front-end must create this format
     def post(self, request):
 
-
         username = request.data['username']
 
         #If the course doesn't already exist in the database
-        if not Course.objects.filter(name=request.data["courseName"], section_name=request.data["sectionName"]).exists():
+        if not Course.objects.filter(name=request.data["courseName"],
+                                     section_name=request.data["sectionName"]).exists():
 
-            stream = io.BytesIO(request.body)
-            try:
-                data = JSONParser().parse(stream)
-                serialized = CourseSerializer(data=data)
-                if serialized.is_valid():
-                    serialized.save()
-                else:
-                    raise ParseError
-            except ParseError:
-                return Response(status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Course not found"}, status=status.HTTP_404_NOT_FOUND)
 
         courses = Course.objects.filter(name=request.data["courseName"], section_name=request.data["sectionName"])
 
@@ -135,7 +125,6 @@ class AddCourseView(APIView):
 
 
 class DeleteCourseView(APIView):
-
     permission_classes = (IsAuthenticated,)
 
     def delete(self, request):
@@ -152,9 +141,7 @@ class DeleteCourseView(APIView):
 
 
 class GetCourseView(APIView):
-
     permission_classes = (IsAuthenticated,)
-
 
     def get(self, request):
         department = request.query_params.get("department")
@@ -178,4 +165,3 @@ class GetCourseView(APIView):
         except requests.exceptions.RequestException:
 
             return Response(status=status.HTTP_404_NOT_FOUND)
-

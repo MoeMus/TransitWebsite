@@ -4,7 +4,10 @@ import { Navigate } from "react-router-dom";
 import Button from 'react-bootstrap/Button';
 import Container from 'react-bootstrap/Container';
 import Form from 'react-bootstrap/Form';
-import apiClient from "../configAxios";
+import apiClient from "../configurations/configAxios";
+import {useDispatch} from "react-redux";
+import updateAccessToken from "../storeConfig/updateAccessToken";
+
 export function Register(){
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -14,18 +17,18 @@ export function Register(){
     const [isError, setIsError] = useState(false);
     const [isApproved, setIsApproved] = useState(false)
 
+    const dispatch = useDispatch();
+
     useEffect(()=>{
         if(confirmPassword !== password){
             setStatus("Passwords must match");
             setIsError(true);
         } else if (username === ''){
-            setStatus("Username must be entered");
             setIsError(true);
         } else if (email === ''){
-            setStatus("Email must be entered");
             setIsError(true);
         }else if (password === ''){
-            setStatus("Password must be entered");
+            setStatus(' ');
             setIsError(true);
         } else {
             setIsError(false);
@@ -54,8 +57,10 @@ export function Register(){
             }
             const {data} = response;
             sessionStorage.clear();
+            sessionStorage.setItem('user', userCredentials.username);
             sessionStorage.setItem('access_token', data.access);
             sessionStorage.setItem('refresh_token', data.refresh);
+            dispatch(updateAccessToken());
             setIsApproved(true);
             apiClient.defaults.headers.common['Authorization'] = `Bearer ${data.access}`;
 

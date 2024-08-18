@@ -37,6 +37,7 @@ class Course(models.Model):
 
 
 class User(AbstractUser):
+    DoesNotExist = None
     Courses = models.ManyToManyField('Course', related_name='users', blank=True)
 
     groups = models.ManyToManyField(

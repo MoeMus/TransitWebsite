@@ -6,8 +6,8 @@ import Button from "react-bootstrap/Button";
 import '../styles/loginStyles.css';
 export function RegistrationPage (){
 
-    let navigate = useNavigate();
 
+    let navigate = useNavigate();
     function handleClick() {
         navigate("/signup");
     }

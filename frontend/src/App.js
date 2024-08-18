@@ -1,16 +1,18 @@
 import './App.css';
 import {Navigate, Route, Routes} from "react-router-dom";
 import {Navigation} from "./components/navigation-bar";
-import {Login} from "./components/login-form";
+import {Login} from "./login-registration-page/login-form";
 import React, {useEffect, useState} from "react";
-import {Register} from "./components/register";
-import {RegistrationPage} from "./components/registrationPage";
-import {Dashboard} from "./components/dashboard";
-
+import {Register} from "./login-registration-page/register";
+import {RegistrationPage} from "./login-registration-page/registrationPage";
+import {Dashboard} from "./dashboard/dashboard";
+import refreshAccessToken from "./configurations/refreshAccessToken";
 function App() {
 
   const [isAuth, setIsAuth] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  refreshAccessToken(); //Refreshes access and refresh tokens before they expire
 
   useEffect(() => {
      if (sessionStorage.getItem('access_token') !== null) {
@@ -36,7 +38,7 @@ function App() {
         <Route path="/registration" element={<RegistrationPage />} />
         <Route path="/login" element={<Login />} />
         {/* Uncomment and add other routes as needed */}
-        {/* <Route path="/welcome" element={<WelcomePage />} /> */}
+        {/* <Route path="/welcome" element={ isAuth ? <WelcomePage /> : <Navigate to="/registration" replace={true} /> } />*/}
       </Routes>
     </>
   );

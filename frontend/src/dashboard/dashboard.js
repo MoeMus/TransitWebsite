@@ -9,7 +9,6 @@ export function Dashboard(){
     const username = sessionStorage.getItem('user');
 
     async function getUserInfo() {
-        console.log(`http://127.0.0.1:8000/user/get/?username=${username}`);
         try {
             const userData = await apiClient.get(`http://127.0.0.1:8000/api/user/get/?username=${username}`, {
                 method: "GET"

@@ -42,8 +42,9 @@ The SFU Transit Web App integrates students' course schedules with transit and d
 ### Front-End
 
 - **React**
-- **Axios** Use this HTTP client?
+- **Axios**
 - **React Router**
+- **React Redux**
 
 ### Back-End
 

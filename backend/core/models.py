@@ -24,7 +24,7 @@ class Course(models.Model):
     department = models.CharField(max_length=100)
     course_number = models.IntegerField()
     professor = models.CharField(max_length=100)
-    section_name = models.CharField(max_length=100, default='D100')  #D100, E200, etc.
+    section_name = models.CharField(max_length=100, default='D100')  # E.g. D100, E200, etc.
     semester = models.CharField(
         max_length=10,
         choices=Semester.choices,

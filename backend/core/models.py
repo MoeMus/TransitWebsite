@@ -36,6 +36,10 @@ class Course(models.Model):
         default=Component.LECTURE # LECTURE is the default component
     )
 
+    # The __str method below makes the Django Course model readable for when you do print(course)
+    def __str__(self):
+        return f"{self.department} {self.course_number} - {self.name} ({self.section_name})"
+
 
 class User(AbstractUser):
     DoesNotExist = None

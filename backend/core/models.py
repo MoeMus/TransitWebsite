@@ -22,7 +22,7 @@ class Course(models.Model):
 
     name = models.CharField(max_length=100)
     department = models.CharField(max_length=100)
-    course_number = models.IntegerField
+    course_number = models.IntegerField()
     professor = models.CharField(max_length=100)
     section_name = models.CharField(max_length=100, default='D100')  #D100, E200, etc.
     semester = models.CharField(

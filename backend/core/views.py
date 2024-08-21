@@ -150,16 +150,15 @@ class GetCourseView(APIView):
         if not department:
             return HttpResponse("The department is required", status=400)
 
+        # Check if the course exists in our database of all courses
+        course = Course.objects.filter(department=department, course_number=number, term=CURRENT_TERM).first()
+        if course:
+            # If the course exists, return it
+            return JsonResponse(CourseSerializer(course).data, status=200)
+
+        # Else, if the course is not found, fetch it from the Course Outline API:
         try:
-            if not number:
-                api_url = f"https://www.sfu.ca/bin/wcm/course-outlines?{CURRENT_YEAR}/{CURRENT_TERM}/{department}"
-            else:
-                api_url = f"https://www.sfu.ca/bin/wcm/course-outlines?{CURRENT_YEAR}/{CURRENT_TERM}/{department}/{number}"
-
-            matching_course = requests.get(api_url)
-            matching_course.raise_for_status()
-
-            return JsonResponse(matching_course.json(), safe=False)
+            api_url = f"https://www.sfu.ca/bin/wcm/course-outlines?{CURRENT_YEAR}/{CURRENT_TERM}/{department}"
 
         except requests.exceptions.RequestException:
 

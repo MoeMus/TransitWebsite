@@ -11,6 +11,8 @@ export function Navigation(){
     const navigate = useNavigate();
     const [isAuth, setIsAuth] = useState(false);
     const dispatch = useDispatch();
+
+
     useEffect(() => {
         let token = sessionStorage.getItem('access_token');
         if(token !== null){

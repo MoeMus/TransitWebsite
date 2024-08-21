@@ -3,14 +3,18 @@ import apiClient from '../configurations/configAxios';
 import {useNavigate} from "react-router-dom";
 import {useDispatch} from "react-redux";
 import updateAccessToken from "../storeConfig/updateAccessToken";
-export function Login(){
+import toast, { Toaster } from 'react-hot-toast';
+
+
+export function Login() {
 
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
 
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const submit = async e =>{
+
+    const submit = async e => {
 
         e.preventDefault()
 
@@ -19,15 +23,15 @@ export function Login(){
             password: password
         }
 
-        try{
-             //Send credentials to retrieve access and login tokens at /token/
+        try {
+            //Send credentials to retrieve access and login tokens at /token/
             const response = await apiClient.post('http://127.0.0.1:8000/token/', userCredentials, {
                 withCredentials: true
             });
 
 
-            if(response.status !== 200){
-                throw new Error("Incorrect username or password");
+            if (response.status !== 200) {
+                throw new Error(" ");
             }
 
             //Clear local storage in the browser and update the access and refresh tokens there
@@ -38,12 +42,12 @@ export function Login(){
             sessionStorage.setItem('refresh_token', data.refresh);
             dispatch(updateAccessToken());
             apiClient.defaults.headers.common['Authorization'] = `Bearer ${data.access}`;
-
             navigate("/dashboard");
             window.location.reload();
-
-        } catch (err){
-            console.log(err);
+        } catch (err) {
+            toast.error("Incorrect Username or Password", {
+                duration: 2000
+            });
         }
 
 
@@ -52,6 +56,11 @@ export function Login(){
     return (
 
         <>
+
+            <Toaster
+                position="top-left"
+                reverseOrder={false}
+            />
 
             <div className="Auth-form-container">
 
@@ -94,7 +103,8 @@ export function Login(){
 
                             <button type="submit" className="btn btn-primary" style={{
                                 width: '120px'
-                            }}> Continue </button>
+                            }}> Continue
+                            </button>
                         </div>
 
                     </div>

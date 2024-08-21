@@ -7,6 +7,8 @@ import Form from 'react-bootstrap/Form';
 import apiClient from "../configurations/configAxios";
 import {useDispatch} from "react-redux";
 import updateAccessToken from "../storeConfig/updateAccessToken";
+import {toast, Toaster} from "react-hot-toast";
+import {Toast} from "react-bootstrap";
 
 export function Register(){
     const [username, setUsername] = useState('');
@@ -53,7 +55,7 @@ export function Register(){
                 withCredentials: true
             });
             if(response.status !== 200){
-                throw new Error(response.data);
+                throw new Error("");
             }
             const {data} = response;
             sessionStorage.clear();
@@ -65,7 +67,9 @@ export function Register(){
             apiClient.defaults.headers.common['Authorization'] = `Bearer ${data.access}`;
 
         } catch (err){
-            throw err;
+            toast.error("Could not create profile", {
+                duration: 2000
+            });
         }
     }
 
@@ -79,17 +83,25 @@ export function Register(){
             loginUser(userCredentials);
         }).catch((error)=>{
              if (error.response) {
-                setStatus(`Error: ${error.response.status} - ${error.response.data.message}`);
+                setStatus(`${error.response.status} - ${error.response.data.message}`);
              } else {
-                setStatus(`Error: ${error.message}`);
+                setStatus(`${error.message}`);
              }
              setIsError(true);
+             toast(status, {
+                 duration: 2000
+             })
         });
     }
 
 
     return(
         <>
+
+            <Toast
+                position="top-left"
+                reverseOrder={false}
+            />
 
             <Container fluid>
 

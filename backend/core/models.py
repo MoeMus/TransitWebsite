@@ -33,7 +33,7 @@ class Course(models.Model):
     component = models.CharField(
         max_length=10,
         choices=Component.choices,
-        default=Component.LAB
+        default=Component.LECTURE # LECTURE is the default component
     )
 
 

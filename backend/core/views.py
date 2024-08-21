@@ -157,7 +157,6 @@ class GetCourseView(APIView):
                 api_url = f"https://www.sfu.ca/bin/wcm/course-outlines?{CURRENT_YEAR}/{CURRENT_TERM}/{department}/{number}"
 
             matching_course = requests.get(api_url)
-
             matching_course.raise_for_status()
 
             return JsonResponse(matching_course.json(), safe=False)

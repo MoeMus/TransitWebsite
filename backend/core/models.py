@@ -18,6 +18,7 @@ class Course(models.Model):
         LAB = "LAB", "Lab"
         TUTORIAL = "TUT", "Tutorial"
         SEMINAR = "SEM", "Seminar"
+        LECTURE = "LEC", "Lecture"
 
     name = models.CharField(max_length=100)
     department = models.CharField(max_length=100)

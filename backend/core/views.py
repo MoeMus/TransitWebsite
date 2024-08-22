@@ -26,6 +26,8 @@ CURRENT_TERM = get_current_semester_code()
 
 # Logging/debugging for Python, using when returning response errors
 logger = logging.getLogger(__name__)
+
+
 class UserView(APIView):
     permission_classes = (IsAuthenticated,)
 

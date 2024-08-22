@@ -159,7 +159,33 @@ class GetCourseView(APIView):
         # Else, if the course is not found, fetch it from the Course Outline API:
         try:
             api_url = f"https://www.sfu.ca/bin/wcm/course-outlines?{CURRENT_YEAR}/{CURRENT_TERM}/{department}"
+            if number:
+                api_url += f"/{number}"
+
+            response = requests.get(api_url)
+            response.raise_for_status()
+
+            course_data = response.json()
+            self.save_course_data(course_data)
+
+            return JsonResponse(course_data, safe=False)
 
         except requests.exceptions.RequestException:
 
             return Response(status=status.HTTP_404_NOT_FOUND)
+
+    # Save a course's information into the database
+    def save_course_data(self, course_data):
+        Course.objects.update_or_create(
+            name=course_data.get("name"),
+            defaults={
+                "department": course_data.get("dept"),
+                "course_number": course_data.get("number"),
+                "section_name": course_data.get("section"),
+                "title": course_data.get("title"),
+                "description": course_data.get("description"),
+                "term": course_data.get("term"),
+                "units": course_data.get("units"),
+                "delivery_method": course_data.get("deliveryMethod"),
+            },
+        )

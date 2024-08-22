@@ -8,3 +8,6 @@ class SyncCoursesCronJob(CronJobBase):
     schedule = Schedule(run_every_mins=RUN_EVERY_MINS)
     code = 'core.sync_courses_cron_job'  # Unique code for cron
 
+    def do(self):
+        current_year = get_current_year()
+        current_term = get_current_semester_code()

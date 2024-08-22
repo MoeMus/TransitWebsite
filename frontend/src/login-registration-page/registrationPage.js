@@ -14,13 +14,7 @@ export function RegistrationPage (){
 
     return(
         <>
-            <Container fluid style={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-
-                }}>
+            <Container className="page">
 
                 {/*Change name once we have decided on it*/}
                 <h1 className='welcome-title'> Welcome to SFU Transit App </h1>

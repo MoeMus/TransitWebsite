@@ -9,6 +9,7 @@ import {useDispatch} from "react-redux";
 import updateAccessToken from "../storeConfig/updateAccessToken";
 import {toast, Toaster} from "react-hot-toast";
 import {Toast} from "react-bootstrap";
+import WelcomePage from "../components/welcomePage";
 
 export function Register(){
     const [username, setUsername] = useState('');
@@ -17,7 +18,6 @@ export function Register(){
     const [email, setEmail] = useState('');
     const [status, setStatus] = useState('');
     const [isError, setIsError] = useState(false);
-    const [isApproved, setIsApproved] = useState(false)
 
     const dispatch = useDispatch();
 
@@ -51,25 +51,21 @@ export function Register(){
 
     async function loginUser( userCredentials ){
         try{
+
             const response = await apiClient.post('http://127.0.0.1:8000/token/', userCredentials, {
                 withCredentials: true
             });
-            if(response.status !== 200){
-                throw new Error("");
-            }
+
             const {data} = response;
             sessionStorage.clear();
             sessionStorage.setItem('user', userCredentials.username);
             sessionStorage.setItem('access_token', data.access);
             sessionStorage.setItem('refresh_token', data.refresh);
             dispatch(updateAccessToken());
-            setIsApproved(true);
             apiClient.defaults.headers.common['Authorization'] = `Bearer ${data.access}`;
 
         } catch (err){
-            toast.error("Could not create profile", {
-                duration: 2000
-            });
+            throw err;
         }
     }
 
@@ -79,26 +75,23 @@ export function Register(){
         apiClient.post('http://127.0.0.1:8000/api/user/register/', userCredentials, {
                 method: 'POST',
                 withCredentials: true
-        }).then(() => {
+        }).then( async () => {
             loginUser(userCredentials);
-        }).catch((error)=>{
-             if (error.response) {
-                setStatus(`${error.response.status} - ${error.response.data.message}`);
-             } else {
-                setStatus(`${error.message}`);
-             }
-             setIsError(true);
-             toast(status, {
-                 duration: 2000
-             })
+        }).catch(error => {
+            const errorMessage = error.response.data.error;
+            console.log(errorMessage);
+            setStatus(errorMessage);
+            setIsError(true);
+            toast.error(errorMessage, {
+                duration: 2000
+            });
         });
     }
-
 
     return(
         <>
 
-            <Toast
+            <Toaster
                 position="top-left"
                 reverseOrder={false}
             />
@@ -112,7 +105,6 @@ export function Register(){
                     padding: '20px'
                 }}>
 
-                    {isApproved ? <Navigate to="/welcome" replace={true}/> : null }
 
                     <Form onSubmit={submitCredentials}>
 
@@ -146,6 +138,10 @@ export function Register(){
                         <Button className='button' type="submit" variant="success" style={{marginTop: '10px', marginBottom: '10px'}}>Register</Button>{' '}
 
                     </Form>
+
+                    <p style={{color: "rosybrown"}}>
+                        It is recommended to activate location tracking in order to determine the best routes to get to your classes
+                    </p>
 
                     <p style={{
                         color: "indianred"

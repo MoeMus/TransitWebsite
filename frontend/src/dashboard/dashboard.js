@@ -9,11 +9,17 @@ export function Dashboard(){
     const [userInfo, setUserInfo] = useState({});
     const [error, setError] = useState('');
     const username = sessionStorage.getItem('user');
-
+    const [location, setLocation] = useState({latitude: "", longitude: ""})
     const loginSuccess = () =>{
-        toast.success("Log in Successful", {
+        toast.success(`Welcome back, ${username}`, {
             duration: 2000
         });
+    }
+
+    function locationError(){
+        toast.error("Could not retrieve your location", {
+            duration: 2000
+        })
     }
 
     async function getUserInfo() {
@@ -22,14 +28,11 @@ export function Dashboard(){
                 method: "GET"
             });
 
-            if (userData.status !== 200) {
-                setError(`User ${username} not found`);
-            } else {
-                setUserInfo(userData.data);
-                setUserInfoLoaded(true);
-            }
+            setUserInfo(userData.data);
+            setUserInfoLoaded(true);
+
         } catch (err) {
-            toast.error(error, {
+            toast.error(err.response.data.error, {
                 duration: 2000
             });
         } finally {
@@ -37,8 +40,13 @@ export function Dashboard(){
         }
     }
 
+    const watchID = navigator.geolocation.watchPosition((position) => {
+        setLocation({latitude: `${position.coords.latitude}`, longitude: `${position.coords.longitude}`});
+    }, locationError);
+
     useEffect(() => {
         getUserInfo();
+        return ()=> navigator.geolocation.clearWatch(watchID);
     }, []);
 
     useEffect(() => {

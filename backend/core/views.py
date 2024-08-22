@@ -111,7 +111,7 @@ class AddCourseView(APIView):
 
         username = request.data['username']
 
-        #If the course doesn't already exist in the database
+        # If the course doesn't already exist in the database
         if not Course.objects.filter(name=request.data["courseName"],
                                      section_name=request.data["sectionName"]).exists():
 
@@ -179,7 +179,7 @@ class GetCourseView(APIView):
 
             return JsonResponse(course_data, safe=False)
 
-        except requests.exceptions.RequestException:
+        except requests.exceptions.RequestException as e:
             logger.error(f"Course data fetch failed: {str(e)}")
             return Response({"error": "Course not found"}, status=status.HTTP_404_NOT_FOUND)
 

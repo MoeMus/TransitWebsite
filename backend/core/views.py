@@ -148,13 +148,13 @@ class GetCourseView(APIView):
         number = request.query_params.get("courseNumber")
 
         if not department:
-            return HttpResponse("The department is required", status=400)
+            return JsonResponse({"error": "The department is required"}, status=400)
 
         # Check if the course exists in our database of all courses
         course = Course.objects.filter(department=department, course_number=number, term=CURRENT_TERM).first()
         if course:
             # If the course exists, return it
-            return JsonResponse(CourseSerializer(course).data, status=200)
+            return Response(CourseSerializer(course).data, status=status.HTTP_200_OK)
 
         # Else, if the course is not found, fetch it from the Course Outline API:
         try:
@@ -171,8 +171,8 @@ class GetCourseView(APIView):
             return JsonResponse(course_data, safe=False)
 
         except requests.exceptions.RequestException:
-
-            return Response(status=status.HTTP_404_NOT_FOUND)
+            logger.error(f"Course data fetch failed: {str(e)}")
+            return Response({"error": "Course not found"}, status=status.HTTP_404_NOT_FOUND)
 
     # Save a course's information into the database
     def save_course_data(self, course_data):

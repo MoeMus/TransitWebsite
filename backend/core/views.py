@@ -129,10 +129,13 @@ class DeleteCourseView(APIView):
 
     def delete(self, request):
         username = request.data['username']
-        courseName = request.data['courseName']
-        if User.objects.filter(username=username).exists() and Course.objects.filter(name=courseName).exists():
+        course_name = request.data['course_name']
+
+        if not username or not course_name:
+            return Response({"error": "Username or course name was not given"}, status=status.HTTP_400_BAD_REQUEST)
+        if User.objects.filter(username=username).exists() and Course.objects.filter(name=course_name).exists():
             user = User.objects.get(username=username)
-            course = Course.objects.get(name=courseName)
+            course = Course.objects.get(name=course_name)
             user.courses.remove(course)
             user.save()
             return Response(status=status.HTTP_200_OK)

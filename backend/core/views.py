@@ -1,3 +1,5 @@
+import logging
+
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
@@ -22,7 +24,8 @@ CURRENT_SEMESTER = get_current_semester_code()
 CURRENT_YEAR = get_current_year()
 CURRENT_TERM = get_current_semester_code()
 
-
+# Logging/debugging for Python, using when returning response errors
+logger = logging.getLogger(__name__)
 class UserView(APIView):
     permission_classes = (IsAuthenticated,)
 
@@ -48,7 +51,8 @@ class LogoutView(APIView):
             token.blacklist()
             return Response(status=status.HTTP_205_RESET_CONTENT)
         except Exception as e:
-            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            logger.error(f"Logout failed: {str(e)}")
+            return Response({"error": "Logout failed"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class RegisterView(APIView):

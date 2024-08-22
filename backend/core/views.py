@@ -1,3 +1,5 @@
+import logging
+
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
@@ -21,6 +23,9 @@ from rest_framework.permissions import IsAuthenticated
 CURRENT_SEMESTER = get_current_semester_code()
 CURRENT_YEAR = get_current_year()
 CURRENT_TERM = get_current_semester_code()
+
+# Logging/debugging for Python, using when returning response errors
+logger = logging.getLogger(__name__)
 
 
 class UserView(APIView):
@@ -48,7 +53,8 @@ class LogoutView(APIView):
             token.blacklist()
             return Response(status=status.HTTP_205_RESET_CONTENT)
         except Exception as e:
-            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            logger.error(f"Logout failed: {str(e)}")
+            return Response({"error": "Logout failed"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class RegisterView(APIView):
@@ -105,7 +111,7 @@ class AddCourseView(APIView):
 
         username = request.data['username']
 
-        #If the course doesn't already exist in the database
+        # If the course doesn't already exist in the database
         if not Course.objects.filter(name=request.data["courseName"],
                                      section_name=request.data["sectionName"]).exists():
 
@@ -129,10 +135,13 @@ class DeleteCourseView(APIView):
 
     def delete(self, request):
         username = request.data['username']
-        courseName = request.data['courseName']
-        if User.objects.filter(username=username).exists() and Course.objects.filter(name=courseName).exists():
+        course_name = request.data['course_name']
+
+        if not username or not course_name:
+            return Response({"error": "Username or course name was not given"}, status=status.HTTP_400_BAD_REQUEST)
+        if User.objects.filter(username=username).exists() and Course.objects.filter(name=course_name).exists():
             user = User.objects.get(username=username)
-            course = Course.objects.get(name=courseName)
+            course = Course.objects.get(name=course_name)
             user.courses.remove(course)
             user.save()
             return Response(status=status.HTTP_200_OK)
@@ -148,20 +157,44 @@ class GetCourseView(APIView):
         number = request.query_params.get("courseNumber")
 
         if not department:
-            return HttpResponse("The department is required", status=400)
+            return JsonResponse({"error": "The department is required"}, status=400)
 
+        # Check if the course exists in our database of all courses
+        course = Course.objects.filter(department=department, course_number=number, term=CURRENT_TERM).first()
+        if course:
+            # If the course exists, return it
+            return Response(CourseSerializer(course).data, status=status.HTTP_200_OK)
+
+        # Else, if the course is not found, fetch it from the Course Outline API:
         try:
-            if not number:
-                api_url = f"https://www.sfu.ca/bin/wcm/course-outlines?{CURRENT_YEAR}/{CURRENT_TERM}/{department}"
-            else:
-                api_url = f"https://www.sfu.ca/bin/wcm/course-outlines?{CURRENT_YEAR}/{CURRENT_TERM}/{department}/{number}"
+            api_url = f"https://www.sfu.ca/bin/wcm/course-outlines?{CURRENT_YEAR}/{CURRENT_TERM}/{department}"
+            if number:
+                api_url += f"/{number}"
 
-            matching_course = requests.get(api_url)
+            response = requests.get(api_url)
+            response.raise_for_status()
 
-            matching_course.raise_for_status()
+            course_data = response.json()
+            self.save_course_data(course_data)
 
-            return JsonResponse(matching_course.json(), safe=False)
+            return JsonResponse(course_data, safe=False)
 
-        except requests.exceptions.RequestException:
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Course data fetch failed: {str(e)}")
+            return Response({"error": "Course not found"}, status=status.HTTP_404_NOT_FOUND)
 
-            return Response(status=status.HTTP_404_NOT_FOUND)
+    # Save a course's information into the database
+    def save_course_data(self, course_data):
+        Course.objects.update_or_create(
+            name=course_data.get("name"),
+            defaults={
+                "department": course_data.get("dept"),
+                "course_number": course_data.get("number"),
+                "section_name": course_data.get("section"),
+                "title": course_data.get("title"),
+                "description": course_data.get("description"),
+                "term": course_data.get("term"),
+                "units": course_data.get("units"),
+                "delivery_method": course_data.get("deliveryMethod"),
+            },
+        )

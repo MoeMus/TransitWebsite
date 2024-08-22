@@ -18,12 +18,13 @@ class Course(models.Model):
         LAB = "LAB", "Lab"
         TUTORIAL = "TUT", "Tutorial"
         SEMINAR = "SEM", "Seminar"
+        LECTURE = "LEC", "Lecture"
 
     name = models.CharField(max_length=100)
     department = models.CharField(max_length=100)
-    course_number = models.IntegerField
+    course_number = models.IntegerField()
     professor = models.CharField(max_length=100)
-    section_name = models.CharField(max_length=100, default='D100')  #D100, E200, etc.
+    section_name = models.CharField(max_length=100, default='D100')  # E.g. D100, E200, etc.
     semester = models.CharField(
         max_length=10,
         choices=Semester.choices,
@@ -32,8 +33,12 @@ class Course(models.Model):
     component = models.CharField(
         max_length=10,
         choices=Component.choices,
-        default=Component.LAB
+        default=Component.LECTURE # LECTURE is the default component
     )
+
+    # The __str method below makes the Django Course model readable for when you do print(course)
+    def __str__(self):
+        return f"{self.department} {self.course_number} - {self.name} ({self.section_name})"
 
 
 class User(AbstractUser):

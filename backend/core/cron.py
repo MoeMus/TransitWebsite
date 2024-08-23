@@ -2,6 +2,7 @@ from django_cron import CronJobBase, Schedule
 from .models import Course
 from .utils import get_current_year, get_current_semester_code
 import requests
+import logging
 
 class SyncCoursesCronJob(CronJobBase):
     RUN_EVERY_MINS = 60  # 1 = one minute, 60 = one hour
@@ -25,5 +26,6 @@ class SyncCoursesCronJob(CronJobBase):
                         name=course_info.get("name")
                 )
             except requests.exceptions.RequestException as err:
+                logger.error(f"Could not sync courses for {department}: {err}")
     def get_departments(self):
         return ['CMPT'] #TODO: Change the list of departments

@@ -11,3 +11,7 @@ class SyncCoursesCronJob(CronJobBase):
     def do(self):
         current_year = get_current_year()
         current_term = get_current_semester_code()
+        departments = self.get_departments()
+
+    def get_departments(self):
+        return ['CMPT'] #TODO: Change the list of departments

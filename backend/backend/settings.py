@@ -37,16 +37,22 @@ CORS_ALLOW_CREDENTIALS = True
 
 
 INSTALLED_APPS = [
+    # Django apps
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+
+    # Our apps
     'core',
+
+    # Third-party apps
     'rest_framework',
     'corsheaders',
-    'rest_framework_simplejwt.token_blacklist'
+    'rest_framework_simplejwt.token_blacklist',
+    'django_cron'
 ]
 
 REST_FRAMEWORK = {

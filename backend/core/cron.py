@@ -13,5 +13,17 @@ class SyncCoursesCronJob(CronJobBase):
         current_term = get_current_semester_code()
         departments = self.get_departments()
 
+        for department in departments:
+            try:
+                api_url = f"https://www.sfu.ca/bin/wcm/course-outlines?{current_year}/{current_term}/{department}"
+                response = requests.get(api_url)
+                response.raise_for_status()
+                courses = response.json()
+
+                for course_info in courses:
+                    Course.objects.update_or_create(
+                        name=course_info.get("name")
+                )
+            except requests.exceptions.RequestException as err:
     def get_departments(self):
         return ['CMPT'] #TODO: Change the list of departments

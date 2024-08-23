@@ -192,3 +192,9 @@ LOGGING = {
     },
 }
 
+# Django cron
+# This registers the cron job
+CRON_CLASSES = [
+    'core.cron.SyncCoursesCronJob',
+]
+

@@ -12,7 +12,7 @@ def get_current_term_code():
     century = int(DATE.strftime("%C"))
     x = ((century + 1) % 10) * 1000
     y = (int(DATE.year) % 100) * 10
-    z = get_current_term()
+    z = get_current_term_code_season()
     return x + y + z
 
 

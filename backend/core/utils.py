@@ -20,7 +20,7 @@ def get_current_year():
     return DATE.year
 
 
-def get_current_term():
+def get_current_term_code_season():
     month = DATE.strftime("%d")
     if month in SPRING_SEMESTER_MONTHS:
         return 1
@@ -30,3 +30,15 @@ def get_current_term():
 
     else:
         return 7
+
+
+def get_current_term():
+    month = DATE.strftime("%d")
+    if month in SPRING_SEMESTER_MONTHS:
+        return "spring"
+
+    elif month in SUMMER_SEMESTER_MONTHS:
+        return "summer"
+
+    else:
+        return "fall"

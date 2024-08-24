@@ -25,23 +25,27 @@ class SyncCoursesCronJob(CronJobBase):
                 courses = response.json()
 
                 for course_info in courses:
+                    department_value = course_info.get("dept")
+                    if not department_value:
+                        logger.warning(f"Skipping course due to missing department: {course_info}")
+                        continue
+
                     Course.objects.update_or_create(
-                        name=course_info.get("name"),
+                        title=course_info.get("title"),
                         defaults={ # TODO: Update course model with the given fields below
-                            "department": course_info.get("dept"),
-                            "course_number": course_info.get("number"),
-                            "title": course_info.get("title"),
-                            "section_name": course_info.get("section"),
-                            "description": course_info.get("description"),
-                            "term": course_info.get("term"),
-                            "delivery_method": course_info.get("deliveryMethod"),
-                            "start_time": course_info.get("startTime"),
-                            "start_date": course_info.get("startDate"),
-                            "end_time": course_info.get("endTime"),
-                            "end_date": course_info.get("endDate"),
-                            "is_exam": course_info.get("isExam"),
-                            "days": course_info.get("days"),
-                            "campus": course_info.get("campus"),
+                            "department": department_value,
+                            "course_number": course_info.get("number", 0),
+                            "section_name": course_info.get("section", "D100"),
+                            "description": course_info.get("description", ""),
+                            "term": course_info.get("term", ""),
+                            "delivery_method": course_info.get("deliveryMethod", ""),
+                            "start_time": course_info.get("startTime", ""),
+                            "start_date": course_info.get("startDate", None),
+                            "end_time": course_info.get("endTime", ""),
+                            "end_date": course_info.get("endDate", None),
+                            "is_exam": course_info.get("isExam", False),
+                            "days": course_info.get("days", ""),
+                            "campus": course_info.get("campus",""),
                         },
                     )
 

@@ -20,7 +20,7 @@ class Course(models.Model):
         SEMINAR = "SEM", "Seminar"
         LECTURE = "LEC", "Lecture"
 
-    name = models.CharField(max_length=100)
+    title = models.CharField(max_length=100)
     department = models.CharField(max_length=100)
     course_number = models.IntegerField(default='000')
     professor = models.CharField(max_length=100)

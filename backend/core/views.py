@@ -20,9 +20,10 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 
 # Create your views here.
-CURRENT_SEMESTER = get_current_semester_code()
+CURRENT_SEMESTER = get_current_term_code() # TODO: depreciate this variable since it is not used
 CURRENT_YEAR = get_current_year()
-CURRENT_TERM = get_current_semester_code()
+CURRENT_TERM_CODE = get_current_term_code()
+CURRENT_TERM = get_current_term()
 
 # Logging/debugging for Python, using when returning response errors
 logger = logging.getLogger(__name__)
@@ -160,16 +161,17 @@ class GetCourseView(APIView):
             return JsonResponse({"error": "The department is required"}, status=400)
 
         # Check if the course exists in our database of all courses
-        course = Course.objects.filter(department=department, course_number=number, term=CURRENT_TERM).first()
+        course = Course.objects.filter(department=department, course_number=number, term=CURRENT_TERM_CODE).first()
         if course:
             # If the course exists, return it
             return Response(CourseSerializer(course).data, status=status.HTTP_200_OK)
 
         # Else, if the course is not found, fetch it from the Course Outline API:
         try:
-            api_url = f"https://www.sfu.ca/bin/wcm/course-outlines?{CURRENT_YEAR}/{CURRENT_TERM}/{department}"
+            api_url = f"https://www.sfu.ca/bin/wcm/course-outlines?{CURRENT_YEAR}/{CURRENT_TERM_CODE}/{department}"
             if number:
                 api_url += f"/{number}"
+
 
             response = requests.get(api_url)
             response.raise_for_status()

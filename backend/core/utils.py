@@ -8,7 +8,7 @@ SPRING_SEMESTER_MONTHS = ["01", "02", "03", "04"]
 SUMMER_SEMESTER_MONTHS = ["05", "06", "07", "08"]
 
 
-def get_current_semester_code():
+def get_current_term_code():
     century = int(DATE.strftime("%C"))
     x = ((century + 1) % 10) * 1000
     y = (int(DATE.year) % 100) * 10

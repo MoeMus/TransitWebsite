@@ -1,6 +1,6 @@
 from django_cron import CronJobBase, Schedule
 from .models import Course
-from .utils import get_current_year, get_current_term_code
+from .utils import get_current_year, get_current_term_code, get_current_term
 import requests
 import logging
 
@@ -13,7 +13,8 @@ class SyncCoursesCronJob(CronJobBase):
 
     def do(self):
         current_year = get_current_year()
-        current_term = get_current_term_code()
+        current_term_code = get_current_term_code()
+        current_term = get_current_term()
         departments = self.get_departments()
 
         for department in departments:

@@ -43,7 +43,7 @@ class SyncCoursesCronJob(CronJobBase):
                             "days": course_info.get("days"),
                             "campus": course_info.get("campus"),
                         },
-                )
+                    )
 
             except requests.exceptions.RequestException as err:
                 logger.error(f"Could not sync courses for {department}: {err}")

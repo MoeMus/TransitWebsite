@@ -19,21 +19,27 @@ class SyncCoursesCronJob(CronJobBase):
 
         for department in departments:
             try:
-                api_url = f"https://www.sfu.ca/bin/wcm/course-outlines?{current_year}/{current_term}/{department}"
-                response = requests.get(api_url)
+                course_numbers_url = f"https://www.sfu.ca/bin/wcm/course-outlines?{current_year}/{current_term}/{department}"
+                response = requests.get(course_numbers_url)
                 response.raise_for_status()
                 courses = response.json()
 
                 for course_info in courses:
-                    department_value = course_info.get("dept")
-                    if not department_value:
-                        logger.warning(f"Skipping course due to missing department: {course_info}")
+                    course_number = course_info.get("value")
+                    if not course_number:
+                        logger.warning(f"Skipping course due to missing course number: {course_info}")
                         continue
+
+                    # Get the detailed course information
+                    course_detail_url = f"https://www.sfu.ca/bin/wcm/course-outlines?{current_year}/{current_term}/{department}/{course_number}"
+                    detail_response = requests.get(course_detail_url)
+                    detail_response.raise_for_status()
+                    course_details = detail_response.json()
 
                     Course.objects.update_or_create(
                         title=course_info.get("title"),
                         defaults={ # TODO: Update course model with the given fields below
-                            "department": department_value,
+                            "department": department,
                             "course_number": course_info.get("number", 0),
                             "section_name": course_info.get("section", "D100"),
                             "description": course_info.get("description", ""),
@@ -45,7 +51,7 @@ class SyncCoursesCronJob(CronJobBase):
                             "end_date": course_info.get("endDate", None),
                             "is_exam": course_info.get("isExam", False),
                             "days": course_info.get("days", ""),
-                            "campus": course_info.get("campus",""),
+                            "campus": course_info.get("campus", ""),
                         },
                     )
 

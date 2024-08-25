@@ -31,29 +31,37 @@ class SyncCoursesCronJob(CronJobBase):
                         continue
 
                     # Get the detailed course information
-                    course_detail_url = f"https://www.sfu.ca/bin/wcm/course-outlines?{current_year}/{current_term}/{department}/{course_number}"
-                    detail_response = requests.get(course_detail_url)
-                    detail_response.raise_for_status()
-                    course_details = detail_response.json()
+                    sections_url = f"https://www.sfu.ca/bin/wcm/course-outlines?{current_year}/{current_term}/{department}/{course_number}"
+                    sections_response = requests.get(sections_url)
+                    sections_response.raise_for_status()
+                    sections = sections_response.json()
 
-                    Course.objects.update_or_create(
-                        title=course_info.get("title"),
-                        defaults={ # TODO: Update course model with the given fields below
-                            "department": department,
-                            "course_number": course_info.get("number", 0),
-                            "section_name": course_info.get("section", "D100"),
-                            "description": course_info.get("description", ""),
-                            "term": course_info.get("term", ""),
-                            "delivery_method": course_info.get("deliveryMethod", ""),
-                            "start_time": course_info.get("startTime", ""),
-                            "start_date": course_info.get("startDate", None),
-                            "end_time": course_info.get("endTime", ""),
-                            "end_date": course_info.get("endDate", None),
-                            "is_exam": course_info.get("isExam", False),
-                            "days": course_info.get("days", ""),
-                            "campus": course_info.get("campus", ""),
-                        },
-                    )
+                    for section in sections:
+                        section_code = section.get("value")
+
+                        details_url = f"https://www.sfu.ca/bin/wcm/course-outlines?{current_year}/{current_term}/{department}/{course_number}/{section_code}"
+                        details_response = requests.get(details_url)
+                        details_response.raise_for_status()
+                        course_details = details_response.json()
+
+                        Course.objects.update_or_create(
+                            title=course_details.get("title"),
+                            defaults={ # TODO: Update course model with the given fields below
+                                "department": department,
+                                "course_number": course_number,
+                                "section_name": section_code,
+                                "description": course_info.get("description", ""),
+                                "term": course_info.get("term", ""),
+                                "delivery_method": course_info.get("deliveryMethod", ""),
+                                "start_time": course_info.get("startTime", ""),
+                                "start_date": course_info.get("startDate", None),
+                                "end_time": course_info.get("endTime", ""),
+                                "end_date": course_info.get("endDate", None),
+                                "is_exam": course_info.get("isExam", False),
+                                "days": course_info.get("days", ""),
+                                "campus": course_info.get("campus", ""),
+                            },
+                        )
 
             except requests.exceptions.RequestException as err:
                 logger.error(f"Could not sync courses for {department}: {err}")

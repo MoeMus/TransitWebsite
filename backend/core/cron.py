@@ -53,6 +53,9 @@ class SyncCoursesCronJob(CronJobBase):
                         logger.debug(f"Course details fetched: {course_details} with url: {details_url}")
 
                         info = course_details.get("info", {})
+                        instructor = course_details.get("instructor", [])
+                        course_schedule = course_details.get("courseSchedule", [])
+                        required_text = course_details.get("requiredText", [])
 
                         # Step 4: Store or update the course in the database
                         Course.objects.update_or_create(
@@ -63,7 +66,7 @@ class SyncCoursesCronJob(CronJobBase):
                                 class_number=info.get("classNumber", 0),
                                 course_number=info.get("number", 0),
                                 section_name=info.get("section", section_code),
-#                                "description": course_details.get("description", ""),
+                                description=course_details.get("description", ""),
                                 term=info.get("term", ""),
 #                                "delivery_method": course_details.get("deliveryMethod", ""),
 #                                "start_time": course_details.get("startTime", ""),
@@ -76,7 +79,7 @@ class SyncCoursesCronJob(CronJobBase):
                                 professor=info.get("professor", "Unknown")
 #                            },
                         )
-                        logger.info(f"Updated or created course: {course_details.get('title', 'Untitled Course')}")
+                        logger.info(f"Updated or created course: {info.get('title', 'Untitled Course')}")
 
             except requests.exceptions.RequestException as err:
                 logger.error(f"Could not sync courses for {department}: {err}")

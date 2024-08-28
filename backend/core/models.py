@@ -20,32 +20,32 @@ class Course(models.Model):
         SEMINAR = "SEM", "Seminar"
         LECTURE = "LEC", "Lecture"
 
+    # info
     title = models.CharField(max_length=100)
     department = models.CharField(max_length=100)
     class_number = models.CharField(max_length=20, default='000')
     course_number = models.CharField(max_length=10, default=0)
-    professor = models.CharField(max_length=100, null=True, blank=True)  # Professor field is optional, usually updated
     section_name = models.CharField(max_length=100, default='D100')  # E.g. D100, E200, etc.
-#    semester = models.CharField(
-#        max_length=10,
-#        choices=Semester.choices,
-#        default=Semester.SUMMER
-#    )
-#    component = models.CharField(
-#        max_length=10,
-#        choices=Component.choices,
-#        default=Component.LECTURE # LECTURE is the default component
-#    )
-#    description = models.TextField(null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
     term = models.CharField(max_length=50, null=True, blank=True)
-#    delivery_method = models.CharField(max_length=50, null=True, blank=True)
-#    start_time = models.CharField(max_length=50, null=True, blank=True)
-#    start_date = models.DateField(null=True, blank=True)
-#    end_time = models.CharField(max_length=50, null=True, blank=True)
-#    end_date = models.DateField(null=True, blank=True)
-#    is_exam = models.BooleanField(default=False)
-#    days = models.CharField(max_length=50, null=True, blank=True)
-#    campus = models.CharField(max_length=50, null=True, blank=True)
+    delivery_method = models.CharField(max_length=50, null=True, blank=True)
+
+    #  instructor
+    professor = models.CharField(max_length=100, null=True, blank=True)  # Professor field is optional, usually updated
+
+    # courseSchedule
+    #    component = models.CharField(
+    #        max_length=10,
+    #        choices=Component.choices,
+    #        default=Component.LECTURE # LECTURE is the default component
+    #    )
+    #    start_time = models.CharField(max_length=50, null=True, blank=True)
+    #    start_date = models.DateField(null=True, blank=True)
+    #    end_time = models.CharField(max_length=50, null=True, blank=True)
+    #    end_date = models.DateField(null=True, blank=True)
+    #    is_exam = models.BooleanField(default=False)
+    #    days = models.CharField(max_length=50, null=True, blank=True)
+    #    campus = models.CharField(max_length=50, null=True, blank=True)
 
     # The __str method below makes the Django Course model readable for when you do print(course)
     def __str__(self):

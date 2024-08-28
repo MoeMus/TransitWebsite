@@ -12,6 +12,8 @@ class SyncCoursesCronJob(CronJobBase):
     code = 'core.sync_courses_cron_job'  # Unique code for cron
 
     def do(self):
+        logger.info("Starting course sync cron job.")
+
         current_year = get_current_year()
         current_term_code = get_current_term_code()
         current_term = get_current_term()
@@ -19,18 +21,20 @@ class SyncCoursesCronJob(CronJobBase):
 
         for department in departments:
             try:
-                course_numbers_url = f"https://www.sfu.ca/bin/wcm/course-outlines?{current_year}/{current_term}/{department}"
-                response = requests.get(course_numbers_url)
-                response.raise_for_status()
-                courses = response.json()
+                logger.info(f"Fetching courses for department: {department}")
 
-                for course_info in courses:
-                    course_number = course_info.get("value")
-                    if not course_number:
-                        logger.warning(f"Skipping course due to missing course number: {course_info}")
-                        continue
+                # Step 1: Get the list of courses for the department
+                courses_url = f"https://www.sfu.ca/bin/wcm/course-outlines?{current_year}/{current_term}/{department}"
+                courses_response = requests.get(courses_url)
+                courses_response.raise_for_status()
+                courses = courses_response.json()
+                logger.info(f"Found {len(courses)} courses in department {department}.")
 
-                    # Get the detailed course information
+                for course in courses:
+                    course_number = course.get("value")
+                    logger.info(f"Processing course number: {course_number}")
+
+                    # Step 2: Get the list of sections for the course
                     sections_url = f"https://www.sfu.ca/bin/wcm/course-outlines?{current_year}/{current_term}/{department}/{course_number}"
                     sections_response = requests.get(sections_url)
                     sections_response.raise_for_status()
@@ -38,33 +42,45 @@ class SyncCoursesCronJob(CronJobBase):
 
                     for section in sections:
                         section_code = section.get("value")
+                        logger.info(f"Processing section: {section_code} for course {course_number}")
 
+                        # Step 3: Get the detailed information for each section
                         details_url = f"https://www.sfu.ca/bin/wcm/course-outlines?{current_year}/{current_term}/{department}/{course_number}/{section_code}"
                         details_response = requests.get(details_url)
                         details_response.raise_for_status()
                         course_details = details_response.json()
 
+                        logger.debug(f"Course details fetched: {course_details}")
+
+                        # Step 4: Store or update the course in the database
                         Course.objects.update_or_create(
-                            title=course_details.get("title"),
-                            defaults={ # TODO: Update course model with the given fields below
-                                "department": department,
-                                "course_number": course_number,
-                                "section_name": section_code,
-                                "description": course_info.get("description", ""),
-                                "term": course_info.get("term", ""),
-                                "delivery_method": course_info.get("deliveryMethod", ""),
-                                "start_time": course_info.get("startTime", ""),
-                                "start_date": course_info.get("startDate", None),
-                                "end_time": course_info.get("endTime", ""),
-                                "end_date": course_info.get("endDate", None),
-                                "is_exam": course_info.get("isExam", False),
-                                "days": course_info.get("days", ""),
-                                "campus": course_info.get("campus", ""),
+#                            title=course_details.get("title", "Untitled Course"),
+                            defaults={
+                                "title": course_details.get("title", "Untitled Course"),
+                                "department": course_details.get("dept", department),
+                                "value": course_details.get("value", "none")
+#                                "class_number": course_details.get("classNumber", 0),
+#                                "course_number": course_details.get("number", 0),
+#                                "section_name": course_details.get("section", section_code),
+#                                "description": course_details.get("description", ""),
+#                                "term": course_details.get("term", ""),
+#                                "delivery_method": course_details.get("deliveryMethod", ""),
+#                                "start_time": course_details.get("startTime", ""),
+#                                "start_date": course_details.get("startDate", None),
+#                                "end_time": course_details.get("endTime", ""),
+#                                "end_date": course_details.get("endDate", None),
+#                                "is_exam": course_details.get("isExam", False),
+#                                "days": course_details.get("days", ""),
+#                                "campus": course_details.get("campus", ""),
+#                                "professor": course_details.get("professor", "Unknown")
                             },
                         )
+                        logger.info(f"Updated or created course: {course_details.get('title', 'Untitled Course')}")
 
             except requests.exceptions.RequestException as err:
                 logger.error(f"Could not sync courses for {department}: {err}")
 
+        logger.info("Course sync cron job completed.!!!!!!!!!!")
+
     def get_departments(self):
-        return ['CMPT'] #TODO: Change the list of departments
+        return ['CMPT']  # TODO: Update this list with all relevant departments

@@ -38,7 +38,6 @@ function App() {
         <Route path="/signup" element={<Register />} />
         <Route path="/registration" element={ isAuth ?  <Dashboard /> : <RegistrationPage />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/welcome" element={ isAuth ? <WelcomePage /> : <Navigate to="/registration" replace={true} /> } />
         {/* Uncomment and add other routes as needed */}
       </Routes>
     </>

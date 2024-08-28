@@ -8,19 +8,46 @@ function WelcomePage(){
     return (
         <>
 
-            <Container className="page">
+            <body style={{
+                width: '100%',
+                height: '100%'
+            }}>
+                <div style={{
+                    display: "flex",
+                    flexDirection: "row",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    width: '100%',
+                    height: '100%'
+                }}>
 
-                <p className="summary">
+                    <Container className="page">
 
-                    Thank you for creating an account with SFU Transit App! Click the button to create your schedule
 
-                </p>
+                        <div>
+                            <p className="summary">
 
-                <Button variant="primary"> Make My Schedule </Button>
+                                Thank you for creating an account with SFU Transit App! Click the button to create your
+                                schedule
 
-            </Container>
+                            </p>
+                        </div>
+
+                        <div>
+
+                            <Button variant="danger"> Make My Schedule </Button>
+
+                        </div>
+
+                    </Container>
+
+                </div>
+            </body>
+
+
         </>
-        );
+    )
+        ;
 
 }
 

@@ -24,7 +24,7 @@ export function RegistrationPage (){
                     <Login />
                 </div>
 
-                <Button onClick={handleClick}> Sign Up </Button>
+                <Button onClick={handleClick} variant="danger"> Sign Up </Button>
 
             </Container>
 

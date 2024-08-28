@@ -16,9 +16,12 @@ export function Dashboard(){
         });
     }
 
+
+
     function locationError(){
         toast.error("Could not retrieve your location", {
-            duration: 2000
+            duration: 2000,
+            id: 'location-not-found'
         })
     }
 
@@ -77,7 +80,6 @@ export function Dashboard(){
                 reverseOrder={false}
             />
 
-            <p>Welcome Back, {username}</p>
             <p>User Info: {JSON.stringify(userInfo)}</p>
         </>
     );

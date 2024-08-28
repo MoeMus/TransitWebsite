@@ -8,7 +8,6 @@ import apiClient from "../configurations/configAxios";
 import {useDispatch} from "react-redux";
 import updateAccessToken from "../storeConfig/updateAccessToken";
 import {toast, Toaster} from "react-hot-toast";
-import {Toast} from "react-bootstrap";
 import WelcomePage from "../components/welcomePage";
 
 export function Register(){
@@ -18,7 +17,7 @@ export function Register(){
     const [email, setEmail] = useState('');
     const [status, setStatus] = useState('');
     const [isError, setIsError] = useState(false);
-
+    const [successfulRegister, setSuccessfulRegister] = useState(false);
     const dispatch = useDispatch();
 
     useEffect(()=>{
@@ -43,9 +42,13 @@ export function Register(){
 
     function changeButton(){
         if(isError){
-            document.querySelector('.button').setAttribute('disabled', '');
+            if(document.querySelector('.button')){
+                document.querySelector('.button').setAttribute('disabled', '');
+            }
         } else {
-            document.querySelector('.button').removeAttribute('disabled');
+            if(document.querySelector('.button')) {
+                document.querySelector('.button').removeAttribute('disabled');
+            }
         }
     }
 
@@ -61,6 +64,7 @@ export function Register(){
             sessionStorage.setItem('user', userCredentials.username);
             sessionStorage.setItem('access_token', data.access);
             sessionStorage.setItem('refresh_token', data.refresh);
+            setSuccessfulRegister(true);
             dispatch(updateAccessToken());
             apiClient.defaults.headers.common['Authorization'] = `Bearer ${data.access}`;
 
@@ -88,14 +92,8 @@ export function Register(){
         });
     }
 
-    return(
-        <>
-
-            <Toaster
-                position="top-left"
-                reverseOrder={false}
-            />
-
+    const registrationForm = () =>{
+        return (<>
             <Container fluid>
 
                 <div className="form-container" style={{
@@ -150,6 +148,18 @@ export function Register(){
                 </div>
 
             </Container>
+        </>);
+    }
+
+    return(
+        <>
+
+            <Toaster
+                position="top-left"
+                reverseOrder={false}
+            />
+
+            {successfulRegister? <WelcomePage /> : registrationForm()}
 
 
         </>

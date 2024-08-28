@@ -31,8 +31,11 @@ Look into Geolocation API, Google Maps API, Translink API
 Setting car, transit options  
 Search bar for courses with auto recommendations  
 
-**August 27, 2024**  
-
+**August 27, 2024** 
+- Fully implement location tracking on frontend
+- Add Google Maps API Support 
+   - Get API Key
+   - Integrate with Geolocation API to display user's current location
 
 
 # SFU Transit Web App

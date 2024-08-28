@@ -50,20 +50,21 @@ class SyncCoursesCronJob(CronJobBase):
                         details_response.raise_for_status()
                         course_details = details_response.json()
 
-                        logger.debug(f"Course details fetched: {course_details}")
+                        logger.debug(f"Course details fetched: {course_details} with url: {details_url}")
+
+                        info = course_details.get("info", {})
 
                         # Step 4: Store or update the course in the database
                         Course.objects.update_or_create(
 #                            title=course_details.get("title", "Untitled Course"),
-                            defaults={
-                                "title": course_details.get("title", "Untitled Course"),
-                                "department": course_details.get("dept", department),
-                                "value": course_details.get("value", "none")
-#                                "class_number": course_details.get("classNumber", 0),
-#                                "course_number": course_details.get("number", 0),
-#                                "section_name": course_details.get("section", section_code),
+#                            defaults={
+                                title=info.get("title", "Untitled Course"),
+                                department=info.get("dept", department),
+                                class_number=info.get("classNumber", 0),
+                                course_number=info.get("number", 0),
+                                section_name=info.get("section", section_code),
 #                                "description": course_details.get("description", ""),
-#                                "term": course_details.get("term", ""),
+                                term=info.get("term", ""),
 #                                "delivery_method": course_details.get("deliveryMethod", ""),
 #                                "start_time": course_details.get("startTime", ""),
 #                                "start_date": course_details.get("startDate", None),
@@ -72,8 +73,8 @@ class SyncCoursesCronJob(CronJobBase):
 #                                "is_exam": course_details.get("isExam", False),
 #                                "days": course_details.get("days", ""),
 #                                "campus": course_details.get("campus", ""),
-#                                "professor": course_details.get("professor", "Unknown")
-                            },
+                                professor=info.get("professor", "Unknown")
+#                            },
                         )
                         logger.info(f"Updated or created course: {course_details.get('title', 'Untitled Course')}")
 
@@ -83,4 +84,4 @@ class SyncCoursesCronJob(CronJobBase):
         logger.info("Course sync cron job completed.!!!!!!!!!!")
 
     def get_departments(self):
-        return ['CMPT']  # TODO: Update this list with all relevant departments
+        return ['cmpt']  # TODO: Update this list with all relevant departments

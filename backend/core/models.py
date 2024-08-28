@@ -22,11 +22,10 @@ class Course(models.Model):
 
     title = models.CharField(max_length=100)
     department = models.CharField(max_length=100)
-    value = models.CharField(max_length=10, default='00')
-#    class_number = models.CharField(max_length=20, default='000')
-#    course_number = models.CharField(max_length=10, default=0)
-#    professor = models.CharField(max_length=100, null=True, blank=True)  # Professor field is optional, usually updated
- #   section_name = models.CharField(max_length=100, default='D100')  # E.g. D100, E200, etc.
+    class_number = models.CharField(max_length=20, default='000')
+    course_number = models.CharField(max_length=10, default=0)
+    professor = models.CharField(max_length=100, null=True, blank=True)  # Professor field is optional, usually updated
+    section_name = models.CharField(max_length=100, default='D100')  # E.g. D100, E200, etc.
 #    semester = models.CharField(
 #        max_length=10,
 #        choices=Semester.choices,
@@ -37,8 +36,8 @@ class Course(models.Model):
 #        choices=Component.choices,
 #        default=Component.LECTURE # LECTURE is the default component
 #    )
-    description = models.TextField(null=True, blank=True)
-#    term = models.CharField(max_length=50, null=True, blank = True)
+#    description = models.TextField(null=True, blank=True)
+    term = models.CharField(max_length=50, null=True, blank=True)
 #    delivery_method = models.CharField(max_length=50, null=True, blank=True)
 #    start_time = models.CharField(max_length=50, null=True, blank=True)
 #    start_date = models.DateField(null=True, blank=True)

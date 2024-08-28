@@ -4,6 +4,8 @@ from .utils import get_current_year, get_current_term_code, get_current_term
 import requests
 import logging
 
+Course.objects.all().delete()  # TODO: For debugging only
+
 logger = logging.getLogger(__name__)
 
 class SyncCoursesCronJob(CronJobBase):
@@ -59,25 +61,31 @@ class SyncCoursesCronJob(CronJobBase):
 
                         # Step 4: Store or update the course in the database
                         Course.objects.update_or_create(
-#                            title=course_details.get("title", "Untitled Course"),
-#                            defaults={
-                                title=info.get("title", "Untitled Course"),
-                                department=info.get("dept", department),
-                                class_number=info.get("classNumber", 0),
-                                course_number=info.get("number", 0),
-                                section_name=info.get("section", section_code),
-                                description=course_details.get("description", ""),
-                                term=info.get("term", ""),
-#                                "delivery_method": course_details.get("deliveryMethod", ""),
-#                                "start_time": course_details.get("startTime", ""),
-#                                "start_date": course_details.get("startDate", None),
-#                                "end_time": course_details.get("endTime", ""),
-#                                "end_date": course_details.get("endDate", None),
-#                                "is_exam": course_details.get("isExam", False),
-#                                "days": course_details.get("days", ""),
-#                                "campus": course_details.get("campus", ""),
-                                professor=info.get("professor", "Unknown")
-#                            },
+                            title=info.get("title", "Untitled Course"),
+                            defaults={
+                                # info
+                                "title": info.get("title", "Untitled Course"),
+                                "department": info.get("dept", department),
+                                "class_number": info.get("classNumber", 0),
+                                "course_number": info.get("number", 0),
+                                "section_name": info.get("section", section_code),
+                                "description": info.get("description", ""),
+                                "term": info.get("term", ""),
+                                "delivery_method": info.get("deliveryMethod", ""),
+
+                                # instructor
+                                "professor": info.get("professor", "Unknown"),
+
+                                # courseSchedule
+                                "start_time": info.get("startTime", ""),
+                                "start_date": info.get("startDate", None),
+                                "end_time": info.get("endTime", ""),
+                                "end_date": info.get("endDate", None),
+                                "is_exam": info.get("isExam", False),
+                                "days": info.get("days", ""),
+                                "campus": info.get("campus", ""),
+
+                            },
                         )
                         logger.info(f"Updated or created course: {info.get('title', 'Untitled Course')}")
 

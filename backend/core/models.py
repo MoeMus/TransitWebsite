@@ -39,13 +39,13 @@ class Course(models.Model):
     #        choices=Component.choices,
     #        default=Component.LECTURE # LECTURE is the default component
     #    )
-    #    start_time = models.CharField(max_length=50, null=True, blank=True)
-    #    start_date = models.DateField(null=True, blank=True)
-    #    end_time = models.CharField(max_length=50, null=True, blank=True)
-    #    end_date = models.DateField(null=True, blank=True)
-    #    is_exam = models.BooleanField(default=False)
-    #    days = models.CharField(max_length=50, null=True, blank=True)
-    #    campus = models.CharField(max_length=50, null=True, blank=True)
+    start_time = models.CharField(max_length=50, null=True, blank=True)
+    start_date = models.DateField(null=True, blank=True)
+    end_time = models.CharField(max_length=50, null=True, blank=True)
+    end_date = models.DateField(null=True, blank=True)
+    is_exam = models.BooleanField(default=False)
+    days = models.CharField(max_length=50, null=True, blank=True)
+    campus = models.CharField(max_length=50, null=True, blank=True)
 
     # The __str method below makes the Django Course model readable for when you do print(course)
     def __str__(self):

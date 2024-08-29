@@ -144,8 +144,9 @@ Follow these steps to set up the project and install the required packages for R
    4. Set `MYSQL_PASSWORD_TRANSIT` as the variable name and your MySQL password as the value
    5. Set `DJANGO_SECRET_KEY` as the variable name and your Django secret key as the value
    6. Click `OK` on all of the New System Variable, Environment Variables, and System Properties windows
+
    
-5. **Make migrations**
+6. **Make migrations**
    ```bash
    python manage.py makemigrations
    python manage.py migrate
@@ -163,6 +164,22 @@ Follow these steps to set up the project and install the required packages for R
    ```bash
    npm install
 
-3. Start the React development server
+3. Set up environment variables by create a file called `.env` in the `/frontend` directory and add each environment variables on each line in the
+   form
+   ```bash
+   <Environment Variable> = '<value>'
+
+4. Set up Google Maps API
+   - Go to https://developers.google.com/maps/documentation/routes/cloud-setup and follow the instructions to obtain the API key for the Google Maps API
+   - Add the key to `.env` with variable `REACT_APP_GOOGLE_MAPS_API_KEY`
+   
+5. Set up A Map ID
+   - In the Google Maps Platform select the project for this website and on the left side, click `Map Management`
+   - Click `CREATE MAP ID`
+   - Enter a name and set the map type as as Javascript, vector, with both rotation and tilt, and click save
+   - The map ID should be visible
+   - Save it as an environment variable as `REACT_APP_GOOGLE_MAP_ID`
+
+6. Start the React development server
    ```bash
    npm start

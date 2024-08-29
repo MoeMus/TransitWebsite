@@ -21,8 +21,8 @@ class Course(models.Model):
         LECTURE = "LEC", "Lecture"
 
     # info
-    title = models.CharField(max_length=100)
-    department = models.CharField(max_length=100)
+    title = models.CharField(max_length=100, default='Untitled')
+    department = models.CharField(max_length=100, default='No department')
     class_number = models.CharField(max_length=20, default='000')
     course_number = models.CharField(max_length=10, default=0)
     section_name = models.CharField(max_length=100, default='D100')  # E.g. D100, E200, etc.

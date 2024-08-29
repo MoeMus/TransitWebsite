@@ -118,3 +118,19 @@ class SyncCoursesCronJob(CronJobBase):
     def get_departments(self):
         return ['cmpt']  # TODO: Update this list with all relevant departments
 
+
+def parse_date(date_string):
+    try:
+        # First, parse the date string into a naive datetime object
+        naive_dt = parse_datetime(date_string)
+
+        # If parsing was successful, set the timezone to PST
+        if naive_dt:
+            pst_zone = ZoneInfo("America/Vancouver")
+            return naive_dt.replace(tzinfo=pst_zone).astimezone(ZoneInfo("UTC"))
+        else:
+            logger.error(f"Failed to parse date: {date_string}")
+            return None
+    except Exception as e:
+        logger.error(f"Date parsing error: {e} with value {date_string}")
+        return None

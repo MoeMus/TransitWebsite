@@ -100,7 +100,7 @@ class SyncCoursesCronJob(CronJobBase):
                                 }
                             )
 
-                        logger.info(f"Updated or created course: {info.get('title', 'Untitled Course')}")
+                        logger.info(f"Updated or created course: {info.get('title', 'Untitled Course')} with section {section_code}")
 
 
             except requests.exceptions.RequestException as err:

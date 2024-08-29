@@ -4,6 +4,9 @@ from .utils import get_current_year, get_current_term_code, get_current_term
 import requests
 import logging
 
+from datetime import datetime  # Used for saving the date/times of courses and sections
+from django.utils import timezone
+
 Course.objects.all().delete()  # TODO: For debugging only
 
 logger = logging.getLogger(__name__)

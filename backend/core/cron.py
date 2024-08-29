@@ -1,5 +1,5 @@
 from django_cron import CronJobBase, Schedule
-from .models import Course
+from .models import Course, CourseSection
 from .utils import get_current_year, get_current_term_code, get_current_term
 import requests
 import logging
@@ -56,11 +56,13 @@ class SyncCoursesCronJob(CronJobBase):
 
                         info = course_details.get("info", {})
                         instructor = course_details.get("instructor", [])
-                        course_schedule = course_details.get("courseSchedule", [])
+                        course_schedules = course_details.get("courseSchedule", [])
                         required_text = course_details.get("requiredText", [])
 
+                        first_instructor = instructor[0] if instructor else {}
+
                         # Step 4: Store or update the course in the database
-                        Course.objects.update_or_create(
+                        course_obj, created = Course.objects.update_or_create(
                             title=info.get("title", "Untitled Course"),
                             defaults={
                                 # info
@@ -74,20 +76,32 @@ class SyncCoursesCronJob(CronJobBase):
                                 "delivery_method": info.get("deliveryMethod", ""),
 
                                 # instructor
-                                "professor": instructor.get("name", "Unknown"),
-
-                                # courseSchedule
-                                "start_time": course_schedule.get("startTime", ""),
-                                "start_date": course_schedule.get("startDate", None),
-                                "end_time": course_schedule.get("endTime", ""),
-                                "end_date": course_schedule.get("endDate", None),
-                                "is_exam": course_schedule.get("isExam", False),
-                                "days": course_schedule.get("days", ""),
-                                "campus": course_schedule.get("campus", ""),
-
+                                "professor": first_instructor.get("name", "Unknown"),
                             },
                         )
+
+                        # Step 5: Store course sections
+                        for course_schedule in course_schedules:
+                            CourseSection.objects.update_or_create(
+                                course=course_obj,
+                                section_code=section.get("sectionCode", ""),
+                                defaults={
+                                    "text": section.get("text", ""),
+                                    "class_type": section.get("classType", ""),
+                                    "associated_class": section.get("associatedClass", ""),
+                                    "title": section.get("title", ""),
+                                    "start_time": course_schedule.get("startTime", ""),
+                                    "start_date": course_schedule.get("startDate", None),
+                                    "end_time": course_schedule.get("endTime", ""),
+                                    "end_date": course_schedule.get("endDate", None),
+                                    "is_exam": course_schedule.get("isExam", False),
+                                    "days": course_schedule.get("days", ""),
+                                    "campus": course_schedule.get("campus", ""),
+                                }
+                            )
+
                         logger.info(f"Updated or created course: {info.get('title', 'Untitled Course')}")
+
 
             except requests.exceptions.RequestException as err:
                 logger.error(f"Could not sync courses for {department}: {err}")

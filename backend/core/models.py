@@ -53,6 +53,19 @@ class Course(models.Model):
         return f"{self.department} {self.class_number}"
 
 
+# Represents a section of a course (Tutorial, Lab, etc.)
+class CourseSection(models.Model):
+    course = models.ForeignKey(Course, related_name='sections', on_delete=models.CASCADE)
+    section_code = models.CharField(max_length=10)
+    text = models.CharField(max_length=100)  # e.g., "D100"
+    class_type = models.CharField(max_length=10)  # e.g., "e" or "n"
+    associated_class = models.CharField(max_length=10)  # e.g., "1"
+    title = models.CharField(max_length=100)
+
+    def __str__(self):
+        return f"{self.course.title} - {self.section_code} ({self.class_type})"
+
+
 class User(AbstractUser):
     DoesNotExist = None
     Courses = models.ManyToManyField('Course', related_name='users', blank=True)

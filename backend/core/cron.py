@@ -74,16 +74,16 @@ class SyncCoursesCronJob(CronJobBase):
                                 "delivery_method": info.get("deliveryMethod", ""),
 
                                 # instructor
-                                "professor": info.get("professor", "Unknown"),
+                                "professor": instructor.get("name", "Unknown"),
 
                                 # courseSchedule
-                                "start_time": info.get("startTime", ""),
-                                "start_date": info.get("startDate", None),
-                                "end_time": info.get("endTime", ""),
-                                "end_date": info.get("endDate", None),
-                                "is_exam": info.get("isExam", False),
-                                "days": info.get("days", ""),
-                                "campus": info.get("campus", ""),
+                                "start_time": course_schedule.get("startTime", ""),
+                                "start_date": course_schedule.get("startDate", None),
+                                "end_time": course_schedule.get("endTime", ""),
+                                "end_date": course_schedule.get("endDate", None),
+                                "is_exam": course_schedule.get("isExam", False),
+                                "days": course_schedule.get("days", ""),
+                                "campus": course_schedule.get("campus", ""),
 
                             },
                         )

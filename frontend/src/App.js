@@ -7,6 +7,7 @@ import {Register} from "./login-registration-page/register";
 import {RegistrationPage} from "./login-registration-page/registrationPage";
 import {Dashboard} from "./dashboard/dashboard";
 import refreshAccessToken from "./configurations/refreshAccessToken";
+import WelcomePage from "./components/welcomePage";
 function App() {
 
   const [isAuth, setIsAuth] = useState(false);
@@ -29,16 +30,15 @@ function App() {
 
   return (
     <>
-      <Navigation isAuthenticated={isAuth} />
+      <Navigation username={sessionStorage.getItem("user")}/>
 
       <Routes>
         <Route path="/" element={isAuth ? <Navigate to="/dashboard" replace={true} /> : <Navigate to="/registration" replace={true} />} />
         <Route path="/dashboard" element={isAuth ? <Dashboard /> : <Navigate to="/registration" replace={true} />} />
         <Route path="/signup" element={<Register />} />
-        <Route path="/registration" element={<RegistrationPage />} />
+        <Route path="/registration" element={ isAuth ?  <Dashboard /> : <RegistrationPage />} />
         <Route path="/login" element={<Login />} />
         {/* Uncomment and add other routes as needed */}
-        {/* <Route path="/welcome" element={ isAuth ? <WelcomePage /> : <Navigate to="/registration" replace={true} /> } />*/}
       </Routes>
     </>
   );

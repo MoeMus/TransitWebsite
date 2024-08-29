@@ -13,7 +13,7 @@ python manage.py migrate
 Backend must support login and authentication  
 Ability to add, remove courses, and get rid of all courses when semester is over  
 Have user table for each user on the website; for every single one of those clear their courses  
-Be able to retreieve information about the course, possibly using the frontend with the SFU REST Course API, if the user chooses a course then add it to the backend  
+Be able to retrieve information about the course, possibly using the frontend with the SFU REST Course API, if the user chooses a course then add it to the backend  
 Calculate travel time for user depending on course start time  
 Ability for user to delete their account  
 Backend must check for incompatible course times  
@@ -31,8 +31,11 @@ Look into Geolocation API, Google Maps API, Translink API
 Setting car, transit options  
 Search bar for courses with auto recommendations  
 
-**August 27, 2024**  
-
+**August 27, 2024** 
+- Fully implement location tracking on frontend
+- Add Google Maps API Support 
+   - Get API Key
+   - Integrate with Geolocation API to display user's current location
 
 
 # SFU Transit Web App

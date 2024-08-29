@@ -7,7 +7,7 @@ import apiClient from "../configurations/configAxios";
 import {useDispatch} from "react-redux";
 import updateAccessToken from "../storeConfig/updateAccessToken";
 
-export function Navigation(){
+export function Navigation({username = ""}){
     const navigate = useNavigate();
     const [isAuth, setIsAuth] = useState(false);
     const dispatch = useDispatch();
@@ -55,7 +55,7 @@ export function Navigation(){
                 </Nav>
 
                 <Nav>
-                    {isAuth ? <Nav.Link href="/account"> Account </Nav.Link> : null}
+                    {isAuth ? <Nav.Link href="/account"> {username} </Nav.Link> : null}
                 </Nav>
 
             </Navbar>

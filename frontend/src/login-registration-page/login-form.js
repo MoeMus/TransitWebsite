@@ -4,6 +4,7 @@ import {useNavigate} from "react-router-dom";
 import {useDispatch} from "react-redux";
 import updateAccessToken from "../storeConfig/updateAccessToken";
 import toast, { Toaster } from 'react-hot-toast';
+import Button from "react-bootstrap/Button";
 
 
 export function Login() {
@@ -101,10 +102,9 @@ export function Login() {
 
                         <div className="d-grid gap-2 mt-3">
 
-                            <button type="submit" className="btn btn-primary" style={{
-                                width: '120px'
-                            }}> Continue
-                            </button>
+                            <Button type="submit" variant="danger" className="btn"> Continue
+                            </Button>
+
                         </div>
 
                     </div>

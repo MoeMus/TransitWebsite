@@ -6,6 +6,9 @@ import logging
 
 from datetime import datetime  # Used for saving the date/times of courses and sections
 from django.utils import timezone
+from zoneinfo import ZoneInfo
+from django.utils.dateparse import parse_datetime
+
 
 Course.objects.all().delete()  # TODO: For debugging only
 
@@ -94,9 +97,9 @@ class SyncCoursesCronJob(CronJobBase):
                                     "associated_class": section.get("associatedClass", ""),
                                     "title": section.get("title", ""),
                                     "start_time": course_schedule.get("startTime", ""),
-                                    "start_date": course_schedule.get("startDate", None),
+                                    "start_date": parse_date(course_schedule.get("startDate", None)),
                                     "end_time": course_schedule.get("endTime", ""),
-                                    "end_date": course_schedule.get("endDate", None),
+                                    "end_date": parse_date(course_schedule.get("endDate", None)),
                                     "is_exam": course_schedule.get("isExam", False),
                                     "days": course_schedule.get("days", ""),
                                     "campus": course_schedule.get("campus", ""),
@@ -111,5 +114,7 @@ class SyncCoursesCronJob(CronJobBase):
 
         logger.info("Course sync cron job completed.!!!!!!!!!!")
 
+
     def get_departments(self):
         return ['cmpt']  # TODO: Update this list with all relevant departments
+

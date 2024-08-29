@@ -96,13 +96,7 @@ export function Register(){
         return (<>
             <Container fluid>
 
-                <div className="form-container" style={{
-                    position: 'absolute', left: '50%', top: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    boxShadow: '0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)',
-                    padding: '20px'
-                }}>
-
+                <div className="form-container">
 
                     <Form onSubmit={submitCredentials}>
 

@@ -30,7 +30,7 @@ function App() {
 
   return (
     <>
-      <Navigation />
+      <Navigation username={sessionStorage.getItem("user")}/>
 
       <Routes>
         <Route path="/" element={isAuth ? <Navigate to="/dashboard" replace={true} /> : <Navigate to="/registration" replace={true} />} />

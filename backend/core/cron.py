@@ -86,6 +86,20 @@ class SyncCoursesCronJob(CronJobBase):
                             },
                         )
 
+                        if section.get("sectionCode") == "LEC":
+                            lecture_section, created = LectureSection.objects.update_or_create(
+                                course=course_obj,
+                                section_code=section_code,
+                                defaults={
+                                    "start_time": parse_time(course_details.get("startTime", "")),
+                                    "start_date": parse_date(course_details.get("startDate", "")),
+                                    "end_time": parse_time(course_details.get("endTime", "")),
+                                    "end_date": parse_date(course_details.get("endDate", "")),
+                                    "days": course_details.get("days", ""),
+                                    "campus": course_details.get("campus", ""),
+                                }
+                            )
+
                         # Step 5: Store course sections
                         for course_schedule in course_schedules:
                             CourseSection.objects.update_or_create(

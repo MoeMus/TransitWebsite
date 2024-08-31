@@ -1,3 +1,4 @@
+from django.core.exceptions import ObjectDoesNotExist
 from django_cron import CronJobBase, Schedule
 from .models import Course, LectureSection, NonLectureSection
 from .utils import get_current_year, get_current_term_code, get_current_term
@@ -49,6 +50,8 @@ class SyncCoursesCronJob(CronJobBase):
 
                     for section in sections:
                         section_code = section.get("value")
+                        associated_class = section.get("associatedClass")
+
                         logger.info(f"Processing section: {section_code} for course {course_number}")
 
                         # Step 3: Get the detailed information for each section
@@ -101,20 +104,27 @@ class SyncCoursesCronJob(CronJobBase):
                                 }
                             )
                         else:
-                            lecture_section = LectureSection.objects.get(course=course_obj, section_code=section.get("associatedClass"))
-                            NonLectureSection.objects.update_or_create(
-                                lecture_section=lecture_section,
-                                section_code=section_code,
-                                defaults={
-                                    "start_time": parse_time(course_details.get("startTime", "")),
-                                    "start_date": parse_date(course_details.get("startDate", "")),
-                                    "end_time": parse_time(course_details.get("endTime", "")),
-                                    "end_date": parse_date(course_details.get("endDate", "")),
-                                    "days": course_details.get("days", ""),
-                                    "campus": course_details.get("campus", ""),
-                                    "class_type": section.get("sectionCode", ""),
-                                }
-                            )
+                            try:
+                                # Try to find the connected lecture section
+                                lecture_section = LectureSection.objects.get(
+                                    course=course_obj,
+                                    section_code=section.get("associatedClass")
+                                )
+                                NonLectureSection.objects.update_or_create(
+                                    lecture_section=lecture_section,
+                                    section_code=section_code,
+                                    defaults={
+                                        "start_time": parse_time(course_details.get("startTime", "")),
+                                        "start_date": parse_date(course_details.get("startDate", "")),
+                                        "end_time": parse_time(course_details.get("endTime", "")),
+                                        "end_date": parse_date(course_details.get("endDate", "")),
+                                        "days": course_details.get("days", ""),
+                                        "campus": course_details.get("campus", ""),
+                                        "class_type": section.get("sectionCode", ""),
+                                    }
+                                )
+                            except ObjectDoesNotExist:
+                                logger.error(f"LectureSection with associatedClass {section.get('associatedClass')} not found for section {section_code}")
 
                         # Step 5: Store course sections
                         #for course_schedule in course_schedules:

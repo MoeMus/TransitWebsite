@@ -59,6 +59,9 @@ class LectureSection(models.Model):
     days = models.CharField(max_length=50, null=True, blank=True)
     campus = models.CharField(max_length=50, null=True, blank=True)
 
+    professor = models.CharField(max_length=100, null=True, blank=True)  # Professor field is optional, usually updated
+    associated_class = models.CharField(max_length=50)
+
     def __str__(self):
         return f"{self.course.title} - {self.section_code} (Lecture)"
 

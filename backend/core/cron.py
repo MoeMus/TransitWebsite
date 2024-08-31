@@ -93,12 +93,12 @@ class SyncCoursesCronJob(CronJobBase):
                                 course=course_obj,
                                 section_code=section_code,
                                 defaults={
-                                    "start_time": parse_time(course_details.get("startTime", "")),
-                                    "start_date": parse_date(course_details.get("startDate", "")),
-                                    "end_time": parse_time(course_details.get("endTime", "")),
-                                    "end_date": parse_date(course_details.get("endDate", "")),
-                                    "days": course_details.get("days", ""),
-                                    "campus": course_details.get("campus", ""),
+                                    "start_time": parse_time(course_schedules.get("startTime", "")),
+                                    "start_date": parse_date(course_schedules.get("startDate", "")),
+                                    "end_time": parse_time(course_schedules.get("endTime", "")),
+                                    "end_date": parse_date(course_schedules.get("endDate", "")),
+                                    "days": course_schedules.get("days", ""),
+                                    "campus": course_schedules.get("campus", ""),
 
                                     "professor": first_instructor.get("name", "Unknown"),
                                 }

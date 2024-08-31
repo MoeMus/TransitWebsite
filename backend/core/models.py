@@ -61,6 +61,8 @@ class LectureSection(models.Model):
 
     professor = models.CharField(max_length=100, null=True, blank=True)  # Professor field is optional, usually updated
     associated_class = models.CharField(max_length=50, default=0)
+    title = models.CharField(max_length=100, default='Untitled')
+    number = models.CharField(max_length=100, default='000')  # e.g., "D100"
 
     def __str__(self):
         return f"{self.course.title} - {self.section_code} (Lecture)"
@@ -73,7 +75,7 @@ class NonLectureSection(models.Model):
     text = models.CharField(max_length=100)  # e.g., "D100"
     class_type = models.CharField(max_length=10)  # e.g., "e" or "n"
     associated_class = models.CharField(max_length=10, default=0)  # e.g., "1"
-    title = models.CharField(max_length=100)
+    title = models.CharField(max_length=100, default="Untitled")
     start_time = models.CharField(max_length=100, null=True, blank=True)
     start_date = models.DateTimeField(null=True, blank=True)
     end_time = models.CharField(max_length=100, null=True, blank=True)

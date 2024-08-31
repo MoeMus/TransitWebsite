@@ -43,7 +43,7 @@ export function Login() {
             sessionStorage.setItem('refresh_token', data.refresh);
             dispatch(updateAccessToken());
             apiClient.defaults.headers.common['Authorization'] = `Bearer ${data.access}`;
-            navigate("/dashboard");
+            navigate("/dashboard", { state: { from: "/registration" } });
             window.location.reload();
         } catch (err) {
             toast.error("Incorrect Username or Password", {

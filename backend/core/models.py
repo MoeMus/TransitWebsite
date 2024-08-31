@@ -75,7 +75,8 @@ class NonLectureSection(models.Model):
     is_exam = models.BooleanField(default=False)
     days = models.CharField(max_length=100, null=True, blank=True)
     campus = models.CharField(max_length=100, null=True, blank=True)
-    professor = models.CharField(max_length=100, null=True, blank=True)  # Add this field to match `cron.py`
+    professor = models.CharField(max_length=100, null=True, blank=True)
+    number = models.CharField(max_length=100, default='000')
 
     def __str__(self):
         return f"{self.title} - {self.section_code} ({self.class_type})"

@@ -4,10 +4,7 @@ from .models import Course, LectureSection, NonLectureSection
 from .utils import get_current_year, get_current_term_code, get_current_term
 import requests
 import logging
-from datetime import datetime  # Used for saving the date/times of courses and sections
-from django.utils import timezone
-from zoneinfo import ZoneInfo
-from django.utils.dateparse import parse_datetime, parse_time
+from django.utils.dateparse import parse_time
 from dateutil import parser
 
 

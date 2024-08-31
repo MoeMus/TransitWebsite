@@ -108,18 +108,19 @@ class SyncCoursesCronJob(CronJobBase):
                                 # Try to find the connected lecture section
                                 lecture_section = LectureSection.objects.get(
                                     course=course_obj,
-                                    section_code=section.get("associatedClass")
+                                    associated_class=associated_class
                                 )
                                 NonLectureSection.objects.update_or_create(
                                     lecture_section=lecture_section,
                                     section_code=section_code,
+                                    associated_class=associated_class,
                                     defaults={
-                                        "start_time": parse_time(course_details.get("startTime", "")),
-                                        "start_date": parse_date(course_details.get("startDate", "")),
-                                        "end_time": parse_time(course_details.get("endTime", "")),
-                                        "end_date": parse_date(course_details.get("endDate", "")),
-                                        "days": course_details.get("days", ""),
-                                        "campus": course_details.get("campus", ""),
+                                        "start_time": parse_time(course_schedules.get("startTime", "")),
+                                        "start_date": parse_date(course_schedules.get("startDate", "")),
+                                        "end_time": parse_time(course_schedules.get("endTime", "")),
+                                        "end_date": parse_date(course_schedules.get("endDate", "")),
+                                        "days": course_schedules.get("days", ""),
+                                        "campus": course_schedules.get("campus", ""),
                                         "class_type": section.get("sectionCode", ""),
                                     }
                                 )

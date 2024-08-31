@@ -1,18 +1,17 @@
+from django.core.exceptions import ObjectDoesNotExist
 from django_cron import CronJobBase, Schedule
-from .models import Course, CourseSection
+from .models import Course, LectureSection, NonLectureSection
 from .utils import get_current_year, get_current_term_code, get_current_term
 import requests
 import logging
-
-from datetime import datetime  # Used for saving the date/times of courses and sections
-from django.utils import timezone
-from zoneinfo import ZoneInfo
-from django.utils.dateparse import parse_datetime
+from django.utils.dateparse import parse_time
+from dateutil import parser
 
 
 Course.objects.all().delete()  # TODO: For debugging only
 
 logger = logging.getLogger(__name__)
+
 
 class SyncCoursesCronJob(CronJobBase):
     RUN_EVERY_MINS = 60  # 1 = one minute, 60 = one hour
@@ -31,7 +30,6 @@ class SyncCoursesCronJob(CronJobBase):
             try:
                 logger.info(f"Fetching courses for department: {department}")
 
-                # Step 1: Get the list of courses for the department
                 courses_url = f"https://www.sfu.ca/bin/wcm/course-outlines?{current_year}/{current_term}/{department}"
                 courses_response = requests.get(courses_url)
                 courses_response.raise_for_status()
@@ -42,17 +40,20 @@ class SyncCoursesCronJob(CronJobBase):
                     course_number = course.get("value")
                     logger.info(f"Processing course number: {course_number}")
 
-                    # Step 2: Get the list of sections for the course
                     sections_url = f"https://www.sfu.ca/bin/wcm/course-outlines?{current_year}/{current_term}/{department}/{course_number}"
                     sections_response = requests.get(sections_url)
                     sections_response.raise_for_status()
                     sections = sections_response.json()
 
+                    # Step 1: Create or update the course first
                     for section in sections:
                         section_code = section.get("value")
+                        associated_class = section.get("associatedClass")
+                        section_title = section.get("title")
+                        text_value = section.get("text")
+
                         logger.info(f"Processing section: {section_code} for course {course_number}")
 
-                        # Step 3: Get the detailed information for each section
                         details_url = f"https://www.sfu.ca/bin/wcm/course-outlines?{current_year}/{current_term}/{department}/{course_number}/{section_code}"
                         details_response = requests.get(details_url)
                         details_response.raise_for_status()
@@ -61,76 +62,84 @@ class SyncCoursesCronJob(CronJobBase):
                         logger.debug(f"Course details fetched: {course_details} with url: {details_url}")
 
                         info = course_details.get("info", {})
-                        instructor = course_details.get("instructor", [])
                         course_schedules = course_details.get("courseSchedule", [])
-                        required_text = course_details.get("requiredText", [])
+                        first_instructor = course_details.get("instructor", [{}])[0]  # Get first instructor if available
 
-                        first_instructor = instructor[0] if instructor else {}
-
-                        # Step 4: Store or update the course in the database
                         course_obj, created = Course.objects.update_or_create(
                             title=info.get("title", "Untitled Course"),
+                            department=info.get("dept", department),
+                            class_number=info.get("classNumber", 0),
+                            course_number=info.get("number", 0),
                             defaults={
-                                # info
-                                "title": info.get("title", "Untitled Course"),
-                                "department": info.get("dept", department),
-                                "class_number": info.get("classNumber", 0),
-                                "course_number": info.get("number", 0),
-                                "section_name": info.get("section", section_code),
                                 "description": info.get("description", ""),
                                 "term": info.get("term", ""),
                                 "delivery_method": info.get("deliveryMethod", ""),
-
-                                # instructor
-                                "professor": first_instructor.get("name", "Unknown"),
-                            },
+                                "section_name": info.get("section")
+                            }
                         )
 
-                        # Step 5: Store course sections
-                        for course_schedule in course_schedules:
-                            CourseSection.objects.update_or_create(
-                                course=course_obj,
-                                section_code=section.get("sectionCode", ""),
-                                defaults={
-                                    "text": section.get("text", ""),
-                                    "class_type": section.get("classType", ""),
-                                    "associated_class": section.get("associatedClass", ""),
-                                    "title": section.get("title", ""),
-                                    "start_time": course_schedule.get("startTime", ""),
-                                    "start_date": parse_date(course_schedule.get("startDate", None)),
-                                    "end_time": course_schedule.get("endTime", ""),
-                                    "end_date": parse_date(course_schedule.get("endDate", None)),
-                                    "is_exam": course_schedule.get("isExam", False),
-                                    "days": course_schedule.get("days", ""),
-                                    "campus": course_schedule.get("campus", ""),
-                                }
-                            )
+                        for schedule in course_schedules:
+                            if section.get("sectionCode") == "LEC" and text_value == info.get("section"):
+                                logger.info(f"Creating LectureSection for section {section_code}")
+                                lecture_section, created = LectureSection.objects.update_or_create(
+                                    course=course_obj,
+                                    section_code=section_code,
+                                    associated_class=associated_class,
+                                    defaults={
+                                        "start_time": parse_time(schedule.get("startTime", "")),
+                                        "start_date": parse_date(schedule.get("startDate", "")),
+                                        "end_time": parse_time(schedule.get("endTime", "")),
+                                        "end_date": parse_date(schedule.get("endDate", "")),
+                                        "days": schedule.get("days", ""),
+                                        "campus": schedule.get("campus", ""),
+                                        "class_type": section.get("classType", ""),
+                                        "professor": first_instructor.get("name", "Unknown"),
+                                        "title": section_title,
+                                        "associated_class": associated_class,
+                                        "number": info.get("number")
+                                    }
+                                )
+                                logger.info(f"LectureSection created: {lecture_section}")
+                            else:
+                                try:
+                                    logger.info(f"Creating NonLectureSection for section {section_code}")
+                                    NonLectureSection.objects.update_or_create(
+                                        section_code=section_code,
+                                        associated_class=associated_class,
+                                        defaults={
+                                            "start_time": parse_time(schedule.get("startTime", "")),
+                                            "start_date": parse_date(schedule.get("startDate", "")),
+                                            "end_time": parse_time(schedule.get("endTime", "")),
+                                            "end_date": parse_date(schedule.get("endDate", "")),
+                                            "days": schedule.get("days", ""),
+                                            "campus": schedule.get("campus", ""),
+                                            "class_type": section.get("classType", ""),
+                                            "professor": first_instructor.get("name", "Unknown"),
+                                            "title": section_title,
+                                            "associated_class": associated_class,
+                                            "number": info.get("number")
+                                        }
+                                    )
+                                    logger.info(f"NonLectureSection created: {section_code} for {lecture_section}")
+                                except ObjectDoesNotExist:
+                                    logger.error(f"LectureSection with associatedClass {associated_class} not found for section {section_code}")
 
-                        logger.info(f"Updated or created course: {info.get('title', 'Untitled Course')} with section {section_code}")
-
+                        logger.info(f"Updated or created section: {section_code} for course {course_number}")
 
             except requests.exceptions.RequestException as err:
                 logger.error(f"Could not sync courses for {department}: {err}")
 
-        logger.info("Course sync cron job completed.!!!!!!!!!!")
+        logger.info("Course sync cron job completed.")
 
 
     def get_departments(self):
-        return ['cmpt']  # TODO: Update this list with all relevant departments
+        return ['cmpt']  # Update this list with all relevant departments
 
 
 def parse_date(date_string):
     try:
-        # First, parse the date string into a naive datetime object
-        naive_dt = parse_datetime(date_string)
-
-        # If parsing was successful, set the timezone to PST
-        if naive_dt:
-            pst_zone = ZoneInfo("America/Vancouver")
-            return naive_dt.replace(tzinfo=pst_zone).astimezone(ZoneInfo("UTC"))
-        else:
-            logger.error(f"Failed to parse date: {date_string}")
-            return None
+        parsed_datetime = parser.parse(date_string)
+        return parsed_datetime.date()
     except Exception as e:
         logger.error(f"Date parsing error: {e} with value {date_string}")
         return None

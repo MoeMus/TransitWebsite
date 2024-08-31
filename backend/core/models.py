@@ -43,12 +43,6 @@ class Course(models.Model):
 
 
 class LectureSection(models.Model):
-    # courseSchedule
-    #    component = models.CharField(
-    #        max_length=10,
-    #        choices=Component.choices,
-    #        default=Component.LECTURE # LECTURE is the default component
-    #    )
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     section_code = models.CharField(max_length=10)
     start_time = models.CharField(max_length=50, null=True, blank=True)
@@ -58,11 +52,11 @@ class LectureSection(models.Model):
     is_exam = models.BooleanField(default=False)
     days = models.CharField(max_length=50, null=True, blank=True)
     campus = models.CharField(max_length=50, null=True, blank=True)
-
-    professor = models.CharField(max_length=100, null=True, blank=True)  # Professor field is optional, usually updated
+    class_type = models.CharField(max_length=10, null=True, blank=True)
+    professor = models.CharField(max_length=100, null=True, blank=True)
     associated_class = models.CharField(max_length=50, default=0)
     title = models.CharField(max_length=100, default='Untitled')
-    number = models.CharField(max_length=100, default='000')  # e.g., "D100"
+    number = models.CharField(max_length=100, default='000')
 
     def __str__(self):
         return f"{self.course.title} - {self.section_code} (Lecture)"
@@ -70,22 +64,21 @@ class LectureSection(models.Model):
 
 # Represents a section of a course (Tutorial, Lab, etc.)
 class NonLectureSection(models.Model):
-    lecture_section = models.ForeignKey(LectureSection, on_delete=models.CASCADE, related_name='non_lecture_sections')
     section_code = models.CharField(max_length=10)
-    text = models.CharField(max_length=100)  # e.g., "D100"
     class_type = models.CharField(max_length=10)  # e.g., "e" or "n"
-    associated_class = models.CharField(max_length=10, default=0)  # e.g., "1"
+    associated_class = models.CharField(max_length=10, default=0)
     title = models.CharField(max_length=100, default="Untitled")
     start_time = models.CharField(max_length=100, null=True, blank=True)
-    start_date = models.DateTimeField(null=True, blank=True)
+    start_date = models.DateField(null=True, blank=True)
     end_time = models.CharField(max_length=100, null=True, blank=True)
-    end_date = models.DateTimeField(null=True, blank=True)
+    end_date = models.DateField(null=True, blank=True)
     is_exam = models.BooleanField(default=False)
     days = models.CharField(max_length=100, null=True, blank=True)
     campus = models.CharField(max_length=100, null=True, blank=True)
+    professor = models.CharField(max_length=100, null=True, blank=True)  # Add this field to match `cron.py`
 
     def __str__(self):
-        return f"{self.lecture_section.course.title} - {self.section_code} ({self.class_type})"
+        return f"{self.title} - {self.section_code} ({self.class_type})"
 
 
 class User(AbstractUser):

@@ -94,6 +94,7 @@ class SyncCoursesCronJob(CronJobBase):
                                         "end_date": parse_date(schedule.get("endDate", "")),
                                         "days": schedule.get("days", ""),
                                         "campus": schedule.get("campus", ""),
+                                        "class_type": section.get("classType", ""),
                                         "professor": first_instructor.get("name", "Unknown"),
                                         "title": section_title,
                                         "associated_class": associated_class,
@@ -104,13 +105,7 @@ class SyncCoursesCronJob(CronJobBase):
                             else:
                                 try:
                                     logger.info(f"Creating NonLectureSection for section {section_code}")
-                                    lecture_section = LectureSection.objects.get(
-                                        course=course_obj,
-                                        associated_class=associated_class,
-                                        title=section_title
-                                    )
                                     NonLectureSection.objects.update_or_create(
-                                        lecture_section=lecture_section,
                                         section_code=section_code,
                                         associated_class=associated_class,
                                         defaults={
@@ -121,7 +116,10 @@ class SyncCoursesCronJob(CronJobBase):
                                             "days": schedule.get("days", ""),
                                             "campus": schedule.get("campus", ""),
                                             "class_type": section.get("classType", ""),
-                                            "title": section_title
+                                            "professor": first_instructor.get("name", "Unknown"),
+                                            "title": section_title,
+                                            "associated_class": associated_class,
+                                            "number": info.get("number")
                                         }
                                     )
                                     logger.info(f"NonLectureSection created: {section_code} for {lecture_section}")
@@ -137,18 +135,17 @@ class SyncCoursesCronJob(CronJobBase):
 
 
     def get_departments(self):
-        return ['macm']  # Update this list with all relevant departments
+        return ['cmpt']  # Update this list with all relevant departments
+
 
 
 def parse_date(date_string):
     try:
-        naive_dt = parse_datetime(date_string)
-        if naive_dt:
-            pst_zone = ZoneInfo("America/Vancouver")
-            return naive_dt.replace(tzinfo=pst_zone).astimezone(ZoneInfo("UTC"))
-        else:
-            logger.error(f"Failed to parse date: {date_string}")
-            return None
+        # Parse date string with the format for the JSON file
+        date = datetime.strptime(date_string, "%a %b %d %H:%M:%S %Z %Y")
+
+        # Return the date (in PST since Racoon is local to Vancouver)
+        return date;
     except Exception as e:
         logger.error(f"Date parsing error: {e} with value {date_string}")
         return None

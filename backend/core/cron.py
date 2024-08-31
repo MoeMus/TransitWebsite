@@ -8,6 +8,7 @@ from datetime import datetime  # Used for saving the date/times of courses and s
 from django.utils import timezone
 from zoneinfo import ZoneInfo
 from django.utils.dateparse import parse_datetime, parse_time
+from dateutil import parser
 
 
 Course.objects.all().delete()  # TODO: For debugging only
@@ -138,14 +139,10 @@ class SyncCoursesCronJob(CronJobBase):
         return ['cmpt']  # Update this list with all relevant departments
 
 
-
 def parse_date(date_string):
     try:
-        # Parse date string with the format for the JSON file
-        date = datetime.strptime(date_string, "%a %b %d %H:%M:%S %Z %Y")
-
-        # Return the date (in PST since Racoon is local to Vancouver)
-        return date;
+        parsed_datetime = parser.parse(date_string)
+        return parsed_datetime.date()
     except Exception as e:
         logger.error(f"Date parsing error: {e} with value {date_string}")
         return None

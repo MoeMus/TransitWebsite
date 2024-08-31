@@ -1,5 +1,5 @@
 from django_cron import CronJobBase, Schedule
-from .models import Course, CourseSection
+from .models import Course, LectureSection, NonLectureSection
 from .utils import get_current_year, get_current_term_code, get_current_term
 import requests
 import logging
@@ -7,8 +7,7 @@ import logging
 from datetime import datetime  # Used for saving the date/times of courses and sections
 from django.utils import timezone
 from zoneinfo import ZoneInfo
-from django.utils.dateparse import parse_datetime
-
+from django.utils.dateparse import parse_datetime, parse_time
 
 Course.objects.all().delete()  # TODO: For debugging only
 
@@ -82,7 +81,7 @@ class SyncCoursesCronJob(CronJobBase):
                                 "delivery_method": info.get("deliveryMethod", ""),
 
                                 # instructor
-                                "professor": first_instructor.get("name", "Unknown"),
+                                #"professor": first_instructor.get("name", "Unknown"),
                             },
                         )
 
@@ -97,30 +96,47 @@ class SyncCoursesCronJob(CronJobBase):
                                     "end_date": parse_date(course_details.get("endDate", "")),
                                     "days": course_details.get("days", ""),
                                     "campus": course_details.get("campus", ""),
+
+                                    "professor": first_instructor.get("name", "Unknown"),
+                                }
+                            )
+                        else:
+                            lecture_section = LectureSection.objects.get(course=course_obj, section_code=section.get("associatedClass"))
+                            NonLectureSection.objects.update_or_create(
+                                lecture_section=lecture_section,
+                                section_code=section_code,
+                                defaults={
+                                    "start_time": parse_time(course_details.get("startTime", "")),
+                                    "start_date": parse_date(course_details.get("startDate", "")),
+                                    "end_time": parse_time(course_details.get("endTime", "")),
+                                    "end_date": parse_date(course_details.get("endDate", "")),
+                                    "days": course_details.get("days", ""),
+                                    "campus": course_details.get("campus", ""),
+                                    "class_type": section.get("sectionCode", ""),
                                 }
                             )
 
                         # Step 5: Store course sections
-                        for course_schedule in course_schedules:
-                            CourseSection.objects.update_or_create(
-                                course=course_obj,
-                                section_code=section.get("sectionCode", ""),
-                                defaults={
-                                    "text": section.get("text", ""),
-                                    "class_type": section.get("classType", ""),
-                                    "associated_class": section.get("associatedClass", ""),
-                                    "title": section.get("title", ""),
-                                    "start_time": course_schedule.get("startTime", ""),
-                                    "start_date": parse_date(course_schedule.get("startDate", None)),
-                                    "end_time": course_schedule.get("endTime", ""),
-                                    "end_date": parse_date(course_schedule.get("endDate", None)),
-                                    "is_exam": course_schedule.get("isExam", False),
-                                    "days": course_schedule.get("days", ""),
-                                    "campus": course_schedule.get("campus", ""),
-                                }
-                            )
+                        #for course_schedule in course_schedules:
+                            #CourseSection.objects.update_or_create(
+                                #course=course_obj,
+                                #section_code=section.get("sectionCode", ""),
+                                #defaults={
+                                    #"text": section.get("text", ""),
+                                    #"class_type": section.get("classType", ""),
+                                    #"associated_class": section.get("associatedClass", ""),
+                                    #"title": section.get("title", ""),
+                                    #"start_time": course_schedule.get("startTime", ""),
+                                    #"start_date": parse_date(course_schedule.get("startDate", None)),
+                                    #"end_time": course_schedule.get("endTime", ""),
+                                    #"end_date": parse_date(course_schedule.get("endDate", None)),
+                                    #"is_exam": course_schedule.get("isExam", False),
+                                    #"days": course_schedule.get("days", ""),
+                                    #"campus": course_schedule.get("campus", ""),
+                                #}
+                            #)
 
-                        logger.info(f"Updated or created course: {info.get('title', 'Untitled Course')} with section {section_code}")
+                        logger.info(f"Updated or created section: {section_code} for course {course_number}")
 
 
             except requests.exceptions.RequestException as err:

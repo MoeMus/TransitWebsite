@@ -41,6 +41,7 @@ class Course(models.Model):
         #return f"{self.department} {self.class_number}" old (before Aug 30)
         return f"{self.department} {self.course_number} - {self.title}"
 
+
 class LectureSection(models.Model):
     # courseSchedule
     #    component = models.CharField(
@@ -57,6 +58,9 @@ class LectureSection(models.Model):
     is_exam = models.BooleanField(default=False)
     days = models.CharField(max_length=50, null=True, blank=True)
     campus = models.CharField(max_length=50, null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.course.title} - {self.section_code} (Lecture)"
 
 
 # Represents a section of a course (Tutorial, Lab, etc.)

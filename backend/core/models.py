@@ -64,8 +64,8 @@ class LectureSection(models.Model):
 
 
 # Represents a section of a course (Tutorial, Lab, etc.)
-class CourseSection(models.Model):
-    course = models.ForeignKey(Course, related_name='sections', on_delete=models.CASCADE)
+class NonLectureSection(models.Model):
+    lecture_section = models.ForeignKey(LectureSection, on_delete=models.CASCADE, related_name='non_lecture_sections')
     section_code = models.CharField(max_length=10)
     text = models.CharField(max_length=100)  # e.g., "D100"
     class_type = models.CharField(max_length=10)  # e.g., "e" or "n"
@@ -80,7 +80,7 @@ class CourseSection(models.Model):
     campus = models.CharField(max_length=100, null=True, blank=True)
 
     def __str__(self):
-        return f"{self.course.title} - {self.section_code} ({self.class_type})"
+        return f"{self.lecture_section.course.title} - {self.section_code} ({self.class_type})"
 
 
 class User(AbstractUser):

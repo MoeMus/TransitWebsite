@@ -31,14 +31,25 @@ class Course(models.Model):
     delivery_method = models.CharField(max_length=50, null=True, blank=True)
 
     #  instructor
-    professor = models.CharField(max_length=100, null=True, blank=True)  # Professor field is optional, usually updated
+    #professor = models.CharField(max_length=100, null=True, blank=True)  # Professor field is optional, usually updated
 
+
+
+    # The __str method below makes the Django Course model readable for when you do print(course)
+    def __str__(self):
+        #return f"{self.department} {self.course_number} - {self.title} ({self.section_name})"
+        #return f"{self.department} {self.class_number}" old (before Aug 30)
+        return f"{self.department} {self.course_number} - {self.title}"
+
+class LectureSection(models.Model):
     # courseSchedule
     #    component = models.CharField(
     #        max_length=10,
     #        choices=Component.choices,
     #        default=Component.LECTURE # LECTURE is the default component
     #    )
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    section_code = models.CharField(max_length=10)
     start_time = models.CharField(max_length=50, null=True, blank=True)
     start_date = models.DateField(null=True, blank=True)
     end_time = models.CharField(max_length=50, null=True, blank=True)
@@ -46,11 +57,6 @@ class Course(models.Model):
     is_exam = models.BooleanField(default=False)
     days = models.CharField(max_length=50, null=True, blank=True)
     campus = models.CharField(max_length=50, null=True, blank=True)
-
-    # The __str method below makes the Django Course model readable for when you do print(course)
-    def __str__(self):
-        #return f"{self.department} {self.course_number} - {self.title} ({self.section_name})"
-        return f"{self.department} {self.class_number}"
 
 
 # Represents a section of a course (Tutorial, Lab, etc.)

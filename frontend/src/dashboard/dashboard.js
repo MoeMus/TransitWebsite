@@ -138,9 +138,8 @@ export function Dashboard() {
               <AdvancedMarker position={userLocation}>
                 <Pin background={"red"}></Pin>
               </AdvancedMarker>
-
+              <Directions userLocation = {userLocation} />
             </Map>
-            <MapSummary summary={ <Directions userLocation = {userLocation} /> } />
           </div>
         </APIProvider>
       </Container>
@@ -174,19 +173,18 @@ export function Dashboard() {
 }
 
 function Directions({ userLocation }) {
-  const map = useMap(); //The map
+  const map = useMap();
   const [directionsService, setDirectionsService] = useState(null);
   const [directionsRenderer, setDirectionsRenderer] = useState(null);
   const [directionsResult, setDirectionsResult] = useState(null);
   const [summary, setSummary] = useState("");
+  const [routes, setRoutes] = useState([]);
+  const [routeIndex, setRouteIndex] = useState(0);
 
   // Initialize services
   useEffect(() => {
-
-    //Check if both are initialized
     if (!map || !window.google) return;
 
-    //Grab the objects directly from Google Maps when the API is loaded globally
     const service = new window.google.maps.DirectionsService();
     const renderer = new window.google.maps.DirectionsRenderer({ map });
 
@@ -194,58 +192,95 @@ function Directions({ userLocation }) {
     setDirectionsRenderer(renderer);
   }, [map]);
 
+  // Calculate directions once
   useEffect(() => {
-    //Check if both are initialized
-    if (!directionsService || !directionsRenderer) return;
+  if (!directionsService || !directionsRenderer) return;
 
-    directionsService.route(
-      {
-        origin: userLocation,
-        destination: "8888 University Dr W, Burnaby, BC V5A 1S6", //Temporary, changes based on travel mode and location of class
-        travelMode: window.google.maps.TravelMode.TRANSIT, //TODO: Make this the default when the page is loaded, but change if user wants another travel mode
-        provideRouteAlternatives: false,
-      },
-      (response, status) => {
-        if (status === window.google.maps.DirectionsStatus.OK) {
-          directionsRenderer.setDirections(response);
-          setDirectionsResult(response);
-          // Extract summary
-          const route = response.routes[0]; // Get the first route
-          const legs = route.legs; // Get the legs of the route
-          const summary = legs.map(leg => `Distance: ${leg.distance.text}, Duration: ${leg.duration.text}`).join(' | '); // Create summary
-          setSummary(summary);
-        } else {
-          toast.error("Error fetching directions " + status, {
-            duration: 2000
-          })
-        }
+  // Keep route index when recalculating
+  directionsService.route(
+    {
+      origin: userLocation,
+      destination: "8888 University Dr W, Burnaby, BC V5A 1S6",
+      travelMode: window.google.maps.TravelMode.TRANSIT,
+      provideRouteAlternatives: true,
+    },
+    (response, status) => {
+      if (status === window.google.maps.DirectionsStatus.OK) {
+        directionsRenderer.setDirections(response);
+        setDirectionsResult(response);
+        setRoutes(response.routes);
+
+        // Apply the stored route index after rerender
+        directionsRenderer.setRouteIndex(routeIndex);
+
+        // Extract and update the summary for the selected route
+        const route = response.routes[routeIndex];
+        const summary = route.legs
+          .map((leg) => `Distance: ${leg.distance.text}, Duration: ${leg.duration.text}`)
+          .join(' | ');
+        setSummary(summary);
+      } else {
+        toast.error("Error fetching directions " + status, {
+          duration: 2000,
+        });
       }
-    );
-  }, [directionsService, directionsRenderer, userLocation]);
-
-  return (
-    summary
+    }
   );
-}
+}, [directionsService, directionsRenderer, userLocation, routeIndex]);
 
-const MapSummary = ({summary}) =>{
+  // Function to update renderer with the selected route
+  // const updateRenderer = (response, index) => {
+  //
+  //   // Extract the summary for the selected route
+  //   const route = response.routes[index];
+  //   const legs = route.legs;
+  //   const summary = legs
+  //     .map((leg) => `Distance: ${leg.distance.text}, Duration: ${leg.duration.text}`)
+  //     .join(" | ");
+  //   setSummary(summary);
+  // };
+  //
+  // // Update renderer when routeIndex changes i.e, a new route is selected
+  // useEffect(() => {
+  //   if (!directionsResult || !directionsRenderer) return;
+  //   updateRenderer(directionsResult, routeIndex); // Update the displayed route
+  // }, [routeIndex, directionsResult, directionsRenderer]);
+
   return (
+    <>
+
       <div style={{
-      padding: '10px',
-      backgroundColor: 'white',
-      borderRadius: '5px',
-      boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
-      marginTop: '10px',
-      position: 'relative'
+        padding: '10px',
+        backgroundColor: 'white',
+        borderRadius: '5px',
+        boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+        marginTop: '10px',
+        position: 'relative'
       }}>
         {summary && (
               <div>
                 <h5>Summary</h5>
                 <p>{summary}</p>
-                <p></p>
               </div>
         )}
+        {routes.length > 1 ? <ul>
+          {routes.map((route, index) => (
+              <li key={index}>
+                <button
+                    onClick={() => {
+                      setRouteIndex(index);
+                    }}
+                >
+                  {route.summary || `Route ${index + 1}`} {/* Use route.summary or fallback */}
+                </button>
+              </li>
+          ))}
+        </ul> : null}
+
       </div>
-  )
+
+    </>
+  );
 }
+
 

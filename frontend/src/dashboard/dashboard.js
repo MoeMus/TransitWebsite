@@ -1,3 +1,4 @@
+import '../styles/dashboardStyles.css';
 import React, { useState, useEffect, useRef } from "react";
 import apiClient from "../configurations/configAxios";
 import { toast, Toaster } from "react-hot-toast";
@@ -10,6 +11,8 @@ import {
 } from "@vis.gl/react-google-maps";
 import Container from "react-bootstrap/Container";
 import { useLocation } from "react-router-dom";
+import Form from "react-bootstrap/Form";
+import Button from "react-bootstrap/Button";
 
 export function Dashboard() {
   const [userInfoLoaded, setUserInfoLoaded] = useState(false);
@@ -20,11 +23,11 @@ export function Dashboard() {
   const [userLocation, setUserLocation] = useState({ lat: 0, lng: 0 });
   const [trackingEnabled, setTrackingEnabled] = useState(false);
   const [map, setMap] = useState(null);
-
+  const [manualLocationEnabled, setManualLocationEnabled] = useState(false);
   const onMapLoad = (mapInstance) => {
     setMap(mapInstance);
   };
-  //TODO: These variables and any code which uses them current do not work
+  //TODO: These variables and any code which uses them currently do not work
   const currentRoute = useLocation();
   const fromPage = currentRoute.state?.from || "/";
 
@@ -74,7 +77,7 @@ export function Dashboard() {
 
   useEffect(() => {
     getUserInfo();
-    if (navigator.geolocation) {
+    if (!manualLocationEnabled && navigator.geolocation) {
       watchID = navigator.geolocation.watchPosition(
         (position) => {
           setUserLocation({
@@ -84,8 +87,14 @@ export function Dashboard() {
         },
         locationError,
         { enableHighAccuracy: true }
+
       );
       setTrackingEnabled(true);
+
+    } else if (manualLocationEnabled){
+      toast("Location set", {
+        duration: 2000
+      });
     } else {
       // display an error if not supported
       toast.error(
@@ -96,7 +105,7 @@ export function Dashboard() {
         }
       );
       setTrackingEnabled(false);
-      //TODO: Change how map is shown on dashboard
+
     }
     return () => navigator.geolocation.clearWatch(watchID);
   }, []);
@@ -122,14 +131,58 @@ export function Dashboard() {
 
   }, [currentRoute]);
 
+  const manualLocationChange = (event)=>{
+    event.preventDefault();
+    const geocoder = new window.google.maps.Geocoder();
+    const address = document.querySelector(".location").value;
+    geocoder.geocode({address: address}, (results, status)=>{
+      if(status === window.google.maps.GeocoderStatus.OK){
+        const lat = results[0].geometry.location.lat();
+        const lng = results[0].geometry.location.lng();
+        console.log(lat + " " + lng);
+        setUserLocation({lat: lat, lng: lng});
+        setManualLocationEnabled(true);
+        navigator.geolocation.clearWatch(watchID);
+        setTrackingEnabled(false);
+      } else {
+        toast.error("The provided location could not be processed", {
+          duration: 2000
+        });
+      }
+    } );
+
+  }
+
   const MapView = () => {
 
     return (
-      <Container fluid={"md"}>
-        <APIProvider apiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}>
-          <div style={{ height: "50vh", width: "70vh" }}>
+      <Container fluid={"md"} style={{height: "1000px", width: "1000px"}}>
 
-            <Map
+        <Form className="locationBox" style={{textAlign: 'center'}}>
+          <Form.Group className="mb-3">
+
+          <Form.Label> Enter your location manually </Form.Label>
+          <Form.Control className="location"></Form.Control>
+          <Form.Text className="text-muted">
+          Enter in the form "&lt;street number&gt; &lt;street name&gt; &lt;city&gt; &lt;state&gt; &lt;postal code &gt;" (ex: 1600 Amphitheatre Parkway, Mountain View, CA 94043) or
+          place name, ex: "Statue of Liberty, New York, NY" (any valid Google Maps location format works too).
+          </Form.Text>
+          <Form.Group>
+            <Form.Text style={{color:"red"}}>This will disable location tracking</Form.Text>
+          </Form.Group>
+        </Form.Group>
+
+        <Button variant="primary" type="submit" onClick={manualLocationChange}>
+        Set Location
+        </Button>
+
+        </Form>
+
+        <APIProvider apiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}>
+
+          <div className="mapBox">
+
+            <Map className="map"
                 mapId={process.env["REACT_APP_GOOGLE_MAP_ID"]}
                 onLoad={onMapLoad}
                 defaultZoom={15}
@@ -165,7 +218,46 @@ export function Dashboard() {
         <p>
           User Info: {JSON.stringify(userInfo)} {userLocation.lat} {userLocation.lng}
         </p>
-        {trackingEnabled ? MapView() : null}
+        <Container fluid={"md"} style={{height: "1000px", width: "1000px"}}>
+
+        <Form className="locationBox" style={{textAlign: 'center'}}>
+          <Form.Group className="mb-3">
+
+          <Form.Label> Enter your location manually </Form.Label>
+          <Form.Control className="location"></Form.Control>
+          <Form.Text className="text-muted">
+          Enter in the form "&lt;street number&gt; &lt;street name&gt; &lt;city&gt; &lt;state&gt; &lt;postal code &gt;" (ex: 1600 Amphitheatre Parkway, Mountain View, CA 94043) or
+          place name, ex: "Statue of Liberty, New York, NY" (any valid Google Maps location format works too).
+          </Form.Text>
+          <Form.Group>
+            <Form.Text style={{color:"red"}}>This will disable location tracking</Form.Text>
+          </Form.Group>
+        </Form.Group>
+
+        <Button variant="primary" type="submit" onClick={manualLocationChange}>
+        Set Location
+        </Button>
+
+        </Form>
+
+        <APIProvider apiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}>
+
+          <div className="mapBox">
+
+            <Map className="map"
+                mapId={process.env["REACT_APP_GOOGLE_MAP_ID"]}
+                onLoad={onMapLoad}
+                defaultZoom={15}
+                defaultCenter={userLocation}
+            >
+              <AdvancedMarker position={userLocation}>
+                <Pin background={"red"}></Pin>
+              </AdvancedMarker>
+              <Directions userLocation = {userLocation} />
+            </Map>
+          </div>
+        </APIProvider>
+      </Container>
       </Container>
 
     </>
@@ -249,30 +341,24 @@ function Directions({ userLocation }) {
   return (
     <>
 
-      <div style={{
-        padding: '10px',
-        backgroundColor: 'white',
-        borderRadius: '5px',
-        boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
-        marginTop: '10px',
-        position: 'relative'
-      }}>
+      <div className="locationBox">
         {summary && (
               <div>
                 <h5>Summary</h5>
                 <p>{summary}</p>
               </div>
         )}
+        <p> Other routes </p>
         {routes.length > 1 ? <ul>
           {routes.map((route, index) => (
               <li key={index}>
-                <button
+                <Button variant="link"
                     onClick={() => {
                       setRouteIndex(index);
                     }}
                 >
-                  {route.summary || `Route ${index + 1}`} {/* Use route.summary or fallback */}
-                </button>
+                  {route.summary || `Route ${index + 1}`}
+                </Button>
               </li>
           ))}
         </ul> : null}

@@ -37,17 +37,19 @@ export function Register(){
         }
         changeButton();
 
-    }, )
+    }, );
 
 
     function changeButton(){
-        if(isError){
-            if(document.querySelector('.button')){
+        if(document.querySelector('.button')){
+            if(isError){
+
                 document.querySelector('.button').setAttribute('disabled', '');
-            }
-        } else {
-            if(document.querySelector('.button')) {
+
+            } else {
+
                 document.querySelector('.button').removeAttribute('disabled');
+
             }
         }
     }

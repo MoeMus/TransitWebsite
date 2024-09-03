@@ -8,6 +8,8 @@ import {RegistrationPage} from "./login-registration-page/registrationPage";
 import {Dashboard} from "./dashboard/dashboard";
 import refreshAccessToken from "./configurations/refreshAccessToken";
 import WelcomePage from "./components/welcomePage";
+import {ScheduleBuilder} from "./schedule-builder/scheduleBuilder";
+
 function App() {
 
   const [isAuth, setIsAuth] = useState(false);

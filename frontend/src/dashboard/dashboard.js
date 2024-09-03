@@ -93,7 +93,7 @@ export function Dashboard() {
       setTrackingEnabled(true);
 
     } else if (manualLocationEnabled){
-      toast("Location set", {
+      toast("Location tracking has been disabled", {
         duration: 2000
       });
     } else {
@@ -177,11 +177,7 @@ export function Dashboard() {
     <>
       <Toaster position="top-left" reverseOrder={false} />
       <Container fluid={"md"}>
-        <div>
 
-
-
-        </div>
         <p>
           User Info: {JSON.stringify(userInfo)} {userLocation.lat} {userLocation.lng}
         </p>
@@ -252,17 +248,25 @@ function Directions({userLocation}) {
   const [summary, setSummary] = useState("");
   const [routes, setRoutes] = useState([]);
   const [routeIndex, setRouteIndex] = useState(0);
-  const [travelMode, setTravelMode] = useState(null);
-
+  const [travelMode, setTravelMode] = useState("");
+  const [travelTime, setTravelTime] = useState("");
+  const [travelDistance, setTravelDistance] = useState("")
   // Initialize services
   useEffect(() => {
     if (!map || !window.google) return;
-    setTravelMode(window.google.maps.TravelMode.TRANSIT); //Default travel mode
+    setTravelMode("Transit"); //Default travel mode
     const service = new window.google.maps.DirectionsService();
     const renderer = new window.google.maps.DirectionsRenderer({map});
 
     setDirectionsService(service);
     setDirectionsRenderer(renderer);
+
+    return () => {
+      if (renderer) {
+        renderer.setDirections(null); // Clears previous directions from the map
+      }
+    };
+
   }, [map]);
 
   // Calculate directions once
@@ -270,12 +274,11 @@ function Directions({userLocation}) {
     if (!directionsService || !directionsRenderer) return;
 
     // Keep route index when recalculating
-    directionsService.route(
-        {
+    directionsService.route({
           origin: userLocation,
-      destination: "8888 University Dr W, Burnaby, BC V5A 1S6",
-      travelMode: window.google.maps.TravelMode[travelMode],
-      provideRouteAlternatives: true,
+          destination: "8888 University Dr W, Burnaby, BC V5A 1S6",
+          travelMode: window.google.maps.TravelMode[travelMode.toUpperCase()],
+          provideRouteAlternatives: true,
     },
     (response, status) => {
       if (status === window.google.maps.DirectionsStatus.OK) {
@@ -288,10 +291,17 @@ function Directions({userLocation}) {
 
         // Extract and update the summary for the selected route
         const route = response.routes[routeIndex];
-        const summary = route.legs
+        if (route && route.legs && route.legs.length > 0) {
+          const summary = route.legs
           .map((leg) => `Distance: ${leg.distance.text}, Duration: ${leg.duration.text}`)
           .join(' | ');
-        setSummary(summary);
+          setSummary(summary);
+          setTravelTime(route.legs.map((leg)=> `${leg.duration.text}`).join(' | '));
+          setTravelDistance(route.legs.map((leg)=> `${leg.distance.text}`).join(' | '));
+        } else {
+          setSummary("Error fetching directions or no routes available");
+        }
+
       } else {
         toast.error("Error fetching directions " + status, {
           duration: 2000,
@@ -306,24 +316,6 @@ function Directions({userLocation}) {
     setTravelMode(eventKey);
   }
 
-  // Function to update renderer with the selected route
-  // const updateRenderer = (response, index) => {
-  //
-  //   // Extract the summary for the selected route
-  //   const route = response.routes[index];
-  //   const legs = route.legs;
-  //   const summary = legs
-  //     .map((leg) => `Distance: ${leg.distance.text}, Duration: ${leg.duration.text}`)
-  //     .join(" | ");
-  //   setSummary(summary);
-  // };
-  //
-  // // Update renderer when routeIndex changes i.e, a new route is selected
-  // useEffect(() => {
-  //   if (!directionsResult || !directionsRenderer) return;
-  //   updateRenderer(directionsResult, routeIndex); // Update the displayed route
-  // }, [routeIndex, directionsResult, directionsRenderer]);
-
   return (
     <>
 
@@ -333,21 +325,23 @@ function Directions({userLocation}) {
             <Dropdown.Toggle variant="success" style={{width: "200px", marginBottom: "5px"}}> Select Travel Mode </Dropdown.Toggle>
 
             <Dropdown.Menu>
-              <Dropdown.Item eventKey="DRIVING"> Driving </Dropdown.Item>
-              <Dropdown.Item eventKey="TRANSIT"> Transit </Dropdown.Item>
-              <Dropdown.Item eventKey="BICYCLING"> Bicycling </Dropdown.Item>
-              <Dropdown.Item eventKey="WALKING"> Walking </Dropdown.Item>
+              <Dropdown.Item eventKey="Driving"> Driving </Dropdown.Item>
+              <Dropdown.Item eventKey="Transit"> Transit </Dropdown.Item>
+              <Dropdown.Item eventKey="Bicycling"> Bicycling </Dropdown.Item>
+              <Dropdown.Item eventKey="Walking"> Walking </Dropdown.Item>
             </Dropdown.Menu>
           </Dropdown>
 
         </div>
         {summary && (
               <div>
-                <h5>Summary</h5>
-                <p>{summary}</p>
+                <h4> Travel Mode: {travelMode}</h4>
+                <h5>Route Summary: </h5>
+
+                <p><strong>Distance: {travelDistance}</strong> <strong> Duration: {travelTime} </strong> </p>
               </div>
         )}
-        <p> Other routes </p>
+        <h6> Other routes: </h6>
         {routes.length > 1 ? <ul>
           {routes.map((route, index) => (
               <li key={index}>

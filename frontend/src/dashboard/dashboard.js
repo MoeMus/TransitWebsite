@@ -13,6 +13,7 @@ import Container from "react-bootstrap/Container";
 import { useLocation } from "react-router-dom";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
+import {Dropdown} from "react-bootstrap";
 
 export function Dashboard() {
   const [userInfoLoaded, setUserInfoLoaded] = useState(false);
@@ -135,69 +136,30 @@ export function Dashboard() {
     event.preventDefault();
     const geocoder = new window.google.maps.Geocoder();
     const address = document.querySelector(".location").value;
-    geocoder.geocode({address: address}, (results, status)=>{
-      if(status === window.google.maps.GeocoderStatus.OK){
-        const lat = results[0].geometry.location.lat();
-        const lng = results[0].geometry.location.lng();
-        console.log(lat + " " + lng);
-        setUserLocation({lat: lat, lng: lng});
-        setManualLocationEnabled(true);
-        navigator.geolocation.clearWatch(watchID);
-        setTrackingEnabled(false);
-      } else {
-        toast.error("The provided location could not be processed", {
-          duration: 2000
-        });
-      }
-    } );
+    if(address){
+      geocoder.geocode({address: address}, (results, status)=>{
+        if(status === window.google.maps.GeocoderStatus.OK){
+          const lat = results[0].geometry.location.lat();
+          const lng = results[0].geometry.location.lng();
+          console.log(lat + " " + lng);
+          setUserLocation({lat: lat, lng: lng});
+          setManualLocationEnabled(true);
+          navigator.geolocation.clearWatch(watchID);
+          setTrackingEnabled(false);
+        } else {
+          toast.error("The provided location could not be processed", {
+            duration: 2000
+          });
+        }
+      } );
+    } else {
+      toast.error("Please enter a location", {
+        duration: 2000
+      });
+    }
+
 
   }
-
-  const MapView = () => {
-
-    return (
-      <Container fluid={"md"} style={{height: "1000px", width: "1000px"}}>
-
-        <Form className="locationBox" style={{textAlign: 'center'}}>
-          <Form.Group className="mb-3">
-
-          <Form.Label> Enter your location manually </Form.Label>
-          <Form.Control className="location"></Form.Control>
-          <Form.Text className="text-muted">
-          Enter in the form "&lt;street number&gt; &lt;street name&gt; &lt;city&gt; &lt;state&gt; &lt;postal code &gt;" (ex: 1600 Amphitheatre Parkway, Mountain View, CA 94043) or
-          place name, ex: "Statue of Liberty, New York, NY" (any valid Google Maps location format works too).
-          </Form.Text>
-          <Form.Group>
-            <Form.Text style={{color:"red"}}>This will disable location tracking</Form.Text>
-          </Form.Group>
-        </Form.Group>
-
-        <Button variant="primary" type="submit" onClick={manualLocationChange}>
-        Set Location
-        </Button>
-
-        </Form>
-
-        <APIProvider apiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}>
-
-          <div className="mapBox">
-
-            <Map className="map"
-                mapId={process.env["REACT_APP_GOOGLE_MAP_ID"]}
-                onLoad={onMapLoad}
-                defaultZoom={15}
-                defaultCenter={userLocation}
-            >
-              <AdvancedMarker position={userLocation}>
-                <Pin background={"red"}></Pin>
-              </AdvancedMarker>
-              <Directions userLocation = {userLocation} />
-            </Map>
-          </div>
-        </APIProvider>
-      </Container>
-    );
-  };
 
   if (loading) {
     return <div>Loading...</div>;
@@ -215,56 +177,74 @@ export function Dashboard() {
     <>
       <Toaster position="top-left" reverseOrder={false} />
       <Container fluid={"md"}>
+        <div>
+
+
+
+        </div>
         <p>
           User Info: {JSON.stringify(userInfo)} {userLocation.lat} {userLocation.lng}
         </p>
-        <Container fluid={"md"} style={{height: "1000px", width: "1000px"}}>
+        <Container style={{height: "2000px", width: "2000px", display: "flex", flexDirection: "column"}}>
 
-        <Form className="locationBox" style={{textAlign: 'center'}}>
-          <Form.Group className="mb-3">
 
-          <Form.Label> Enter your location manually </Form.Label>
-          <Form.Control className="location"></Form.Control>
-          <Form.Text className="text-muted">
-          Enter in the form "&lt;street number&gt; &lt;street name&gt; &lt;city&gt; &lt;state&gt; &lt;postal code &gt;" (ex: 1600 Amphitheatre Parkway, Mountain View, CA 94043) or
-          place name, ex: "Statue of Liberty, New York, NY" (any valid Google Maps location format works too).
-          </Form.Text>
-          <Form.Group>
-            <Form.Text style={{color:"red"}}>This will disable location tracking</Form.Text>
-          </Form.Group>
-        </Form.Group>
+          <div>
 
-        <Button variant="primary" type="submit" onClick={manualLocationChange}>
-        Set Location
-        </Button>
+            <APIProvider apiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}>
 
-        </Form>
+              <div className="mapContainer">
+                <div className="mapBox">
+                  <Map className="map"
+                       mapId={process.env.REACT_APP_GOOGLE_MAP_ID}
+                       onLoad={onMapLoad}
+                       defaultZoom={15}
+                       defaultCenter={userLocation}>
+                    <AdvancedMarker position={userLocation}>
+                      <Pin background={"red"}></Pin>
+                    </AdvancedMarker>
+                  </Map>
+                </div>
+                <div className="directionsBox">
+                  <Directions userLocation={userLocation}/>
+                </div>
+              </div>
 
-        <APIProvider apiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}>
+            </APIProvider>
 
-          <div className="mapBox">
-
-            <Map className="map"
-                mapId={process.env["REACT_APP_GOOGLE_MAP_ID"]}
-                onLoad={onMapLoad}
-                defaultZoom={15}
-                defaultCenter={userLocation}
-            >
-              <AdvancedMarker position={userLocation}>
-                <Pin background={"red"}></Pin>
-              </AdvancedMarker>
-              <Directions userLocation = {userLocation} />
-            </Map>
           </div>
-        </APIProvider>
-      </Container>
+          <div>
+
+            <Form className="locationBox" style={{textAlign: 'center', marginBottom: "100px", width: "800px"}}>
+
+              <Form.Group className="mb-3">
+
+                <Form.Label> Enter your location manually (Use if location tracking is not accurate)</Form.Label>
+                <Form.Control className="location"></Form.Control>
+                <Form.Text className="text-muted">
+                  Enter in the format "&lt;street number&gt; &lt;street name&gt; &lt;city&gt; &lt;state&gt; &lt;postal
+                  code &gt;" ex: 1600 Amphitheatre Parkway, Mountain View, CA 94043. Addresses can also be
+                  place names, ex: "Statue of Liberty, New York, NY".
+                </Form.Text>
+                <Form.Group>
+                  <Form.Text style={{color: "red"}}>This will disable location tracking</Form.Text>
+                </Form.Group>
+              </Form.Group>
+
+              <Button variant="primary" type="submit" onClick={manualLocationChange}>
+                Set Location
+              </Button>
+
+            </Form>
+
+          </div>
+        </Container>
       </Container>
 
     </>
   );
 }
 
-function Directions({ userLocation }) {
+function Directions({userLocation}) {
   const map = useMap();
   const [directionsService, setDirectionsService] = useState(null);
   const [directionsRenderer, setDirectionsRenderer] = useState(null);
@@ -272,13 +252,14 @@ function Directions({ userLocation }) {
   const [summary, setSummary] = useState("");
   const [routes, setRoutes] = useState([]);
   const [routeIndex, setRouteIndex] = useState(0);
+  const [travelMode, setTravelMode] = useState(null);
 
   // Initialize services
   useEffect(() => {
     if (!map || !window.google) return;
-
+    setTravelMode(window.google.maps.TravelMode.TRANSIT); //Default travel mode
     const service = new window.google.maps.DirectionsService();
-    const renderer = new window.google.maps.DirectionsRenderer({ map });
+    const renderer = new window.google.maps.DirectionsRenderer({map});
 
     setDirectionsService(service);
     setDirectionsRenderer(renderer);
@@ -286,14 +267,14 @@ function Directions({ userLocation }) {
 
   // Calculate directions once
   useEffect(() => {
-  if (!directionsService || !directionsRenderer) return;
+    if (!directionsService || !directionsRenderer) return;
 
-  // Keep route index when recalculating
-  directionsService.route(
-    {
-      origin: userLocation,
+    // Keep route index when recalculating
+    directionsService.route(
+        {
+          origin: userLocation,
       destination: "8888 University Dr W, Burnaby, BC V5A 1S6",
-      travelMode: window.google.maps.TravelMode.TRANSIT,
+      travelMode: window.google.maps.TravelMode[travelMode],
       provideRouteAlternatives: true,
     },
     (response, status) => {
@@ -318,7 +299,12 @@ function Directions({ userLocation }) {
       }
     }
   );
-}, [directionsService, directionsRenderer, userLocation, routeIndex]);
+}, [directionsService, directionsRenderer, userLocation, routeIndex, travelMode]);
+
+  function setMode(eventKey, event){
+    event.preventDefault();
+    setTravelMode(eventKey);
+  }
 
   // Function to update renderer with the selected route
   // const updateRenderer = (response, index) => {
@@ -342,6 +328,19 @@ function Directions({ userLocation }) {
     <>
 
       <div className="locationBox">
+        <div>
+          <Dropdown onSelect={setMode}>
+            <Dropdown.Toggle variant="success" style={{width: "200px", marginBottom: "5px"}}> Select Travel Mode </Dropdown.Toggle>
+
+            <Dropdown.Menu>
+              <Dropdown.Item eventKey="DRIVING"> Driving </Dropdown.Item>
+              <Dropdown.Item eventKey="TRANSIT"> Transit </Dropdown.Item>
+              <Dropdown.Item eventKey="BICYCLING"> Bicycling </Dropdown.Item>
+              <Dropdown.Item eventKey="WALKING"> Walking </Dropdown.Item>
+            </Dropdown.Menu>
+          </Dropdown>
+
+        </div>
         {summary && (
               <div>
                 <h5>Summary</h5>
@@ -355,7 +354,7 @@ function Directions({ userLocation }) {
                 <Button variant="link"
                     onClick={() => {
                       setRouteIndex(index);
-                    }}
+                    }} style={{width: "150px"}}
                 >
                   {route.summary || `Route ${index + 1}`}
                 </Button>

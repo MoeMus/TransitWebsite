@@ -200,3 +200,9 @@ class GetCourseView(APIView):
                 "delivery_method": course_data.get("deliveryMethod"),
             },
         )
+
+
+# Returns all courses to scheduleBuilder.js in the frontend via url
+def fetch_all_courses(request):
+    courses = Course.objects.all().values()
+    return JsonResponse(list(courses), safe=False)

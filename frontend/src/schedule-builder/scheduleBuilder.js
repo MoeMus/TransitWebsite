@@ -16,6 +16,7 @@ export function ScheduleBuilder() {
 
     const fetchAvailableCourses() = async () => {
         try {
+            const response = await fetch('http://localhost:8000/courses/');
         } catch (err) {
 
         setError(err)
@@ -24,6 +25,12 @@ export function ScheduleBuilder() {
 
     }
 
+    const setAllCourses = async() => {
+        try {
+
+        }
+
+
     if (loading) {
         return <div>Loading...</div>;
     }
@@ -31,6 +38,7 @@ export function ScheduleBuilder() {
       if (error) {
         return <div>Error: {error.message}</div>;
     }
+
 
     return (
     <>

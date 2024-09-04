@@ -1,5 +1,5 @@
 import '../styles/dashboardStyles.css';
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import apiClient from "../configurations/configAxios";
 import { toast, Toaster } from "react-hot-toast";
 import {
@@ -25,6 +25,7 @@ export function Dashboard() {
   const [trackingEnabled, setTrackingEnabled] = useState(false);
   const [map, setMap] = useState(null);
   const [manualLocationEnabled, setManualLocationEnabled] = useState(false);
+
   const onMapLoad = (mapInstance) => {
     setMap(mapInstance);
   };
@@ -54,6 +55,12 @@ export function Dashboard() {
     });
   }
 
+  function resetLocationTracking(event){
+        event.preventDefault();
+        setTrackingEnabled(true);
+        setManualLocationEnabled(false);
+      }
+
   async function getUserInfo() {
     try {
       const userData = await apiClient.get(
@@ -78,6 +85,12 @@ export function Dashboard() {
 
   useEffect(() => {
     getUserInfo();
+    if(!manualLocationEnabled && document.querySelector("#reset-button")){
+      document.querySelector("#reset-button").setAttribute("disabled", "");
+    }
+  }, []);
+
+  useEffect(() => {
     if (!manualLocationEnabled && navigator.geolocation) {
       watchID = navigator.geolocation.watchPosition(
         (position) => {
@@ -93,9 +106,12 @@ export function Dashboard() {
       setTrackingEnabled(true);
 
     } else if (manualLocationEnabled){
-      toast("Location tracking has been disabled", {
-        duration: 2000
+      toast(<span> Location Tracking has been disabled <Button variant="link" onClick={resetLocationTracking}> Reset? </Button> </span>, {
+        duration: 5000
       });
+      document.querySelector("#reset-button").removeAttribute("disabled");
+      setTrackingEnabled(false);
+
     } else {
       // display an error if not supported
       toast.error(
@@ -108,8 +124,11 @@ export function Dashboard() {
       setTrackingEnabled(false);
 
     }
+    if(!manualLocationEnabled && document.querySelector(".reset-button")){
+      document.querySelector(".reset-button").setAttribute("disabled", "");
+    }
     return () => navigator.geolocation.clearWatch(watchID);
-  }, []);
+  }, [manualLocationEnabled]);
 
    useEffect(() => {
     if (map) {
@@ -229,6 +248,7 @@ export function Dashboard() {
               <Button variant="primary" type="submit" onClick={manualLocationChange}>
                 Set Location
               </Button>
+              <Button type="submit" id="reset-button" disabled={!manualLocationEnabled} onClick={resetLocationTracking}> Reset </Button>
 
             </Form>
 
@@ -337,8 +357,10 @@ function Directions({userLocation}) {
               <div>
                 <h4> Travel Mode: {travelMode}</h4>
                 <h5>Route Summary: </h5>
-
-                <p><strong>Distance: {travelDistance}</strong> <strong> Duration: {travelTime} </strong> </p>
+                <ul>
+                  <li><strong>Distance: {travelDistance}</strong></li>
+                  <li><strong>Duration: {travelTime}</strong></li>
+                </ul>
               </div>
         )}
         <h6> Other routes: </h6>

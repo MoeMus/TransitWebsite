@@ -206,3 +206,4 @@ class GetCourseView(APIView):
 def fetch_all_courses(request):
     courses = Course.objects.all().values()
     return JsonResponse(list(courses), safe=False)
+

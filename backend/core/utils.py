@@ -1,4 +1,5 @@
 import datetime
+from datetime import time
 
 DATE = datetime.datetime.now()
 
@@ -42,3 +43,28 @@ def get_current_term():
 
     else:
         return "fall"
+
+
+def check_time_conflicts(new_course_schedule, user_courses):
+    conflicts = []
+
+    # Iterate through the user's courses
+    for course in user_courses:
+        for schedule in course.course_schedule:
+            if new_course_schedule['days'] == schedule['days']:
+                # Parse the times
+                new_start_time = time.fromisoformat(new_course_schedule['start_time'])
+                new_end_time = time.fromisoformat(new_course_schedule['end_time'])
+                existing_start_time = time.fromisoformat(schedule['start_time'])
+                existing_end_time = time.fromisoformat(schedule['end_time'])
+
+                # Check if there is a time conflict
+                if is_time_overlap(new_start_time, new_end_time, existing_start_time, existing_end_time):
+                    conflicts.append(course.title)
+
+    return conflicts
+
+
+# Helper function for check_time_conflicts
+def is_time_overlap(start1, end1, start2, end2):
+    return (start1 <= end2) and (end1 >= start2)

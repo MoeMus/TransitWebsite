@@ -45,26 +45,31 @@ def get_current_term():
         return "fall"
 
 
-def check_time_conflicts(new_course_schedule, user_courses):
+def check_time_conflicts(new_course, user_courses):
     conflicts = []
 
-    # Iterate through the user's courses
-    for course in user_courses:
-        for schedule in course.course_schedule:
-            if new_course_schedule['days'] == schedule['days']:
-                # Parse the times
-                new_start_time = time.fromisoformat(new_course_schedule['start_time'])
-                new_end_time = time.fromisoformat(new_course_schedule['end_time'])
-                existing_start_time = time.fromisoformat(schedule['start_time'])
-                existing_end_time = time.fromisoformat(schedule['end_time'])
+    # Iterate through schedules of the new course
+    for new_schedule in new_course.lecturesection_set.all():
 
-                # Check if there is a time conflict
-                if is_time_overlap(new_start_time, new_end_time, existing_start_time, existing_end_time):
-                    conflicts.append(course.title)
+        # Compare with user's current courses' schedules
+        for existing_course in user_courses:
+            for existing_schedule in existing_course.lecturesection_set.all():
+
+                # Check for time conflicts using the helper function
+                if is_conflicting(new_schedule, existing_schedule):
+                    conflicts.append({
+                        "existing_course": existing_course.title,
+                        "new_course": new_course.title,
+                        "existing_schedule": existing_schedule.section_code,
+                        "new_schedule": new_schedule.section_code
+                    })
 
     return conflicts
 
 
 # Helper function for check_time_conflicts
-def is_time_overlap(start1, end1, start2, end2):
-    return (start1 <= end2) and (end1 >= start2)
+def is_conflicting(new_schedule, existing_schedule):
+    if new_schedule.days == existing_schedule.days:
+        return (new_schedule.start_time <= existing_schedule.end_time and
+                existing_schedule.start_time <= new_schedule.end_time)
+    return False

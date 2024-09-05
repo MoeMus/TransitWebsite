@@ -109,7 +109,6 @@ class AddCourseView(APIView):
     # Expects the request body to be a JSON representation of a course as defined in the models.py
     # Front-end must create this format
     def post(self, request):
-
         username = request.data['username']
 
         # If the course doesn't already exist in the database
@@ -119,11 +118,16 @@ class AddCourseView(APIView):
             return Response({"error": "Course not found"}, status=status.HTTP_404_NOT_FOUND)
 
         courses = Course.objects.filter(name=request.data["courseName"], section_name=request.data["sectionName"])
-
         course = courses.first()
 
         if User.objects.filter(username=username).exists():
             user = User.objects.get(username=username)
+
+            user_courses = user.courses.all()
+
+            if check_time_conflicts(user_courses, course):
+                return Response({"error": "Time conflict detected with a course"},
+                                status=status.HTTP_400_BAD_REQUEST)
             user.courses.add(course)
             user.save()
             return Response(status=status.HTTP_200_OK)
@@ -172,7 +176,6 @@ class GetCourseView(APIView):
             if number:
                 api_url += f"/{number}"
 
-
             response = requests.get(api_url)
             response.raise_for_status()
 
@@ -206,4 +209,5 @@ class GetCourseView(APIView):
 def fetch_all_courses(request):
     courses = Course.objects.all().values()
     return JsonResponse(list(courses), safe=False)
+
 

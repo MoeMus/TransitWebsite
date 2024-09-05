@@ -110,29 +110,38 @@ class AddCourseView(APIView):
     # Front-end must create this format
     def post(self, request):
         username = request.data['username']
+        course_name = request.data["courseName"]
+        section_name = request.data["sectionName"]
 
-        # If the course doesn't already exist in the database
-        if not Course.objects.filter(name=request.data["courseName"],
-                                     section_name=request.data["sectionName"]).exists():
-
+        # Check if the course doesn't exist in the database
+        if not Course.objects.filter(title=course_name, section_name=section_name).exists():
             return Response({"error": "Course not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        courses = Course.objects.filter(name=request.data["courseName"], section_name=request.data["sectionName"])
-        course = courses.first()
+        # Get the course object
+        new_course = Course.objects.filter(title=course_name, section_name=section_name).first()
 
-        if User.objects.filter(username=username).exists():
-            user = User.objects.get(username=username)
-
-            user_courses = user.courses.all()
-
-            if check_time_conflicts(user_courses, course):
-                return Response({"error": "Time conflict detected with a course"},
-                                status=status.HTTP_400_BAD_REQUEST)
-            user.courses.add(course)
-            user.save()
-            return Response(status=status.HTTP_200_OK)
-        else:
+        # Get the user's courses by username
+        if not User.objects.filter(username=username).exists():
             return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        user = User.objects.get(username=username)
+        existing_courses = user.Courses.all()
+
+        # Check for time conflicts using the helper function
+        conflicts = check_time_conflicts(new_course, existing_courses)
+
+        if conflicts:
+            # If conflicts are found, return them in the response
+            return Response({
+                "error": "Time conflicts detected",
+                "conflicts": conflicts
+            }, status=status.HTTP_409_CONFLICT)
+
+        # If no conflicts, add the course to the user's schedule
+        user.Courses.add(new_course)
+        user.save()
+
+        return Response({"success": "Course added successfully"}, status=status.HTTP_200_OK)
 
 
 class DeleteCourseView(APIView):

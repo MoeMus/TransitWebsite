@@ -6,6 +6,8 @@ import {useNavigate} from "react-router-dom";
 import apiClient from "../configurations/configAxios";
 import {useDispatch} from "react-redux";
 import updateAccessToken from "../storeConfig/updateAccessToken";
+import {NavDropdown} from "react-bootstrap";
+import toast from "react-hot-toast";
 
 export function Navigation({username = ""}){
     const navigate = useNavigate();
@@ -24,6 +26,8 @@ export function Navigation({username = ""}){
 
     function logout(){
 
+
+
         const request = {access_token: sessionStorage.getItem('access_token'), refresh_token: sessionStorage.getItem('refresh_token')}
 
         apiClient.post("http://127.0.0.1:8000/api/logout/", request,{
@@ -36,6 +40,26 @@ export function Navigation({username = ""}){
             window.location.reload();
         })
 
+    }
+
+    function deleteAccount(){
+
+        const request = {username: sessionStorage.getItem('user')}
+        console.log(request.username);
+        apiClient.post("http://127.0.0.1:8000/api/user/delete/", request, {
+            method: "POST",
+            withCredentials: true
+        }).then(()=>{
+            sessionStorage.clear()
+            dispatch(updateAccessToken());
+            navigate('/');
+            window.location.reload();
+        }).catch(err=>{
+
+            toast.error("There was an error deleting your account", {
+                duration: 3000
+            });
+        });
     }
 
     return(
@@ -51,11 +75,12 @@ export function Navigation({username = ""}){
                 </Nav>
 
                 <Nav>
-                    {isAuth ? <Nav.Link onClick={logout}> Logout</Nav.Link> : null}
-                </Nav>
+                    {isAuth ? <NavDropdown title={username} menuVariant="light" align="end">
 
-                <Nav>
-                    {isAuth ? <Nav.Link href="/account"> {username} </Nav.Link> : null}
+                        <NavDropdown.Item className="delete-button" onClick={deleteAccount}> Delete account </NavDropdown.Item>
+                        <NavDropdown.Item> <Nav.Link onClick={logout}> Logout </Nav.Link> </NavDropdown.Item>
+
+                    </NavDropdown>: null}
                 </Nav>
 
             </Navbar>

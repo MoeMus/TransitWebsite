@@ -7,7 +7,8 @@ import apiClient from "../configurations/configAxios";
 import {useDispatch} from "react-redux";
 import updateAccessToken from "../storeConfig/updateAccessToken";
 import {NavDropdown} from "react-bootstrap";
-import toast from "react-hot-toast";
+import toast, {Toaster} from "react-hot-toast";
+import Button from "react-bootstrap/Button";
 
 export function Navigation({username = ""}){
     const navigate = useNavigate();
@@ -24,9 +25,36 @@ export function Navigation({username = ""}){
         }
     }, []);
 
-    function logout(){
+    function confirmLogout(){
+         toast(
+             (t)=> (
+                 <div>
+                     <p> You are about to sign out, are you sure? </p>
+                     <Button variant="success" onClick={logout}> Yes </Button>
+                     <Button variant="danger" onClick={()=>toast.dismiss(t.id)}> No </Button>
+                 </div>
+             ), {
+                 position: "top-center",
+                 duration: 100000000
+             })
+    }
 
+    function confirmDelete(){
+        toast(
+             (t)=> (
+                 <div>
+                     <p> You are about to delete your account, are you sure? This action cannot be undone</p>
+                     <Button variant="success" onClick={deleteAccount}> Yes </Button>
+                     <Button variant="danger" onClick={()=>toast.dismiss(t.id)}> No </Button>
+                 </div>
+             ), {
+                 position: "top-center",
+                 duration: 100000000
+             })
 
+    }
+
+    function logout() {
 
         const request = {access_token: sessionStorage.getItem('access_token'), refresh_token: sessionStorage.getItem('refresh_token')}
 
@@ -41,6 +69,7 @@ export function Navigation({username = ""}){
         })
 
     }
+
 
     function deleteAccount(){
 
@@ -57,7 +86,8 @@ export function Navigation({username = ""}){
         }).catch(err=>{
 
             toast.error("There was an error deleting your account", {
-                duration: 3000
+                duration: 3000,
+                position: "top-left"
             });
         });
     }
@@ -65,6 +95,8 @@ export function Navigation({username = ""}){
     return(
 
         <>
+
+            <Toaster position="top-center" reverseOrder="false" />
 
             <Navbar bg="light" variant={"light"}>
 
@@ -77,8 +109,8 @@ export function Navigation({username = ""}){
                 <Nav>
                     {isAuth ? <NavDropdown title={username} menuVariant="light" align="end">
 
-                        <NavDropdown.Item className="delete-button" onClick={deleteAccount}> Delete account </NavDropdown.Item>
-                        <NavDropdown.Item> <Nav.Link onClick={logout}> Logout </Nav.Link> </NavDropdown.Item>
+                        <NavDropdown.Item className="delete-button" onClick={confirmDelete}> Delete account </NavDropdown.Item>
+                        <NavDropdown.Item> <Nav.Link onClick={confirmLogout}> Logout </Nav.Link> </NavDropdown.Item>
 
                     </NavDropdown>: null}
                 </Nav>

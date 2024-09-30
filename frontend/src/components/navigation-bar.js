@@ -95,10 +95,7 @@ export function Navigation({username = ""}){
     return(
 
         <>
-
-            <Toaster position="top-center" reverseOrder="false" />
-
-            <Navbar bg="light" variant={"light"}>
+            <Navbar className="bg-body-tertiary" >
 
                 <Navbar.Brand style={{marginLeft: '10px'}}> SFU Transit app </Navbar.Brand>
 

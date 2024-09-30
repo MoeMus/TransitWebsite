@@ -25,6 +25,10 @@ export function Dashboard() {
   const [trackingEnabled, setTrackingEnabled] = useState(false);
   const [map, setMap] = useState(null);
   const [manualLocationEnabled, setManualLocationEnabled] = useState(false);
+  const [travelMode, setTravelMode] = useState("");
+  const [travelTime, setTravelTime] = useState("");
+  const [travelDistance, setTravelDistance] = useState("");
+
   const onMapLoad = (mapInstance) => {
     setMap(mapInstance);
   };
@@ -141,7 +145,6 @@ export function Dashboard() {
         if(status === window.google.maps.GeocoderStatus.OK){
           const lat = results[0].geometry.location.lat();
           const lng = results[0].geometry.location.lng();
-          console.log(lat + " " + lng);
           setUserLocation({lat: lat, lng: lng});
           setManualLocationEnabled(true);
           navigator.geolocation.clearWatch(watchID);
@@ -157,7 +160,6 @@ export function Dashboard() {
         duration: 2000
       });
     }
-
 
   }
 
@@ -175,76 +177,97 @@ export function Dashboard() {
 
   return (
     <>
-      <Toaster position="top-left" reverseOrder={false} />
-      <Container fluid={"md"}>
-        <div>
+      <body>
+        <Toaster position="top-left" reverseOrder={false} />
+        <Container fluid={"md"} >
+
+          {/*<p>*/}
+          {/*  User Info: {JSON.stringify(userInfo)} {userLocation.lat} {userLocation.lng}*/}
+          {/*</p>*/}
+
+          <Container style={{height: "400px", width: "1200px", display: "flex", flexDirection: "column"}}>
+
+            <div>
+
+              <div className="route-summary">
+
+                {travelDistance && travelTime ?
+
+                    <div>
+
+                      <h2 style={{textAlign: "center"}}> Estimated travel time to _____: </h2>
+
+                      <h2 style={{color: "green", textAlign: "center"}}> {travelTime} </h2>
+
+                      <h3 style={{textAlign: "center"}}> Leave by ____ to arrive _____ minutes before ____ </h3>
+
+                    </div>
 
 
+                    : null}
 
-        </div>
-        <p>
-          User Info: {JSON.stringify(userInfo)} {userLocation.lat} {userLocation.lng}
-        </p>
-        <Container style={{height: "2000px", width: "2000px", display: "flex", flexDirection: "column"}}>
-
-
-          <div>
-
-            <APIProvider apiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}>
-
-              <div className="mapContainer">
-                <div className="mapBox">
-                  <Map className="map"
-                       mapId={process.env.REACT_APP_GOOGLE_MAP_ID}
-                       onLoad={onMapLoad}
-                       defaultZoom={15}
-                       defaultCenter={userLocation}>
-                    <AdvancedMarker position={userLocation}>
-                      <Pin background={"red"}></Pin>
-                    </AdvancedMarker>
-                  </Map>
-                </div>
-                <div className="directionsBox">
-                  <Directions userLocation={userLocation}/>
-                </div>
               </div>
 
-            </APIProvider>
+              <APIProvider apiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}>
 
-          </div>
-          <div>
+                <div className="mapContainer">
+                    <div className="mapBox">
+                      <Map className="map"
+                           mapId={process.env.REACT_APP_GOOGLE_MAP_ID}
+                           onLoad={onMapLoad}
+                           defaultZoom={15}
+                           defaultCenter={userLocation}>
+                        <AdvancedMarker position={userLocation}>
+                          <Pin background={"red"}></Pin>
+                        </AdvancedMarker>
+                      </Map>
+                    </div>
+                    <div className="directionsBox">
+                      <Directions userLocation={userLocation} setTravelTime={setTravelTime}
+                                  setTravelDistance={setTravelDistance}/>
+                    </div>
+                  </div>
 
-            <Form className="locationBox" style={{textAlign: 'center', marginBottom: "100px", width: "800px"}}>
+                </APIProvider>
 
-              <Form.Group className="mb-3">
+              </div>
 
-                <Form.Label> Enter your location manually (Use if location tracking is not accurate)</Form.Label>
-                <Form.Control className="location"></Form.Control>
-                <Form.Text className="text-muted">
-                  Enter in the format "&lt;street number&gt; &lt;street name&gt; &lt;city&gt; &lt;state&gt; &lt;postal
-                  code &gt;" ex: 1600 Amphitheatre Parkway, Mountain View, CA 94043. Addresses can also be
-                  place names, ex: "Statue of Liberty, New York, NY".
-                </Form.Text>
-                <Form.Group>
-                  <Form.Text style={{color: "red"}}>This will disable location tracking</Form.Text>
-                </Form.Group>
-              </Form.Group>
+              <div>
 
-              <Button variant="primary" type="submit" onClick={manualLocationChange}>
-                Set Location
-              </Button>
+                <Form className="locationBox" style={{textAlign: 'center', marginBottom: "100px", width: "800px"}}>
 
-            </Form>
+                  <Form.Group className="mb-3">
 
-          </div>
+                    <Form.Label> Enter your location manually (Use if location tracking is not accurate)</Form.Label>
+                    <Form.Control className="location"></Form.Control>
+                    <Form.Text className="text-muted">
+                      Enter in the format "&lt;street number&gt; &lt;street name&gt; &lt;city&gt; &lt;state&gt; &lt;postal
+                      code &gt;" ex: 1600 Amphitheatre Parkway, Mountain View, CA 94043. Addresses can also be
+                      place names, ex: "Statue of Liberty, New York, NY".
+                    </Form.Text>
+                    <Form.Group>
+                      <Form.Text style={{color: "red"}}>This will disable location tracking</Form.Text>
+                    </Form.Group>
+                  </Form.Group>
+
+                  <Button variant="primary" type="submit" onClick={manualLocationChange}>
+                    Set Location
+                  </Button>
+
+                </Form>
+
+              </div>
+          </Container>
         </Container>
-      </Container>
+
+      </body>
+
 
     </>
   );
 }
 
-function Directions({userLocation}) {
+function Directions({userLocation, setTravelTime, setTravelDistance}) {
   const map = useMap();
   const [directionsService, setDirectionsService] = useState(null);
   const [directionsRenderer, setDirectionsRenderer] = useState(null);
@@ -252,17 +275,23 @@ function Directions({userLocation}) {
   const [summary, setSummary] = useState("");
   const [routes, setRoutes] = useState([]);
   const [routeIndex, setRouteIndex] = useState(0);
-  const [travelMode, setTravelMode] = useState(null);
-
+  const [travelMode, setTravelMode] = useState("");
   // Initialize services
   useEffect(() => {
     if (!map || !window.google) return;
-    setTravelMode(window.google.maps.TravelMode.TRANSIT); //Default travel mode
+    setTravelMode("Transit"); //Default travel mode
     const service = new window.google.maps.DirectionsService();
     const renderer = new window.google.maps.DirectionsRenderer({map});
 
     setDirectionsService(service);
     setDirectionsRenderer(renderer);
+
+    return () => {
+      if (renderer) {
+        renderer.setDirections(null); // Clears previous directions from the map
+      }
+    };
+
   }, [map]);
 
   // Calculate directions once
@@ -270,12 +299,11 @@ function Directions({userLocation}) {
     if (!directionsService || !directionsRenderer) return;
 
     // Keep route index when recalculating
-    directionsService.route(
-        {
+    directionsService.route({
           origin: userLocation,
-      destination: "8888 University Dr W, Burnaby, BC V5A 1S6",
-      travelMode: window.google.maps.TravelMode[travelMode],
-      provideRouteAlternatives: true,
+          destination: "8888 University Dr W, Burnaby, BC V5A 1S6",
+          travelMode: window.google.maps.TravelMode[travelMode.toUpperCase()],
+          provideRouteAlternatives: true,
     },
     (response, status) => {
       if (status === window.google.maps.DirectionsStatus.OK) {
@@ -288,10 +316,17 @@ function Directions({userLocation}) {
 
         // Extract and update the summary for the selected route
         const route = response.routes[routeIndex];
-        const summary = route.legs
+        if (route && route.legs && route.legs.length > 0) {
+          const summary = route.legs
           .map((leg) => `Distance: ${leg.distance.text}, Duration: ${leg.duration.text}`)
           .join(' | ');
-        setSummary(summary);
+          setSummary(summary);
+          setTravelTime(route.legs.map((leg)=> `${leg.duration.text}`).join(' | '));
+          setTravelDistance(route.legs.map((leg)=> `${leg.distance.text}`).join(' | '));
+        } else {
+          setSummary("Error fetching directions or no routes available");
+        }
+
       } else {
         toast.error("Error fetching directions " + status, {
           duration: 2000,
@@ -306,24 +341,6 @@ function Directions({userLocation}) {
     setTravelMode(eventKey);
   }
 
-  // Function to update renderer with the selected route
-  // const updateRenderer = (response, index) => {
-  //
-  //   // Extract the summary for the selected route
-  //   const route = response.routes[index];
-  //   const legs = route.legs;
-  //   const summary = legs
-  //     .map((leg) => `Distance: ${leg.distance.text}, Duration: ${leg.duration.text}`)
-  //     .join(" | ");
-  //   setSummary(summary);
-  // };
-  //
-  // // Update renderer when routeIndex changes i.e, a new route is selected
-  // useEffect(() => {
-  //   if (!directionsResult || !directionsRenderer) return;
-  //   updateRenderer(directionsResult, routeIndex); // Update the displayed route
-  // }, [routeIndex, directionsResult, directionsRenderer]);
-
   return (
     <>
 
@@ -333,32 +350,42 @@ function Directions({userLocation}) {
             <Dropdown.Toggle variant="success" style={{width: "200px", marginBottom: "5px"}}> Select Travel Mode </Dropdown.Toggle>
 
             <Dropdown.Menu>
-              <Dropdown.Item eventKey="DRIVING"> Driving </Dropdown.Item>
-              <Dropdown.Item eventKey="TRANSIT"> Transit </Dropdown.Item>
-              <Dropdown.Item eventKey="BICYCLING"> Bicycling </Dropdown.Item>
-              <Dropdown.Item eventKey="WALKING"> Walking </Dropdown.Item>
+              <Dropdown.Item eventKey="Driving"> Driving </Dropdown.Item>
+              <Dropdown.Item eventKey="Transit"> Transit </Dropdown.Item>
+              <Dropdown.Item eventKey="Bicycling"> Bicycling </Dropdown.Item>
+              <Dropdown.Item eventKey="Walking"> Walking </Dropdown.Item>
             </Dropdown.Menu>
           </Dropdown>
 
         </div>
         {summary && (
               <div>
-                <h5>Summary</h5>
-                <p>{summary}</p>
+                <h4> Travel Mode: {travelMode}</h4>
               </div>
         )}
-        <p> Other routes </p>
+        <h6> Other routes: </h6>
         {routes.length > 1 ? <ul>
           {routes.map((route, index) => (
               <li key={index}>
-                <Button variant="link"
-                    onClick={() => {
-                      setRouteIndex(index);
-                    }} style={{width: "150px"}}
-                >
-                  {route.summary || `Route ${index + 1}`}
-                </Button>
+
+                {index === routeIndex?
+
+                    <Button disabled={true} variant="link" onClick={() => {setRouteIndex(index);}} style={{width: "150px"}}>
+
+                      {route.summary || `Route ${index + 1}`}
+
+                    </Button>
+
+                    :
+
+                    <Button variant="link" onClick={() => {setRouteIndex(index);}} style={{width: "150px"}}>
+
+                      {route.summary || `Route ${index + 1}`}
+
+                    </Button>}
+
               </li>
+
           ))}
         </ul> : null}
 

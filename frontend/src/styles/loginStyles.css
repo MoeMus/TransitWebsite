@@ -50,7 +50,7 @@
     font-weight: bolder;
 }
 
-.nav-link{
+.nav-link, .delete-button{
     font-weight: bolder;
     color: #992e2e;
 }

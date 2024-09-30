@@ -177,7 +177,7 @@ export function Dashboard() {
 
   return (
     <>
-      <body>
+      <div>
         <Toaster position="top-left" reverseOrder={false} />
         <Container fluid={"md"} >
 
@@ -194,8 +194,6 @@ export function Dashboard() {
                 {travelDistance && travelTime ?
 
                     <div>
-
-                      <img src="./openart-image_rJTo0GQU_1727666702654_raw.jpg" alt=""/>
 
                       <h2 style={{textAlign: "center"}}> Estimated travel time to _____: </h2>
 
@@ -263,7 +261,7 @@ export function Dashboard() {
           </Container>
         </Container>
 
-      </body>
+      </div>
 
 
     </>

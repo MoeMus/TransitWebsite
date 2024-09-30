@@ -1,7 +1,7 @@
 import Container from 'react-bootstrap/Container';
 import {Login} from "./login-form";
 import {Navigate, useNavigate} from 'react-router-dom';
-import {useState} from "react";
+import React, {useState} from "react";
 import Button from "react-bootstrap/Button";
 import '../styles/loginStyles.css';
 export function RegistrationPage (){
@@ -17,8 +17,11 @@ export function RegistrationPage (){
             <Container className="page">
 
                 {/*Change name once we have decided on it*/}
+
                 <h1 className='welcome-title'> Welcome to TransitTail! </h1>
                 <div className='summary'>
+
+                    <img src="/websiteLogo.jpg" alt="" style={{marginBottom: "20px"}}/>
 
                     <p> A transit website for SFU students </p>
                     <p>
@@ -38,7 +41,8 @@ export function RegistrationPage (){
                         your classes
                     </p>
 
-                    <p><a href="https://github.com/MoeMus/TransitWebsite" target="_blank" rel="noopener noreferrer"> View this project on GitHub </a></p>
+                    <p><a href="https://github.com/MoeMus/TransitWebsite" target="_blank"
+                          rel="noopener noreferrer"> View this project on GitHub </a></p>
 
                 </div>
 

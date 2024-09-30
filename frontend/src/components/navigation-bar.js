@@ -94,7 +94,6 @@ export function Navigation({username = ""}){
     function deleteAccount(){
 
         const request = {username: sessionStorage.getItem('user')}
-        console.log(request.username);
         apiClient.post("http://127.0.0.1:8000/api/user/delete/", request, {
             method: "POST",
             withCredentials: true
@@ -104,7 +103,6 @@ export function Navigation({username = ""}){
             navigate('/');
             window.location.reload();
         }).catch(err=>{
-
             toast.error("There was an error deleting your account", {
                 duration: 3000,
                 position: "top-left"
@@ -115,16 +113,16 @@ export function Navigation({username = ""}){
     return(
 
         <>
-            <Navbar className="bg-body-tertiary" >
+            <Navbar variant="light" bg="light" style={{marginTop: "0px", marginBottom: "0px"}}>
 
-                <Navbar.Brand style={{marginLeft: '10px'}}> TransitTail </Navbar.Brand>
+                <Navbar.Brand style={{marginLeft: '10px'}}> <img src="/websiteLogoSmall.jpg" alt=""/> TransitTail </Navbar.Brand>
 
                 <Nav className="me-auto">
                     {isAuth ?  <Nav.Link href="/">Home</Nav.Link> : null }
                 </Nav>
 
                 <Nav>
-                    {isAuth ? <NavDropdown title={username} menuVariant="light" align="end">
+                    {isAuth ? <NavDropdown title={username} menuVariant="light" align="end" style={{marginRight: "20px"}}>
 
                         <NavDropdown.Item className="delete-button" onClick={confirmDelete}> Delete account </NavDropdown.Item>
                         <NavDropdown.Item> <Nav.Link onClick={confirmLogout}> Logout </Nav.Link> </NavDropdown.Item>

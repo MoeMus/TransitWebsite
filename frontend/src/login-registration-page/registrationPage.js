@@ -21,19 +21,24 @@ export function RegistrationPage (){
                 <div className='summary'>
 
                     <p> A transit website for SFU students </p>
-                    <p>TransitTail allows for instant access to the best travel
-                        routes to your next course, as well as allowing you to
-                        easily customize how and when you want to get there </p>
-                    <p> To start, simply enter the courses you are taking this
-                        semester and then select which travel option you want
-                        to get there and your preferred arrival time </p>
+                    <p>
+                        TransitTail integrates your course schedule with transit and driving information
+                        that allows for instant access to the best travel
+                        routes to get to your next course, as well as allowing you to
+                        easily customize how and when you want to get there
+                    </p>
+                    <p>
+                        To start, make an account and it will prompt you to enter the courses you are
+                        taking this semester, then you will be able to choose how you want to get there on
+                        the dashboard
+                    </p>
 
                     <p style={{color: "olive"}}>
                         It is recommended to activate location tracking in order to determine the best routes to get to
                         your classes
                     </p>
 
-                    <p><a href="https://github.com/MoeMus/TransitWebsite"> View this project on GitHub </a></p>
+                    <p><a href="https://github.com/MoeMus/TransitWebsite" target="_blank" rel="noopener noreferrer"> View this project on GitHub </a></p>
 
                 </div>
 

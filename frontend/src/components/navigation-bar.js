@@ -28,29 +28,49 @@ export function Navigation({username = ""}){
     function confirmLogout(){
          toast(
              (t)=> (
-                 <div>
-                     <p> You are about to sign out, are you sure? </p>
-                     <Button variant="success" onClick={logout}> Yes </Button>
-                     <Button variant="danger" onClick={()=>toast.dismiss(t.id)}> No </Button>
+                 <div style={{display: "flex", justifyContent: "center", flexDirection: "column"}}>
+                     <div>
+                         <p> You are about to sign out, are you sure? </p>
+                     </div>
+
+                     <div style={{display: "flex", justifyContent: "center", flexDirection: "row"}}>
+                         <div>
+                             <Button variant="success" onClick={logout}> Yes </Button>
+                         </div>
+                         <div>
+                             <Button variant="danger" onClick={() => toast.dismiss(t.id)}> No </Button>
+                         </div>
+                     </div>
                  </div>
              ), {
                  position: "top-center",
-                 duration: 100000000
+                 duration: 360000000
              })
     }
 
-    function confirmDelete(){
+    function confirmDelete() {
         toast(
-             (t)=> (
-                 <div>
-                     <p> You are about to delete your account, are you sure? This action cannot be undone</p>
-                     <Button variant="success" onClick={deleteAccount}> Yes </Button>
-                     <Button variant="danger" onClick={()=>toast.dismiss(t.id)}> No </Button>
+            (t) => (
+
+                <div style={{display: "flex", justifyContent: "center", flexDirection: "column"}}>
+                    <div>
+                        <p style={{textAlign: "center"}}> You are about to delete your account, are you sure? This
+                            action cannot be undone</p>
+                     </div>
+                     <div style={{display: "flex", justifyContent: "center", flexDirection: "row"}}>
+                         <div>
+                             <Button variant="success" onClick={deleteAccount}> Yes </Button>
+                         </div>
+                         <div>
+                             <Button variant="danger" onClick={() => toast.dismiss(t.id)}> No </Button>
+                         </div>
+                     </div>
+
                  </div>
              ), {
-                 position: "top-center",
-                 duration: 100000000
-             })
+                position: "top-center",
+                duration: 360000000
+            });
 
     }
 

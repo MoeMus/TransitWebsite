@@ -195,6 +195,8 @@ export function Dashboard() {
 
                     <div>
 
+                      <img src="./openart-image_rJTo0GQU_1727666702654_raw.jpg" alt=""/>
+
                       <h2 style={{textAlign: "center"}}> Estimated travel time to _____: </h2>
 
                       <h2 style={{color: "green", textAlign: "center"}}> {travelTime} </h2>
@@ -211,52 +213,53 @@ export function Dashboard() {
               <APIProvider apiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}>
 
                 <div className="mapContainer">
-                    <div className="mapBox">
-                      <Map className="map"
-                           mapId={process.env.REACT_APP_GOOGLE_MAP_ID}
-                           onLoad={onMapLoad}
-                           defaultZoom={15}
-                           defaultCenter={userLocation}>
-                        <AdvancedMarker position={userLocation}>
-                          <Pin background={"red"}></Pin>
-                        </AdvancedMarker>
-                      </Map>
-                    </div>
-                    <div className="directionsBox">
-                      <Directions userLocation={userLocation} setTravelTime={setTravelTime}
-                                  setTravelDistance={setTravelDistance}/>
-                    </div>
+                  <div className="mapBox">
+                    <Map className="map"
+                         mapId={process.env.REACT_APP_GOOGLE_MAP_ID}
+                         onLoad={onMapLoad}
+                         defaultZoom={15}
+                         defaultCenter={userLocation}>
+                      <AdvancedMarker position={userLocation}>
+                        <Pin background={"red"}></Pin>
+                      </AdvancedMarker>
+                    </Map>
                   </div>
+                  <div className="directionsBox">
+                    <Directions userLocation={userLocation} setTravelTime={setTravelTime}
+                                setTravelDistance={setTravelDistance}/>
+                  </div>
+                </div>
 
-                </APIProvider>
+              </APIProvider>
 
-              </div>
+            </div>
 
-              <div>
+            <div style={{display: "flex", flexDirection: "row", justifyContent: "center"}}>
 
-                <Form className="locationBox" style={{textAlign: 'center', marginBottom: "100px", width: "800px"}}>
+              <Form className="locationBox" style={{textAlign: 'center', marginBottom: "100px", width: "800px"}}>
 
-                  <Form.Group className="mb-3">
+                <Form.Group className="mb-3">
 
-                    <Form.Label> Enter your location manually (Use if location tracking is not accurate)</Form.Label>
-                    <Form.Control className="location"></Form.Control>
-                    <Form.Text className="text-muted">
-                      Enter in the format "&lt;street number&gt; &lt;street name&gt; &lt;city&gt; &lt;state&gt; &lt;postal
-                      code &gt;" ex: 1600 Amphitheatre Parkway, Mountain View, CA 94043. Addresses can also be
-                      place names, ex: "Statue of Liberty, New York, NY".
-                    </Form.Text>
-                    <Form.Group>
-                      <Form.Text style={{color: "red"}}>This will disable location tracking</Form.Text>
-                    </Form.Group>
+                  <Form.Label> Enter your location manually (Use if location tracking is not accurate)</Form.Label>
+                  <Form.Control className="location"></Form.Control>
+                  <Form.Text className="text-muted">
+                    Enter in the format "&lt;street number&gt; &lt;street name&gt; &lt;city&gt; &lt;state&gt; &lt;postal
+                    code &gt;" ex: 1600 Amphitheatre Parkway, Mountain View, CA 94043. Addresses can also be
+                    place names, ex: "Statue of Liberty, New York, NY".
+                  </Form.Text>
+                  <Form.Group>
+                    <Form.Text style={{color: "red"}}>This will disable location tracking</Form.Text>
                   </Form.Group>
+                </Form.Group>
 
-                  <Button variant="primary" type="submit" onClick={manualLocationChange}>
-                    Set Location
-                  </Button>
+                <Button variant="primary" type="submit" onClick={manualLocationChange}>
+                  Set Location
+                </Button>
 
-                </Form>
+              </Form>
 
-              </div>
+            </div>
+
           </Container>
         </Container>
 

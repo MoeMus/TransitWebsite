@@ -185,7 +185,7 @@ export function Dashboard() {
           {/*  User Info: {JSON.stringify(userInfo)} {userLocation.lat} {userLocation.lng}*/}
           {/*</p>*/}
 
-          <Container style={{height: "400px", width: "1200px", display: "flex", flexDirection: "column"}}>
+          <Container style={{height: "1000px", width: "1200px", display: "flex", flexDirection: "column"}}>
 
             <div>
 

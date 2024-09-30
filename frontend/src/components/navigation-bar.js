@@ -97,7 +97,7 @@ export function Navigation({username = ""}){
         <>
             <Navbar className="bg-body-tertiary" >
 
-                <Navbar.Brand style={{marginLeft: '10px'}}> SFU Transit app </Navbar.Brand>
+                <Navbar.Brand style={{marginLeft: '10px'}}> TransitTail </Navbar.Brand>
 
                 <Nav className="me-auto">
                     {isAuth ?  <Nav.Link href="/">Home</Nav.Link> : null }

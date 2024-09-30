@@ -17,14 +17,31 @@ export function RegistrationPage (){
             <Container className="page">
 
                 {/*Change name once we have decided on it*/}
-                <h1 className='welcome-title'> Welcome to SFU Transit App </h1>
-                <p className='summary'> Always know when to get to your next course </p>
+                <h1 className='welcome-title'> Welcome to TransitTail! </h1>
+                <div className='summary'>
 
-                <div>
-                    <Login />
+                    <p> A transit website for SFU students </p>
+                    <p>TransitTail allows for instant access to the best travel
+                        routes to your next course, as well as allowing you to
+                        easily customize how and when you want to get there </p>
+                    <p> To start, simply enter the courses you are taking this
+                        semester and then select which travel option you want
+                        to get there and your preferred arrival time </p>
+
+                    <p style={{color: "olive"}}>
+                        It is recommended to activate location tracking in order to determine the best routes to get to
+                        your classes
+                    </p>
+
+                    <p><a href="https://github.com/MoeMus/TransitWebsite"> View this project on GitHub </a></p>
+
                 </div>
 
-                <Button onClick={handleClick} variant="danger"> Sign Up </Button>
+                <div>
+                    <Login/>
+                </div>
+                <p> Don't have an account? Sign up for free </p>
+                <Button onClick={handleClick} variant="secondary"> Sign Up </Button>
 
             </Container>
 

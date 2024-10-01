@@ -133,10 +133,6 @@ export function Register(){
 
                     </Form>
 
-                    <p style={{color: "rosybrown"}}>
-                        It is recommended to activate location tracking in order to determine the best routes to get to your classes
-                    </p>
-
                     <p style={{
                         color: "indianred"
                     }}> {status} </p>

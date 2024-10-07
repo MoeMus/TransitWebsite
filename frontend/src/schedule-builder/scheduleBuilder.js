@@ -29,23 +29,44 @@ export function ScheduleBuilder() {
     };
 
 
-  const handleAddCourse = (course) => {
-    if (!selectedCourses.includes(course)) {
-      setSelectedCourses([...selectedCourses, course]);
-      toast.success(`${course.department} {course.course_number} added to schedule`, {
-        duration: 2000,
+  const handleAddCourse = async (course) => {
+  if (!selectedCourses.includes(course)) {
+    setSelectedCourses([...selectedCourses, course]);
+
+    // Send the POST request to the backend to add the course to the user's profile
+    try {
+      const response = await apiClient.post('http://localhost:8000/api/user/courses/add/', {
+        username: sessionStorage.getItem('user'),
+        courseName: course.title,
+        sectionName: course.section_name,  // Ensure course data has a section_name field
       });
-    } else {
-      toast.error("Course is already in the schedule", {
+
+      if (response.status === 200) {
+        toast.success(`${course.department} ${course.course_number} added to schedule`, {
+          duration: 2000,
+        });
+      } else {
+        toast.error("Failed to add course to the schedule", {
+          duration: 2000,
+        });
+      }
+    } catch (err) {
+      toast.error("Failed to add course to the schedule", {
         duration: 2000,
       });
     }
-  };
+  } else {
+    toast.error("Course is already in the schedule", {
+      duration: 2000,
+    });
+  }
+};
+
 
   const handleRemoveCourse = (course) => {
     const updatedCourses = selectedCourses.filter((c) => c.id !== course.id);
     setSelectedCourses(updatedCourses);
-    toast.success(`${course.department} {course.course_number} removed from schedule`, {
+    toast.success(`${course.department} ${course.course_number} removed from schedule`, {
       duration: 2000,
     });
   };

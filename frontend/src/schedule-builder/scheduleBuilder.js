@@ -68,18 +68,36 @@ export function ScheduleBuilder() {
               as="select"
               onChange={(e) => {
                 const courseId = e.target.value;
-                const selectedCourse = availableCourses.find(
-                  (course) => course.id === parseInt(courseId)
-                );
-                handleAddCourse(selectedCourse);
+
+                if (availableCourses && availableCourses.length > 0) {
+                  const selectedCourse = availableCourses.find(
+                    (course) => course.id === parseInt(courseId)
+                  );
+
+                  if (selectedCourse) {
+                    handleAddCourse(selectedCourse);
+                  } else {
+                    toast.error("Course not found", {
+                      duration: 2000,
+                    });
+                  }
+                } else {
+                  toast.error("No available courses to select", {
+                    duration: 2000,
+                  });
+                }
               }}
             >
               <option>Select a course</option>
-              {availableCourses.map((course) => (
-                <option key={course.id} value={course.id}>
-                  {course.title} ({course.number})
-                </option>
-              ))}
+              {availableCourses && availableCourses.length > 0 ? (
+                availableCourses.map((course) => (
+                  <option key={course.id} value={course.id}>
+                    {course.title} ({course.number})
+                  </option>
+                ))
+              ) : (
+                <option>No courses available</option>
+              )}
             </Form.Control>
           </Form.Group>
         </Form>

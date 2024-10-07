@@ -1,4 +1,5 @@
 import datetime
+from datetime import time
 
 DATE = datetime.datetime.now()
 
@@ -42,3 +43,35 @@ def get_current_term():
 
     else:
         return "fall"
+
+
+# Checks a new course's time conflicts with the current user's courses.
+# Uses helper function is_conflicting to check if a schedule conflicts
+def check_time_conflicts(new_course, user_courses):
+    conflicts = []
+
+    # Iterate through schedules of the new course
+    for new_schedule in new_course.lecturesection_set.all():
+
+        # Compare with user's current courses' schedules
+        for existing_course in user_courses:
+            for existing_schedule in existing_course.lecturesection_set.all():
+
+                # Check for time conflicts using the helper function
+                if is_conflicting(new_schedule, existing_schedule):
+                    conflicts.append({
+                        "existing_course": existing_course.title,
+                        "new_course": new_course.title,
+                        "existing_schedule": existing_schedule.section_code,
+                        "new_schedule": new_schedule.section_code
+                    })
+
+    return conflicts
+
+
+# Helper function for check_time_conflicts
+def is_conflicting(new_schedule, existing_schedule):
+    if new_schedule.days == existing_schedule.days:
+        return (new_schedule.start_time <= existing_schedule.end_time and
+                existing_schedule.start_time <= new_schedule.end_time)
+    return False

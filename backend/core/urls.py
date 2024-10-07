@@ -19,4 +19,5 @@ urlpatterns = [
     path('user/courses/add/', views.AddCourseView.as_view(), name='add-course'),
     path('user/courses/delete/', views.DeleteCourseView.as_view(), name='delete-a-course'),
     path('user/courses/get/', views.GetCourseView.as_view(), name='get-course'),
+    path('courses/', fetch_all_courses, name='fetch-all-courses'),
 ]

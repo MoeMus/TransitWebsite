@@ -8,6 +8,8 @@ import {RegistrationPage} from "./login-registration-page/registrationPage";
 import {Dashboard} from "./dashboard/dashboard";
 import refreshAccessToken from "./configurations/refreshAccessToken";
 import WelcomePage from "./components/welcomePage";
+import {ScheduleBuilder} from "./schedule-builder/scheduleBuilder";
+
 function App() {
 
   const [isAuth, setIsAuth] = useState(false);
@@ -38,6 +40,7 @@ function App() {
         <Route path="/signup" element={<Register />} />
         <Route path="/registration" element={ isAuth ?  <Dashboard /> : <RegistrationPage />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/schedule-builder" element={ isAuth ? <ScheduleBuilder /> : <Navigate to="/login" replace={true} />} />
         {/* Uncomment and add other routes as needed */}
       </Routes>
     </>

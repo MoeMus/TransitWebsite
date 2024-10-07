@@ -164,21 +164,21 @@ Follow these steps to set up the project and install the required packages for R
    ```bash
    npm install
 
-3. Set up environment variables by create a file called `.env` in the `/frontend` directory and add each environment variables on each line in the
+3. Set up environment variables by creating a file called `.env` in the `/frontend` directory and add each environment variables on each line in the
    form
    ```bash
    <Environment Variable> = '<value>'
 
 4. Set up Google Maps API
    - Go to https://developers.google.com/maps/documentation/routes/cloud-setup and follow the instructions to obtain the API key for the Google Maps API
-   - Add the key to `.env` with variable `REACT_APP_GOOGLE_MAPS_API_KEY`
+   - Add the key to `.env` with the exact variable name `REACT_APP_GOOGLE_MAPS_API_KEY`
    
 5. Set up A Map ID
    - In the Google Maps Platform select the project for this website and on the left side, click `Map Management`
    - Click `CREATE MAP ID`
    - Enter a name and set the map type as as Javascript, vector, with both rotation and tilt, and click save
-   - The map ID should be visible
-   - Save it as an environment variable as `REACT_APP_GOOGLE_MAP_ID`
+   - The map ID should be visible afterwards
+   - Save it as an environment variable as `REACT_APP_GOOGLE_MAP_ID` in .env
 
 6. Start the React development server
    ```bash

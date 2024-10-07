@@ -27,7 +27,7 @@ function WelcomePage(){
                         <div>
                             <p className="summary">
 
-                                Thank you for creating an account with SFU Transit App! Click the button to create your
+                                Thank you for creating an account with TransitTail! Click the button to create your
                                 schedule
 
                             </p>

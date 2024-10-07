@@ -6,6 +6,9 @@ import {useNavigate} from "react-router-dom";
 import apiClient from "../configurations/configAxios";
 import {useDispatch} from "react-redux";
 import updateAccessToken from "../storeConfig/updateAccessToken";
+import {NavDropdown} from "react-bootstrap";
+import toast, {Toaster} from "react-hot-toast";
+import Button from "react-bootstrap/Button";
 
 export function Navigation({username = ""}){
     const navigate = useNavigate();
@@ -22,7 +25,56 @@ export function Navigation({username = ""}){
         }
     }, []);
 
-    function logout(){
+    function confirmLogout(){
+         toast(
+             (t)=> (
+                 <div style={{display: "flex", justifyContent: "center", flexDirection: "column"}}>
+                     <div>
+                         <p> You are about to sign out, are you sure? </p>
+                     </div>
+
+                     <div style={{display: "flex", justifyContent: "center", flexDirection: "row"}}>
+                         <div>
+                             <Button variant="success" onClick={logout}> Yes </Button>
+                         </div>
+                         <div>
+                             <Button variant="danger" onClick={() => toast.dismiss(t.id)}> No </Button>
+                         </div>
+                     </div>
+                 </div>
+             ), {
+                 position: "top-center",
+                 duration: 360000000
+             })
+    }
+
+    function confirmDelete() {
+        toast(
+            (t) => (
+
+                <div style={{display: "flex", justifyContent: "center", flexDirection: "column"}}>
+                    <div>
+                        <p style={{textAlign: "center"}}> You are about to delete your account, are you sure? This
+                            action cannot be undone</p>
+                     </div>
+                     <div style={{display: "flex", justifyContent: "center", flexDirection: "row"}}>
+                         <div>
+                             <Button variant="success" onClick={deleteAccount}> Yes </Button>
+                         </div>
+                         <div>
+                             <Button variant="danger" onClick={() => toast.dismiss(t.id)}> No </Button>
+                         </div>
+                     </div>
+
+                 </div>
+             ), {
+                position: "top-center",
+                duration: 360000000
+            });
+
+    }
+
+    function logout() {
 
         const request = {access_token: sessionStorage.getItem('access_token'), refresh_token: sessionStorage.getItem('refresh_token')}
 
@@ -38,24 +90,44 @@ export function Navigation({username = ""}){
 
     }
 
+
+    function deleteAccount(){
+
+        const request = {username: sessionStorage.getItem('user')}
+        apiClient.post("http://127.0.0.1:8000/api/user/delete/", request, {
+            method: "POST",
+            withCredentials: true
+        }).then(()=>{
+            sessionStorage.clear()
+            dispatch(updateAccessToken());
+            navigate('/');
+            window.location.reload();
+        }).catch(err=>{
+            toast.error("There was an error deleting your account", {
+                duration: 3000,
+                position: "top-left"
+            });
+        });
+    }
+
     return(
 
         <>
+            <Navbar variant="light" bg="light" style={{marginTop: "0px", marginBottom: "0px"}}>
 
-            <Navbar bg="light" variant={"light"}>
-
-                <Navbar.Brand style={{marginLeft: '10px'}}> SFU Transit app </Navbar.Brand>
+                <Navbar.Brand style={{marginLeft: '10px'}}> <img src="/websiteLogoSmall.jpg" alt=""/> TransitTail </Navbar.Brand>
 
                 <Nav className="me-auto">
                     {isAuth ?  <Nav.Link href="/">Home</Nav.Link> : null }
                 </Nav>
 
                 <Nav>
-                    {isAuth ? <Nav.Link onClick={logout}> Logout</Nav.Link> : null}
-                </Nav>
+                    {isAuth ? <NavDropdown title={username} menuVariant="light" align="end" style={{marginRight: "20px"}}>
 
-                <Nav>
-                    {isAuth ? <Nav.Link href="/account"> {username} </Nav.Link> : null}
+                        <NavDropdown.Item className="delete-button" onClick={confirmDelete}> Delete account </NavDropdown.Item>
+                        <NavDropdown.Item> <Nav.Link onClick={confirmLogout}> Logout </Nav.Link> </NavDropdown.Item>
+
+                    </NavDropdown>: null}
                 </Nav>
 
             </Navbar>

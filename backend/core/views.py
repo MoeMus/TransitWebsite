@@ -79,7 +79,7 @@ def test_view(request):
 class DeleteUserView(APIView):
     permission_classes = (IsAuthenticated,)
 
-    def delete(self, request):
+    def post(self, request):
         try:
             user = User.objects.get(username=request.data["username"])
             user.delete()

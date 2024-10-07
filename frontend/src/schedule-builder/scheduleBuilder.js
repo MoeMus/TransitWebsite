@@ -14,23 +14,25 @@ export function ScheduleBuilder() {
   }, []);
 
   const fetchAvailableCourses = async () => {
-    try {
-      const response = await fetch('http://localhost:8000/courses/');
-      setAvailableCourses(response.data);
-    } catch (err) {
-      toast.error("Failed to load courses", {
-        duration: 2000,
-      });
-      setError(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+      try {
+        const response = await fetch('http://localhost:8000/api/courses/');
+        const data = await response.json();  // Convert the response to JSON
+        setAvailableCourses(data);  // Set the parsed data to state
+      } catch (err) {
+        toast.error("Failed to load courses", {
+          duration: 2000,
+        });
+        setError(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
 
   const handleAddCourse = (course) => {
     if (!selectedCourses.includes(course)) {
       setSelectedCourses([...selectedCourses, course]);
-      toast.success(`${course.title} added to schedule`, {
+      toast.success(`${course.department} {course.course_number} added to schedule`, {
         duration: 2000,
       });
     } else {
@@ -43,7 +45,7 @@ export function ScheduleBuilder() {
   const handleRemoveCourse = (course) => {
     const updatedCourses = selectedCourses.filter((c) => c.id !== course.id);
     setSelectedCourses(updatedCourses);
-    toast.success(`${course.title} removed from schedule`, {
+    toast.success(`${course.department} {course.course_number} removed from schedule`, {
       duration: 2000,
     });
   };
@@ -92,7 +94,7 @@ export function ScheduleBuilder() {
               {availableCourses && availableCourses.length > 0 ? (
                 availableCourses.map((course) => (
                   <option key={course.id} value={course.id}>
-                    {course.title} ({course.number})
+                    {course.department} {course.course_number}: {course.title}
                   </option>
                 ))
               ) : (
@@ -106,12 +108,13 @@ export function ScheduleBuilder() {
         <ListGroup>
           {selectedCourses.map((course) => (
             <ListGroup.Item key={course.id}>
-              {course.title} ({course.number})
+              {course.department} {course.course_number}
               <Button
                 variant="danger"
                 size="sm"
                 onClick={() => handleRemoveCourse(course)}
                 className="float-right"
+                style={{ marginLeft: '20px' }}
               >
                 Remove
               </Button>

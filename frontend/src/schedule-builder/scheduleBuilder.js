@@ -38,7 +38,7 @@ export function ScheduleBuilder() {
       const response = await apiClient.post('http://localhost:8000/api/user/courses/add/', {
         username: sessionStorage.getItem('user'),
         courseName: course.title,
-        sectionName: course.section_name,  // Ensure course data has a section_name field
+        sectionName: course.section_name,
       });
 
       if (response.status === 200) {

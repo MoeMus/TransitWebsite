@@ -220,3 +220,18 @@ def fetch_all_courses(request):
     return JsonResponse(list(courses), safe=False)
 
 
+# Get the user's list of courses
+class GetUserCoursesView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        username = request.query_params.get('username')
+        try:
+            user = User.objects.get(username=username)
+            courses = user.Courses.all()
+            serializer = CourseSerializer(courses, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+

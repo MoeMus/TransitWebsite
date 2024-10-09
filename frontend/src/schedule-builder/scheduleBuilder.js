@@ -3,6 +3,41 @@ import { Container, Form, Button, ListGroup } from "react-bootstrap";
 import apiClient from "../configurations/configAxios";
 import { toast, Toaster } from "react-hot-toast";
 
+const refreshAccessToken = async () => {
+  const refreshToken = sessionStorage.getItem('refresh_token');
+
+  if (!refreshToken) {
+    toast.error("No refresh token found");
+    return false;
+  }
+
+  try {
+    // POST request for refreshing the access token
+    const response = await fetch('http://localhost:8000/token/refresh/', {
+      method: 'POST',  // POST method is required
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        refresh: refreshToken,  // Include the refresh token in the body
+      }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      sessionStorage.setItem('access_token', data.access);  // Save new access token
+      return true;
+    } else {
+      toast.error("Failed to refresh access token");
+      return false;
+    }
+  } catch (error) {
+    toast.error("Error refreshing access token");
+    return false;
+  }
+};
+
+
 export function ScheduleBuilder() {
   const [availableCourses, setAvailableCourses] = useState([]);
   const [selectedCourses, setSelectedCourses] = useState([]);
@@ -10,65 +45,76 @@ export function ScheduleBuilder() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetchAvailableCourses();
+    fetchUserCourses();  // Fetch the user's courses on component mount
   }, []);
 
-  const fetchAvailableCourses = async () => {
-      try {
-        const response = await fetch('http://localhost:8000/api/courses/');
-        const data = await response.json();  // Convert the response to JSON
-        setAvailableCourses(data);  // Set the parsed data to state
-      } catch (err) {
-        toast.error("Failed to load courses", {
-          duration: 2000,
-        });
-        setError(err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchUserCourses = async () => {
+    const accessToken = sessionStorage.getItem('access_token');
 
+    if (!accessToken) {
+      toast.error("User is not authenticated");
+      return;
+    }
 
-  const handleAddCourse = async (course) => {
-  if (!selectedCourses.includes(course)) {
-    setSelectedCourses([...selectedCourses, course]);
+    const isTokenValid = await refreshAccessToken();
+    if (!isTokenValid) {
+      return;
+    }
 
-    // Send the POST request to the backend to add the course to the user's profile
     try {
-      const response = await apiClient.post('http://localhost:8000/api/user/courses/add/', {
-        username: sessionStorage.getItem('user'),
-        courseName: course.title,
-        sectionName: course.section_name,
+      const response = await fetch(`http://localhost:8000/api/user/courses/get/all?username=${sessionStorage.getItem('user')}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`, // Bearer token in header
+          'Content-Type': 'application/json',
+        },
       });
 
-      if (response.status === 200) {
-        toast.success(`${course.department} ${course.course_number} added to schedule`, {
-          duration: 2000,
-        });
+      const data = await response.json();
+      if (Array.isArray(data)) {
+        setSelectedCourses(data);
       } else {
-        toast.error("Failed to add course to the schedule", {
-          duration: 2000,
-        });
+        setSelectedCourses([]);
+        toast.error("Unexpected response format");
       }
     } catch (err) {
-      toast.error("Failed to add course to the schedule", {
-        duration: 2000,
-      });
+      setError(err);
+      toast.error("Failed to load user's courses");
+    } finally {
+      setLoading(false);
     }
-  } else {
-    toast.error("Course is already in the schedule", {
-      duration: 2000,
-    });
-  }
-};
+  };
 
+  const handleAddCourse = async (course) => {
+    if (!selectedCourses.includes(course)) {
+      setSelectedCourses([...selectedCourses, course]);
+
+      try {
+        const response = await apiClient.post('http://localhost:8000/api/user/courses/add/', {
+          username: sessionStorage.getItem('user'),
+          courseName: course.title,
+          sectionName: course.section_name,
+        });
+
+        if (response.status === 200) {
+          toast.success(`${course.department} ${course.course_number} added to schedule`, {
+            duration: 2000,
+          });
+        } else {
+          toast.error("Failed to add course to the schedule");
+        }
+      } catch (err) {
+        toast.error("Failed to add course to the schedule");
+      }
+    } else {
+      toast.error("Course is already in the schedule");
+    }
+  };
 
   const handleRemoveCourse = (course) => {
     const updatedCourses = selectedCourses.filter((c) => c.id !== course.id);
     setSelectedCourses(updatedCourses);
-    toast.success(`${course.department} ${course.course_number} removed from schedule`, {
-      duration: 2000,
-    });
+    toast.success(`${course.department} ${course.course_number} removed from schedule`);
   };
 
   if (loading) {
@@ -100,14 +146,10 @@ export function ScheduleBuilder() {
                   if (selectedCourse) {
                     handleAddCourse(selectedCourse);
                   } else {
-                    toast.error("Course not found", {
-                      duration: 2000,
-                    });
+                    toast.error("Course not found");
                   }
                 } else {
-                  toast.error("No available courses to select", {
-                    duration: 2000,
-                  });
+                  toast.error("No available courses to select");
                 }
               }}
             >

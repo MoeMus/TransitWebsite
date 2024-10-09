@@ -12,20 +12,19 @@ const refreshAccessToken = async () => {
   }
 
   try {
-    // POST request for refreshing the access token
     const response = await fetch('http://localhost:8000/token/refresh/', {
-      method: 'POST',  // POST method is required
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        refresh: refreshToken,  // Include the refresh token in the body
+        refresh: refreshToken,
       }),
     });
 
     if (response.ok) {
       const data = await response.json();
-      sessionStorage.setItem('access_token', data.access);  // Save new access token
+      sessionStorage.setItem('access_token', data.access);
       return true;
     } else {
       toast.error("Failed to refresh access token");
@@ -37,7 +36,6 @@ const refreshAccessToken = async () => {
   }
 };
 
-
 export function ScheduleBuilder() {
   const [availableCourses, setAvailableCourses] = useState([]);
   const [selectedCourses, setSelectedCourses] = useState([]);
@@ -45,7 +43,8 @@ export function ScheduleBuilder() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetchUserCourses();  // Fetch the user's courses on component mount
+    fetchUserCourses();
+    fetchAvailableCourses();  // Fetch available courses when the component mounts
   }, []);
 
   const fetchUserCourses = async () => {
@@ -65,12 +64,13 @@ export function ScheduleBuilder() {
       const response = await fetch(`http://localhost:8000/api/user/courses/get/all?username=${sessionStorage.getItem('user')}`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`, // Bearer token in header
+          'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
           'Content-Type': 'application/json',
         },
       });
 
       const data = await response.json();
+      console.log("Fetched User Courses: ", data);
       if (Array.isArray(data)) {
         setSelectedCourses(data);
       } else {
@@ -80,6 +80,25 @@ export function ScheduleBuilder() {
     } catch (err) {
       setError(err);
       toast.error("Failed to load user's courses");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch available courses from the backend
+  const fetchAvailableCourses = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/api/courses/');
+      const data = await response.json();
+      if (Array.isArray(data)) {
+        setAvailableCourses(data);
+      } else {
+        toast.error("Unexpected response format");
+        setAvailableCourses([]);
+      }
+    } catch (err) {
+      toast.error("Failed to load available courses");
+      setError(err);
     } finally {
       setLoading(false);
     }
@@ -169,20 +188,24 @@ export function ScheduleBuilder() {
 
         <h3>Your Schedule</h3>
         <ListGroup>
-          {selectedCourses.map((course) => (
-            <ListGroup.Item key={course.id}>
-              {course.department} {course.course_number}
-              <Button
-                variant="danger"
-                size="sm"
-                onClick={() => handleRemoveCourse(course)}
-                className="float-right"
-                style={{ marginLeft: '20px' }}
-              >
-                Remove
-              </Button>
-            </ListGroup.Item>
-          ))}
+          {selectedCourses && Array.isArray(selectedCourses) && selectedCourses.length > 0 ? (
+            selectedCourses.map((course) => (
+              <ListGroup.Item key={course.id}>
+                {course.department} {course.course_number}
+                <Button
+                  variant="danger"
+                  size="sm"
+                  onClick={() => handleRemoveCourse(course)}
+                  className="float-right"
+                  style={{ marginLeft: '20px' }}
+                >
+                  Remove
+                </Button>
+              </ListGroup.Item>
+            ))
+          ) : (
+            <p>No courses found for the user</p>
+          )}
         </ListGroup>
       </Container>
     </>

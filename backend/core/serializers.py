@@ -7,7 +7,7 @@ from .models import User, Course
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'password']
+        fields = ['id', 'username', 'email', 'password', 'Courses']
         # Password length is set to 128 characters per OWASP
         # https://owasp.deteact.com/cheat/cheatsheets/Authentication_Cheat_Sheet.html#password-length
         extra_kwargs = {

@@ -85,7 +85,6 @@ export function Register(){
             loginUser(userCredentials);
         }).catch(error => {
             const errorMessage = error.response.data.error;
-            console.log(errorMessage);
             setStatus(errorMessage);
             setIsError(true);
             toast.error(errorMessage, {

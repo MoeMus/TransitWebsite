@@ -147,20 +147,20 @@ class AddCourseView(APIView):
 class DeleteCourseView(APIView):
     permission_classes = (IsAuthenticated,)
 
-    def delete(self, request):
+    def post(self, request):
         username = request.data['username']
         course_name = request.data['course_name']
-
+        section_name = request.data['section_name']
         if not username or not course_name:
             return Response({"error": "Username or course name was not given"}, status=status.HTTP_400_BAD_REQUEST)
-        if User.objects.filter(username=username).exists() and Course.objects.filter(name=course_name).exists():
+        if User.objects.filter(username=username).exists() and Course.objects.filter(title=course_name).exists():
             user = User.objects.get(username=username)
-            course = Course.objects.get(name=course_name)
-            user.courses.remove(course)
+            course = Course.objects.get(title=course_name, section_name=section_name)
+            user.Courses.remove(course)
             user.save()
             return Response(status=status.HTTP_200_OK)
         else:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Course could not be removed from your schedule"}, status=status.HTTP_404_NOT_FOUND)
 
 
 class GetCourseView(APIView):

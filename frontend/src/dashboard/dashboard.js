@@ -66,7 +66,7 @@ export function Dashboard() {
           method: "GET",
         }
       );
-
+      console.log(userData);
       setUserInfo(userData.data);
       setUserInfoLoaded(true);
     } catch (err) {

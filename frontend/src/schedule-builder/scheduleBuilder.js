@@ -8,6 +8,7 @@ export function ScheduleBuilder() {
   const [selectedCourses, setSelectedCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  let username  = sessionStorage.getItem("user");
 
   useEffect(() => {
     fetchAvailableCourses();
@@ -29,11 +30,26 @@ export function ScheduleBuilder() {
     };
 
 
-  const handleAddCourse = (course) => {
+  const handleAddCourse = async (course) => {
     if (!selectedCourses.includes(course)) {
       setSelectedCourses([...selectedCourses, course]);
-      toast.success(`${course.department} {course.course_number} added to schedule`, {
+
+      let post_request = {username: username, courseName: course.title, sectionName: course.section_name}
+      console.log(course);
+      console.log(post_request);
+
+      await apiClient.post(
+          `http://127.0.0.1:8000/api/user/courses/add/`,
+          post_request,
+          {withCredentials: true}
+      ).then(()=>{
+        toast.success(`${course.department} ${course.course_number} added to schedule`, {
         duration: 2000,
+        });
+      }).catch(err=>{
+
+        toast.error(err.response.data.error);
+
       });
     } else {
       toast.error("Course is already in the schedule", {
@@ -42,11 +58,24 @@ export function ScheduleBuilder() {
     }
   };
 
-  const handleRemoveCourse = (course) => {
+  const handleRemoveCourse = async (course) => {
     const updatedCourses = selectedCourses.filter((c) => c.id !== course.id);
     setSelectedCourses(updatedCourses);
-    toast.success(`${course.department} {course.course_number} removed from schedule`, {
-      duration: 2000,
+    let post_request = {username: username, course_name: course.title, section_name: course.section_name};
+    console.log(post_request);
+
+    await apiClient.post(
+        `http://127.0.0.1:8000/api/user/courses/delete/`,
+        post_request,
+        {withCredentials: true}
+    ).then(()=>{
+      toast.success(`${course.department} ${course.course_number} removed from schedule`, {
+        duration: 2000,
+      });
+    }
+    ).catch(err=>{
+      console.log(err);
+      toast.error(`${err.response.data.error}`);
     });
   };
 

@@ -21,4 +21,7 @@ urlpatterns = [
     path('user/courses/get/', views.GetCourseView.as_view(), name='get-course'),
     path('user/courses/get/all', GetUserCoursesView.as_view(), name='get-user-courses'),
     path('courses/', fetch_all_courses, name='fetch-all-courses'),
+    path('courses/<int:course_id>/lectures/', views.GetLectureSectionsView.as_view(), name='get-lecture-sections'),
+    path('lectures/<int:lecture_section_id>/non-lectures/', views.GetNonLectureSectionsView.as_view(),
+         name='get-non-lecture-sections'),
 ]

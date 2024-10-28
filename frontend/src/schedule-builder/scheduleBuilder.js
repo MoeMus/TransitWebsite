@@ -38,64 +38,25 @@ const refreshAccessToken = async () => {
 
 export function ScheduleBuilder() {
   const [availableCourses, setAvailableCourses] = useState([]);
+  const [selectedCourse, setSelectedCourse] = useState(null);
+  const [lectureSections, setLectureSections] = useState([]);
+  const [selectedLectureSection, setSelectedLectureSection] = useState(null);
+  const [nonLectureSections, setNonLectureSections] = useState([]);
+  const [selectedNonLectureSection, setSelectedNonLectureSection] = useState(null);
   const [selectedCourses, setSelectedCourses] = useState([]);
+  const [selectionStage, setSelectionStage] = useState("course"); // "course", "lecture", or "non-lecture"
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetchUserCourses();
-    fetchAvailableCourses();  // Fetch available courses when the component mounts
+    fetchAvailableCourses();
   }, []);
 
-  const fetchUserCourses = async () => {
-    const accessToken = sessionStorage.getItem('access_token');
-
-    if (!accessToken) {
-      toast.error("User is not authenticated");
-      return;
-    }
-
-    const isTokenValid = await refreshAccessToken();
-    if (!isTokenValid) {
-      return;
-    }
-
-    try {
-      const response = await fetch(`http://localhost:8000/api/user/courses/get/all?username=${sessionStorage.getItem('user')}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      const data = await response.json();
-      console.log("Fetched User Courses: ", data);
-      if (Array.isArray(data)) {
-        setSelectedCourses(data);
-      } else {
-        setSelectedCourses([]);
-        toast.error("Unexpected response format");
-      }
-    } catch (err) {
-      setError(err);
-      toast.error("Failed to load user's courses");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Fetch available courses from the backend
   const fetchAvailableCourses = async () => {
     try {
       const response = await fetch('http://localhost:8000/api/courses/');
       const data = await response.json();
-      if (Array.isArray(data)) {
-        setAvailableCourses(data);
-      } else {
-        toast.error("Unexpected response format");
-        setAvailableCourses([]);
-      }
+      setAvailableCourses(data);
     } catch (err) {
       toast.error("Failed to load available courses");
       setError(err);
@@ -104,36 +65,113 @@ export function ScheduleBuilder() {
     }
   };
 
-  const handleAddCourse = async (course) => {
-    if (!selectedCourses.includes(course)) {
-      setSelectedCourses([...selectedCourses, course]);
+  const fetchLectureSections = async (courseId) => {
+      const accessToken = sessionStorage.getItem('access_token');
+
+      if (!accessToken) {
+        toast.error("User is not authenticated");
+        return;
+      }
+
+      const isTokenValid = await refreshAccessToken();
+      if (!isTokenValid) {
+        return;
+      }
 
       try {
-        const response = await apiClient.post('http://localhost:8000/api/user/courses/add/', {
-          username: sessionStorage.getItem('user'),
-          courseName: course.title,
-          sectionName: course.section_name,
+        const response = await fetch(`http://localhost:8000/api/courses/${courseId}/lectures/`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`, // Add the Bearer token
+            'Content-Type': 'application/json',
+          },
         });
 
-        if (response.status === 200) {
-          toast.success(`${course.department} ${course.course_number} added to schedule`, {
-            duration: 2000,
-          });
+        const data = await response.json();
+        if (data.length > 0) {
+          setLectureSections(data);
+          setSelectionStage("lecture");
         } else {
-          toast.error("Failed to add course to the schedule");
+          toast.error("No lecture sections found for this course");
         }
       } catch (err) {
-        toast.error("Failed to add course to the schedule");
+        toast.error("Failed to load lecture sections");
       }
+    };
+
+  const fetchNonLectureSections = async (lectureId) => {
+      const accessToken = sessionStorage.getItem('access_token');
+
+      if (!accessToken) {
+        toast.error("User is not authenticated");
+        return;
+      }
+
+      const isTokenValid = await refreshAccessToken();
+      if (!isTokenValid) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`http://localhost:8000/api/lectures/${lectureId}/non-lectures/`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`, // Add Bearer token for authentication
+            'Content-Type': 'application/json',
+          },
+        });
+
+        const data = await response.json();
+        if (data.length > 0) {
+          setNonLectureSections(data);
+          setSelectionStage("non-lecture");
+        } else {
+          toast.error("No non-lecture sections found for this lecture");
+        }
+      } catch (err) {
+        toast.error("Failed to load non-lecture sections");
+      }
+    };
+
+  const handleAddCourse = async () => {
+    if (selectedCourse && selectedLectureSection && selectedNonLectureSection) {
+      const courseToAdd = {
+        course: selectedCourse,
+        lecture: selectedLectureSection,
+        nonLecture: selectedNonLectureSection,
+      };
+
+      setSelectedCourses([...selectedCourses, courseToAdd]);
+      toast.success(`${selectedCourse.title} added to schedule`);
+
+      // Reset the selection process
+      setSelectedCourse(null);
+      setSelectedLectureSection(null);
+      setSelectedNonLectureSection(null);
+      setSelectionStage("course");
     } else {
-      toast.error("Course is already in the schedule");
+      toast.error("Please complete all selections");
     }
   };
 
-  const handleRemoveCourse = (course) => {
-    const updatedCourses = selectedCourses.filter((c) => c.id !== course.id);
-    setSelectedCourses(updatedCourses);
-    toast.success(`${course.department} ${course.course_number} removed from schedule`);
+  const handleCourseSelection = (e) => {
+    const courseId = e.target.value;
+    const course = availableCourses.find((course) => course.id === parseInt(courseId));
+    setSelectedCourse(course);
+    fetchLectureSections(courseId);
+  };
+
+  const handleLectureSelection = (e) => {
+    const lectureId = e.target.value;
+    const lecture = lectureSections.find((lecture) => lecture.id === parseInt(lectureId));
+    setSelectedLectureSection(lecture);
+    fetchNonLectureSections(lectureId);
+  };
+
+  const handleNonLectureSelection = (e) => {
+    const nonLectureId = e.target.value;
+    const nonLecture = nonLectureSections.find((nonLecture) => nonLecture.id === parseInt(nonLectureId));
+    setSelectedNonLectureSection(nonLecture);
   };
 
   if (loading) {
@@ -149,63 +187,69 @@ export function ScheduleBuilder() {
       <Toaster position="top-left" reverseOrder={false} />
       <Container>
         <h2>Schedule Builder</h2>
-        <Form>
+
+        {/* Conditional Rendering: Course Selection */}
+        {selectionStage === "course" && (
           <Form.Group controlId="courseSelect">
             <Form.Label>Select Course</Form.Label>
-            <Form.Control
-              as="select"
-              onChange={(e) => {
-                const courseId = e.target.value;
-
-                if (availableCourses && availableCourses.length > 0) {
-                  const selectedCourse = availableCourses.find(
-                    (course) => course.id === parseInt(courseId)
-                  );
-
-                  if (selectedCourse) {
-                    handleAddCourse(selectedCourse);
-                  } else {
-                    toast.error("Course not found");
-                  }
-                } else {
-                  toast.error("No available courses to select");
-                }
-              }}
-            >
+            <Form.Control as="select" onChange={handleCourseSelection}>
               <option>Select a course</option>
-              {availableCourses && availableCourses.length > 0 ? (
-                availableCourses.map((course) => (
-                  <option key={course.id} value={course.id}>
-                    {course.department} {course.course_number}: {course.title}
-                  </option>
-                ))
-              ) : (
-                <option>No courses available</option>
-              )}
+              {availableCourses.map((course) => (
+                <option key={course.id} value={course.id}>
+                  {course.department} {course.course_number}: {course.title}
+                </option>
+              ))}
             </Form.Control>
           </Form.Group>
-        </Form>
+        )}
+
+        {/* Conditional Rendering: Lecture Section Selection */}
+        {selectionStage === "lecture" && lectureSections.length > 0 && (
+          <Form.Group controlId="lectureSectionSelect">
+            <Form.Label>Select Lecture Section</Form.Label>
+            <Form.Control as="select" onChange={handleLectureSelection}>
+              <option>Select a lecture section</option>
+              {lectureSections.map((lecture) => (
+                <option key={lecture.id} value={lecture.id}>
+                  {lecture.section_code} - {lecture.start_time} to {lecture.end_time}
+                </option>
+              ))}
+            </Form.Control>
+          </Form.Group>
+        )}
+
+        {/* Conditional Rendering: Non-Lecture Section Selection */}
+        {selectionStage === "non-lecture" && nonLectureSections.length > 0 && (
+          <Form.Group controlId="nonLectureSectionSelect">
+            <Form.Label>Select Non-Lecture Section</Form.Label>
+            <Form.Control as="select" onChange={handleNonLectureSelection}>
+              <option>Select a non-lecture section</option>
+              {nonLectureSections.map((nonLecture) => (
+                <option key={nonLecture.id} value={nonLecture.id}>
+                  {nonLecture.section_code} - {nonLecture.start_time} to {nonLecture.end_time}
+                </option>
+              ))}
+            </Form.Control>
+          </Form.Group>
+        )}
+
+        {/* Add Course Button */}
+        {selectionStage === "non-lecture" && (
+          <Button variant="primary" onClick={handleAddCourse}>
+            Add Course
+          </Button>
+        )}
 
         <h3>Your Schedule</h3>
         <ListGroup>
-          {selectedCourses && Array.isArray(selectedCourses) && selectedCourses.length > 0 ? (
-            selectedCourses.map((course) => (
-              <ListGroup.Item key={course.id}>
-                {course.department} {course.course_number}
-                <Button
-                  variant="danger"
-                  size="sm"
-                  onClick={() => handleRemoveCourse(course)}
-                  className="float-right"
-                  style={{ marginLeft: '20px' }}
-                >
-                  Remove
-                </Button>
-              </ListGroup.Item>
-            ))
-          ) : (
-            <p>No courses found for the user</p>
-          )}
+          {selectedCourses.map((course, index) => (
+            <ListGroup.Item key={index}>
+              {course.course.title} (Lecture: {course.lecture.section_code}, Non-Lecture: {course.nonLecture.section_code})
+              <Button variant="danger" size="sm" className="float-right">
+                Remove
+              </Button>
+            </ListGroup.Item>
+          ))}
         </ListGroup>
       </Container>
     </>

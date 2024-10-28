@@ -14,6 +14,7 @@ import { useLocation } from "react-router-dom";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import {Dropdown} from "react-bootstrap";
+import axios from "axios";
 
 export function Dashboard() {
   const [userInfoLoaded, setUserInfoLoaded] = useState(false);
@@ -28,7 +29,7 @@ export function Dashboard() {
   const [travelMode, setTravelMode] = useState("");
   const [travelTime, setTravelTime] = useState("");
   const [travelDistance, setTravelDistance] = useState("");
-
+  const [userCourses, setUserCourses] = useState([]);
   const onMapLoad = (mapInstance) => {
     setMap(mapInstance);
   };
@@ -52,10 +53,26 @@ export function Dashboard() {
 
       //TODO: Change how map is shown on dashboard
     }
-    toast.error("Could not retrieve your userLocation", {
+    toast.error("Could not retrieve your location", {
       duration: 2000,
       id: "userLocation-not-found",
     });
+  }
+  async function getCourseInfo(courseIDs){
+      let request = {course_ids: courseIDs};
+      await apiClient.post(
+          "http://127.0.0.1:8000/api/user/courses/get/all/",
+          request,
+          {withCredentials: true }
+      ).then((response)=>{
+        console.log(response.data.lecture_sections);
+        console.log(response.data.non_lecture_sections);
+        setUserCourses(response.data.lecture_sections);
+      }).catch(err=>{
+        toast.error(err.response.data.error, {
+          duration: 2000
+        });
+      });
   }
 
   async function getUserInfo() {
@@ -66,8 +83,10 @@ export function Dashboard() {
           method: "GET",
         }
       );
-      console.log(userData);
       setUserInfo(userData.data);
+
+      console.log(userData.data.Courses);
+      getCourseInfo(userData.data.Courses);
       setUserInfoLoaded(true);
     } catch (err) {
       toast.error(err.response.data.error, {

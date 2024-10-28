@@ -43,6 +43,7 @@ class Course(models.Model):
 
 
 class LectureSection(models.Model):
+    objects = models.Manager()
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     section_code = models.CharField(max_length=10)
     start_time = models.CharField(max_length=50, null=True, blank=True)
@@ -64,6 +65,7 @@ class LectureSection(models.Model):
 
 # Represents a section of a course (Tutorial, Lab, etc.)
 class NonLectureSection(models.Model):
+    objects = models.Manager()
     section_code = models.CharField(max_length=10)
     class_type = models.CharField(max_length=10)  # e.g., "e" or "n"
     associated_class = models.CharField(max_length=10, default=0)
@@ -80,6 +82,7 @@ class NonLectureSection(models.Model):
 
     def __str__(self):
         return f"{self.title} - {self.section_code} ({self.class_type})"
+
 
 
 class User(AbstractUser):

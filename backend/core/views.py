@@ -1,4 +1,5 @@
 import logging
+from itertools import chain
 
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
@@ -10,7 +11,7 @@ from rest_framework.exceptions import ParseError
 import requests  # Used to make requests to SFU Course API
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .models import User, Course
+from .models import *
 from .serializers import CourseSerializer, UserSerializer
 import io
 from .utils import *
@@ -20,7 +21,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 
 # Create your views here.
-CURRENT_SEMESTER = get_current_term_code() # TODO: depreciate this variable since it is not used
+CURRENT_SEMESTER = get_current_term_code()  # TODO: depreciate this variable since it is not used
 CURRENT_YEAR = get_current_year()
 CURRENT_TERM_CODE = get_current_term_code()
 CURRENT_TERM = get_current_term()
@@ -160,7 +161,8 @@ class DeleteCourseView(APIView):
             user.save()
             return Response(status=status.HTTP_200_OK)
         else:
-            return Response({"error": "Course could not be removed from your schedule"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Course could not be removed from your schedule"},
+                            status=status.HTTP_404_NOT_FOUND)
 
 
 class GetCourseView(APIView):
@@ -213,10 +215,44 @@ class GetCourseView(APIView):
             },
         )
 
+    # Given a set of course IDs, retrieve the course info associated with each section as a list
+    def post(self, request):
+        course_ids = request.data["course_ids"]
+
+        courses = Course.objects.filter(id__in=course_ids).values()
+
+        lecture_sections_no_lab = LectureSection.objects.filter(course_id__in=course_ids).values()
+
+        titles = [course['title'] for course in courses]
+        section_codes = [course['section_name'] for course in courses]
+        course_numbers = [course['course_number'] for course in courses]
+
+        non_lecture_components = NonLectureSection.objects.filter(number__in=course_numbers
+                                                                  , title__in=titles
+                                                                  , section_code__in=section_codes).values()
+
+        non_lecture_professors = [component['professor'] for component in non_lecture_components]
+        non_lecture_titles = [component['title'] for component in non_lecture_components]
+        non_lecture_numbers = [component['number'] for component in non_lecture_components]
+
+        lecture_sections_with_lab = LectureSection.objects.filter(professor__in=non_lecture_professors
+                                                                  , number__in=non_lecture_numbers
+                                                                  , title__in=non_lecture_titles).values()
+
+        lecture_sections = list(
+            {tuple(section.items()) for section in chain(lecture_sections_no_lab, lecture_sections_with_lab)})
+
+        lecture_sections = [dict(section) for section in lecture_sections]
+
+        if not courses:
+            return Response({"error": "Courses could not be retrieved"}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({"lecture_sections": list(lecture_sections)
+                        , "non_lecture_sections": list(non_lecture_components)}
+                        , status=status.HTTP_200_OK)
+
 
 # Returns all courses to scheduleBuilder.js in the frontend via url
 def fetch_all_courses(request):
     courses = Course.objects.all().values()
     return JsonResponse(list(courses), safe=False)
-
-

@@ -12,6 +12,7 @@ import requests  # Used to make requests to SFU Course API
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import *
+
 from .serializers import CourseSerializer, UserSerializer
 import io
 from .utils import *
@@ -256,3 +257,44 @@ class GetCourseView(APIView):
 def fetch_all_courses(request):
     courses = Course.objects.all().values()
     return JsonResponse(list(courses), safe=False)
+
+
+
+# Get the user's list of courses
+class GetUserCoursesView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        username = request.query_params.get('username')
+        try:
+            user = User.objects.get(username=username)
+            courses = user.Courses.all()
+            serializer = CourseSerializer(courses, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+class GetLectureSectionsView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, course_id):
+        try:
+            course = Course.objects.get(id=course_id)
+            lecture_sections = course.lecturesection_set.all()  # Fetch related lecture sections
+            data = [{"id": ls.id, "section_code": ls.section_code, "start_time": ls.start_time, "end_time": ls.end_time} for ls in lecture_sections]
+            return JsonResponse(data, safe=False)
+        except Course.DoesNotExist:
+            return Response({"error": "Course not found"}, status=status.HTTP_404_NOT_FOUND)
+
+
+class GetNonLectureSectionsView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, lecture_section_id):
+        try:
+            lecture_section = LectureSection.objects.get(id=lecture_section_id)
+            non_lecture_sections = lecture_section.non_lecture_sections.all()  # Use the new related_name
+            data = [{"id": nls.id, "section_code": nls.section_code, "start_time": nls.start_time, "end_time": nls.end_time} for nls in non_lecture_sections]
+            return JsonResponse(data, safe=False)
+        except LectureSection.DoesNotExist:
+            return Response({"error": "Lecture section not found"}, status=status.HTTP_404_NOT_FOUND)

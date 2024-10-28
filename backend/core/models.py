@@ -66,6 +66,13 @@ class LectureSection(models.Model):
 # Represents a section of a course (Tutorial, Lab, etc.)
 class NonLectureSection(models.Model):
     objects = models.Manager()
+    lecture_section = models.ForeignKey(
+        LectureSection,
+        on_delete=models.CASCADE,
+        related_name='non_lecture_sections',  # Explicit reverse relation
+        null=True,
+        default=None
+    )
     section_code = models.CharField(max_length=10)
     class_type = models.CharField(max_length=10)  # e.g., "e" or "n"
     associated_class = models.CharField(max_length=10, default=0)

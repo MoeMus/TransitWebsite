@@ -1,43 +1,48 @@
-import {useEffect} from "react";
+import { useEffect } from "react";
 import apiClient from "./configAxios";
-import {useDispatch, useSelector} from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import updateAccessToken from "../storeConfig/updateAccessToken";
 
 //When the access token stored globally changes, this is run in order to determine when to update it as it expires
-const useCheckAccessToken = ()=>{
+const useCheckAccessToken = () => {
+  const dispatch = useDispatch();
+  const accessToken = useSelector((state) => state.value);
 
-    const dispatch = useDispatch();
-    const accessToken = useSelector((state) => state.value);
+  useEffect(() => {
+    let refreshToken = sessionStorage.getItem("refresh_token");
 
-    useEffect(()=>{
+    if (accessToken === '' || !refreshToken) return; //Will only run if there is an access token and refresh token (Only when user is logged in)
 
-        let refreshToken = sessionStorage.getItem('refresh_token');
+    //Will activate when user is logs in and deactivate when user is logged out
+    const decodedToken = JSON.parse(atob(accessToken.split(".")[1])); // Decode the token payload to get expiration
+    const currentTime = Math.floor(Date.now() / 1000);
+    const timeLeft = decodedToken.exp - currentTime;
+    const refreshInterval = Math.min(timeLeft - 120, 23 * 3600); // Set interval for token refresh
 
-        if (accessToken === '' || !refreshToken) return; //Will only run if there is an access token and refresh token (Only when user is logged in)
+    const requestBody = { refresh: refreshToken };
 
-        //Will activate when user is logs in and deactivate when user is logged out
-        const { expirationDate } = JSON.parse(atob(sessionStorage.getItem('access_token').split('.')[1]));
-        const currentTime = Math.floor(Date.now()/1000);
-        const refreshTime =  (23 * 3600 + 40) * 1000; // Convert 23 hours and 40 minutes to milliseconds,
-        const requestBody = {refresh: refreshToken};
+    const interval = setInterval(async () => {
+      try {
+        const response = await apiClient.post("http://127.0.0.1:8000/token/refresh/", requestBody, {
+          method: "POST",
+        });
+        const { access, refresh } = response.data;
 
-        //Every 23 hours and 40 minutes, update the access and refresh tokens before they expire
-        const interval = setInterval(async ()=>{
-            const response = await apiClient.post('http://127.0.0.1:8000/token/refresh/', requestBody, {
-                method: "POST"
-            });
-            const {data} = response;
-            if(data.access){
-               sessionStorage.setItem('access_token', data.access);
-               sessionStorage.setItem('refresh_token', data.refresh);
-               dispatch(updateAccessToken());
-            }
-        }, refreshTime);
+        if (access) {
+          sessionStorage.setItem("access_token", access);
+          if (refresh) {
+            sessionStorage.setItem("refresh_token", refresh); // Save new refresh token if provided
+          }
+          dispatch(updateAccessToken());
+        }
+      } catch (error) {
+        console.error("Error refreshing token", error); // Handle errors if token refresh fails
+      }
+    }, refreshInterval * 1000); // Run at calculated interval
 
-        return () => clearInterval(interval); // Cleanup on component unmount
+    return () => clearInterval(interval); // Cleanup on component unmount
 
-    }, [accessToken, dispatch])
-
+  }, [accessToken, dispatch]);
 };
 
 export default useCheckAccessToken;

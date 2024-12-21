@@ -92,7 +92,7 @@ export function Dashboard() {
       );
       setUserInfo(userData.data);
 
-      console.log(JSON.stringify(userData.data, null, 2));
+      //console.log(JSON.stringify(userData.data, null, 2));
       setUserCourses(userData.data.user_courses);
       //getCourseInfo(userData.data.Courses);
       setUserInfoLoaded(true);

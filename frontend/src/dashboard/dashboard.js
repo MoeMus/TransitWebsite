@@ -30,18 +30,20 @@ export function Dashboard() {
   const [travelTime, setTravelTime] = useState("");
   const [travelDistance, setTravelDistance] = useState("");
   const [userCourses, setUserCourses] = useState([]);
+
   const onMapLoad = (mapInstance) => {
     setMap(mapInstance);
   };
-  //TODO: These variables and any code which uses them currently do not work
-  const currentRoute = useLocation();
-  const fromPage = currentRoute.state?.from || "/";
 
-  const loginSuccess = () => {
-    toast.success(`Welcome back, ${username}`, {
-      duration: 2000,
-    });
-  };
+  //TODO: These variables and any code which uses them currently do not work
+  // const currentRoute = useLocation();
+  // const fromPage = currentRoute.state?.from || "/";
+  //
+  // const loginSuccess = () => {
+  //   toast.success(`Welcome back, ${username}`, {
+  //     duration: 2000,
+  //   });
+  // };
 
   function locationError(error) {
     if (error.code === error.PERMISSION_DENIED) {
@@ -58,22 +60,27 @@ export function Dashboard() {
       id: "userLocation-not-found",
     });
   }
-  async function getCourseInfo(courseIDs){
-      let request = {course_ids: courseIDs};
-      await apiClient.post(
-          "http://127.0.0.1:8000/api/user/courses/get/all/",
-          request,
-          {withCredentials: true }
-      ).then((response)=>{
-        console.log(response.data.lecture_sections);
-        console.log(response.data.non_lecture_sections);
-        setUserCourses(response.data.lecture_sections);
-      }).catch(err=>{
-        toast.error(err.response.data.error, {
-          duration: 2000
-        });
-      });
-  }
+
+  // async function getCourseInfo(courseIDs){
+  //     //let request = {course_ids: courseIDs};
+  //     //let request = {username: sessionStorage.getItem(username)}
+  //     await apiClient.get(
+  //         `http://127.0.0.1:8000/api/user/courses/get/all/?username=${username}`,
+  //         {
+  //           method: "GET",
+  //           withCredentials: true
+  //         }
+  //     ).then((response)=>{
+  //       //console.log(response.data.lecture_sections);
+  //       //console.log(response.data.non_lecture_sections);
+  //       setUserCourses(response.data.lecture_sections);
+  //     }).catch(err=>{
+  //       const errorMessage = err.response.data.error;
+  //       toast.error(errorMessage, {
+  //         duration: 2000
+  //       });
+  //     });
+  // }
 
   async function getUserInfo() {
     try {
@@ -85,20 +92,22 @@ export function Dashboard() {
       );
       setUserInfo(userData.data);
 
-      console.log(userData.data.Courses);
-      getCourseInfo(userData.data.Courses);
+      console.log(JSON.stringify(userData.data, null, 2));
+      setUserCourses(userData.data.user_courses);
+      //getCourseInfo(userData.data.Courses);
       setUserInfoLoaded(true);
     } catch (err) {
-      toast.error(err.response.data.error, {
+      const errorMessage = err.response.data.error;
+      toast.error(errorMessage, {
         duration: 2000,
       });
     } finally {
       setLoading(false);
     }
   }
-
   let watchID = 0;
 
+  //Retrieve user data when dashboard is loaded
   useEffect(() => {
     getUserInfo();
     if (!manualLocationEnabled && navigator.geolocation) {
@@ -145,39 +154,51 @@ export function Dashboard() {
   }, [map]);
 
   //TODO: This useEffect does not work, will fix later
-  useEffect(() => {
-    if (
-      fromPage === "/registration" &&
-      currentRoute.pathname === "/dashboard"
-    ) {
-      loginSuccess();
-    }
-
-  }, [currentRoute]);
+  // useEffect(() => {
+  //   if (
+  //     fromPage === "/registration" &&
+  //     currentRoute.pathname === "/dashboard"
+  //   ) {
+  //     loginSuccess();
+  //   }
+  //
+  // }, [currentRoute, fromPage, loginSuccess]);
 
   const manualLocationChange = (event)=>{
     event.preventDefault();
     const geocoder = new window.google.maps.Geocoder();
     const address = document.querySelector(".location").value;
+
     if(address){
+
       geocoder.geocode({address: address}, (results, status)=>{
+
         if(status === window.google.maps.GeocoderStatus.OK){
+
           const lat = results[0].geometry.location.lat();
           const lng = results[0].geometry.location.lng();
           setUserLocation({lat: lat, lng: lng});
           setManualLocationEnabled(true);
           navigator.geolocation.clearWatch(watchID);
           setTrackingEnabled(false);
+
         } else {
+
           toast.error("The provided location could not be processed", {
             duration: 2000
+
           });
+
         }
+
       } );
+
     } else {
+
       toast.error("Please enter a location", {
         duration: 2000
       });
+
     }
 
   }
@@ -227,7 +248,7 @@ export function Dashboard() {
 
               </div>
 
-              <APIProvider apiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}>
+              <APIProvider apiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY} version="3.58"  libraries={['places']}>
 
                 <div className="mapContainer">
                   <div className="mapBox">
@@ -296,65 +317,76 @@ function Directions({userLocation, setTravelTime, setTravelDistance}) {
   const [routes, setRoutes] = useState([]);
   const [routeIndex, setRouteIndex] = useState(0);
   const [travelMode, setTravelMode] = useState("");
+
   // Initialize services
   useEffect(() => {
     if (!map || !window.google) return;
-    setTravelMode("Transit"); //Default travel mode
-    const service = new window.google.maps.DirectionsService();
-    const renderer = new window.google.maps.DirectionsRenderer({map});
+    try{
+      setTravelMode("Transit"); //Default travel mode
+      const service = new window.google.maps.DirectionsService();
+      const renderer = new window.google.maps.DirectionsRenderer({map});
 
-    setDirectionsService(service);
-    setDirectionsRenderer(renderer);
+      setDirectionsService(service);
+      setDirectionsRenderer(renderer);
 
-    return () => {
-      if (renderer) {
-        renderer.setDirections(null); // Clears previous directions from the map
-      }
-    };
+      return () => {
+        if (renderer) {
+          renderer.setDirections(null); // Clears previous directions from the map
+        }
+      };
+
+    } catch (err){
+      console.log(err);
+    }
+
 
   }, [map]);
 
   // Calculate directions once
   useEffect(() => {
-    if (!directionsService || !directionsRenderer) return;
+    if (!directionsService || !directionsRenderer || (userLocation.lat === 0 && userLocation.lng === 0)) return;
 
     // Keep route index when recalculating
-    directionsService.route({
-          origin: userLocation,
-          destination: "8888 University Dr W, Burnaby, BC V5A 1S6",
-          travelMode: window.google.maps.TravelMode[travelMode.toUpperCase()],
-          provideRouteAlternatives: true,
-    },
-    (response, status) => {
-      if (status === window.google.maps.DirectionsStatus.OK) {
-        directionsRenderer.setDirections(response);
-        setDirectionsResult(response);
-        setRoutes(response.routes);
 
-        // Apply the stored route index after rerender
-        directionsRenderer.setRouteIndex(routeIndex);
+    try {
+      directionsService.route({
+            origin: userLocation,
+            destination: "8888 University Dr W, Burnaby, BC V5A 1S6",
+            travelMode: window.google.maps.TravelMode[travelMode.toUpperCase()],
+            provideRouteAlternatives: true,
+          },
+          (response, status) => {
+            if (status === window.google.maps.DirectionsStatus.OK) {
+              directionsRenderer.setDirections(response);
+              setDirectionsResult(response);
+              setRoutes(response.routes);
 
-        // Extract and update the summary for the selected route
-        const route = response.routes[routeIndex];
-        if (route && route.legs && route.legs.length > 0) {
-          const summary = route.legs
-          .map((leg) => `Distance: ${leg.distance.text}, Duration: ${leg.duration.text}`)
-          .join(' | ');
-          setSummary(summary);
-          setTravelTime(route.legs.map((leg)=> `${leg.duration.text}`).join(' | '));
-          setTravelDistance(route.legs.map((leg)=> `${leg.distance.text}`).join(' | '));
-        } else {
-          setSummary("Error fetching directions or no routes available");
-        }
+              // Apply the stored route index after rerender
+              directionsRenderer.setRouteIndex(routeIndex);
 
-      } else {
-        toast.error("Error fetching directions " + status, {
-          duration: 2000,
-        });
-      }
+              // Extract and update the summary for the selected route
+              const route = response.routes[routeIndex];
+              if (route && route.legs && route.legs.length > 0) {
+                const summary = route.legs
+                    .map((leg) => `Distance: ${leg.distance.text}, Duration: ${leg.duration.text}`).join(' | ');
+                setSummary(summary);
+                setTravelTime(route.legs.map((leg) => `${leg.duration.text}`).join(' | '));
+                setTravelDistance(route.legs.map((leg) => `${leg.distance.text}`).join(' | '));
+              } else {
+                setSummary("Error fetching directions or no routes available");
+              }
+
+            } else {
+              toast.error("Error fetching directions " + status, {
+                duration: 2000,
+              });
+            }
+          }
+      );
+    } catch (err){
+      console.log(err);
     }
-  );
-}, [directionsService, directionsRenderer, userLocation, routeIndex, travelMode]);
+}, [directionsService, directionsRenderer, userLocation, routeIndex, travelMode, setTravelDistance, setTravelTime]);
 
   function setMode(eventKey, event){
     event.preventDefault();
@@ -388,7 +420,8 @@ function Directions({userLocation, setTravelTime, setTravelDistance}) {
           {routes.map((route, index) => (
               <li key={index}>
 
-                {index === routeIndex?
+                {
+                  index === routeIndex?
 
                     <Button disabled={true} variant="link" onClick={() => {setRouteIndex(index);}} style={{width: "150px"}}>
 
@@ -402,7 +435,8 @@ function Directions({userLocation, setTravelTime, setTravelDistance}) {
 
                       {route.summary || `Route ${index + 1}`}
 
-                    </Button>}
+                    </Button>
+                }
 
               </li>
 

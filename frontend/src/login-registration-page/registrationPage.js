@@ -21,9 +21,8 @@ export function RegistrationPage (){
                 <h1 className='welcome-title'> Welcome to TransitTail! </h1>
                 <div className='summary'>
 
-                    <img src="/websiteLogo.jpg" alt="" style={{marginBottom: "20px"}}/>
+                    {/*<img src="/websiteLogo.jpg" alt="" style={{marginBottom: "20px"}}/>*/}
 
-                    <p> A transit website for SFU students </p>
                     <p>
                         TransitTail integrates your course schedule with transit and driving information
                         that allows for instant access to the best travel
@@ -36,13 +35,11 @@ export function RegistrationPage (){
                         the dashboard
                     </p>
 
-                    <p style={{color: "olive"}}>
+                    <p style={{color: "red"}}>
                         It is recommended to activate location tracking in order to determine the best routes to get to
                         your classes
                     </p>
 
-                    <p><a href="https://github.com/MoeMus/TransitWebsite" target="_blank"
-                          rel="noopener noreferrer"> View this project on GitHub </a></p>
 
                 </div>
 
@@ -50,8 +47,9 @@ export function RegistrationPage (){
                     <Login/>
                 </div>
                 <p> Don't have an account? Sign up for free </p>
-                <Button onClick={handleClick} variant="secondary"> Sign Up </Button>
-
+                <Button onClick={handleClick} variant="secondary" style={{marginBottom: "20px"}}> Sign Up </Button>
+                <p><a href="https://github.com/MoeMus/TransitWebsite" target="_blank"
+                      rel="noopener noreferrer"> View this project on GitHub </a></p>
             </Container>
 
 

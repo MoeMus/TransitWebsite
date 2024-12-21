@@ -31,6 +31,8 @@ export function Dashboard() {
   const [travelDistance, setTravelDistance] = useState("");
   const [userCourses, setUserCourses] = useState([]);
 
+  let watchID = 0;
+
   const onMapLoad = (mapInstance) => {
     setMap(mapInstance);
   };
@@ -93,7 +95,7 @@ export function Dashboard() {
       setUserInfo(userData.data);
 
       //console.log(JSON.stringify(userData.data, null, 2));
-      setUserCourses(userData.data.user_courses);
+      setUserCourses(userData.data.Courses);
       //getCourseInfo(userData.data.Courses);
       setUserInfoLoaded(true);
     } catch (err) {
@@ -105,7 +107,8 @@ export function Dashboard() {
       setLoading(false);
     }
   }
-  let watchID = 0;
+
+
 
   //Retrieve user data when dashboard is loaded
   useEffect(() => {

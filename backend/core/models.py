@@ -33,8 +33,6 @@ class Course(models.Model):
     #  instructor
     #professor = models.CharField(max_length=100, null=True, blank=True)  # Professor field is optional, usually updated
 
-
-
     # The __str method below makes the Django Course model readable for when you do print(course)
     def __str__(self):
         #return f"{self.department} {self.course_number} - {self.title} ({self.section_name})"
@@ -89,7 +87,6 @@ class NonLectureSection(models.Model):
 
     def __str__(self):
         return f"{self.title} - {self.section_code} ({self.class_type})"
-
 
 
 class User(AbstractUser):

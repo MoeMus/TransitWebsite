@@ -15,11 +15,11 @@ class CourseSerializer(serializers.ModelSerializer):
 # extra_kwargs is for extra keyword arguments on 'password' to make it 128 characters
 # https://www.django-rest-framework.org/api-guide/serializers/#additional-keyword-arguments
 class UserSerializer(serializers.ModelSerializer):
-    user_courses = CourseSerializer(many=True, read_only=True)
+    Courses = CourseSerializer(many=True, read_only=True)
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'password', 'user_courses']
+        fields = ['id', 'username', 'email', 'password', 'Courses']
         # Password length is set to 128 characters per OWASP
         # https://owasp.deteact.com/cheat/cheatsheets/Authentication_Cheat_Sheet.html#password-length
         extra_kwargs = {

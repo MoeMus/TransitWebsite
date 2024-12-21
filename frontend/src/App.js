@@ -40,7 +40,7 @@ function App() {
         <Route path="/signup" element={<Register />} />
         <Route path="/registration" element={ isAuth ?  <Dashboard /> : <RegistrationPage />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/schedule-builder" element={ isAuth ? <ScheduleBuilder /> : <Navigate to="/login" replace={true} />} />
+        <Route path="/schedule-builder" element={ <ScheduleBuilder /> } />
         {/* Uncomment and add other routes as needed */}
       </Routes>
     </>

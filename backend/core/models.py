@@ -33,8 +33,6 @@ class Course(models.Model):
     #  instructor
     #professor = models.CharField(max_length=100, null=True, blank=True)  # Professor field is optional, usually updated
 
-
-
     # The __str method below makes the Django Course model readable for when you do print(course)
     def __str__(self):
         #return f"{self.department} {self.course_number} - {self.title} ({self.section_name})"
@@ -43,6 +41,7 @@ class Course(models.Model):
 
 
 class LectureSection(models.Model):
+    objects = models.Manager()
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     section_code = models.CharField(max_length=10)
     start_time = models.CharField(max_length=50, null=True, blank=True)
@@ -64,6 +63,7 @@ class LectureSection(models.Model):
 
 # Represents a section of a course (Tutorial, Lab, etc.)
 class NonLectureSection(models.Model):
+    objects = models.Manager()
     lecture_section = models.ForeignKey(
         LectureSection,
         on_delete=models.CASCADE,

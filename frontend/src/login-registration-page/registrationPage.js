@@ -61,27 +61,9 @@ export function RegistrationPage (){
                     </Card.Root>
 
                 </Flex>
-                    {/*<Text>*/}
-                    {/*    TransitTail integrates your course schedule with transit and driving information*/}
-                    {/*    that allows for instant access to the best travel*/}
-                    {/*    routes to get to your next course, as well as allowing you to*/}
-                    {/*    easily customize how and when you want to get there*/}
-                    {/*</Text>*/}
-                    {/*<Text>*/}
-                    {/*    To start, make an account and it will prompt you to enter the courses you are*/}
-                    {/*    taking this semester, then you will be able to choose how you want to get there on*/}
-                    {/*    the dashboard*/}
-                    {/*</Text>*/}
-
-                <Container width="5/6" fontSize="20px" textAlign="center">
-
-                    <Text style={{color: "red"}}>
-                        It is recommended to activate location tracking in order to determine the best routes to get to
-                        your classes
-                    </Text>
 
 
-                </Container>
+
 
                 <Flex justifyContent="center">
                     <Login/>
@@ -101,6 +83,26 @@ export function RegistrationPage (){
                     </Flex>
 
                 </Flex>
+
+                <Container width="5/6" fontSize="20px" textAlign="center">
+                    {/*<Text>*/}
+                    {/*    TransitTail integrates your course schedule with transit and driving information*/}
+                    {/*    that allows for instant access to the best travel*/}
+                    {/*    routes to get to your next course, as well as allowing you to*/}
+                    {/*    easily customize how and when you want to get there*/}
+                    {/*</Text>*/}
+                    {/*<Text>*/}
+                    {/*    To start, make an account and it will prompt you to enter the courses you are*/}
+                    {/*    taking this semester, then you will be able to choose how you want to get there on*/}
+                    {/*    the dashboard*/}
+                    {/*</Text>*/}
+                    <Text style={{color: "red"}}>
+                        It is recommended to activate location tracking in order to determine the best routes to get to
+                        your classes
+                    </Text>
+
+
+                </Container>
 
             </Flex>
 

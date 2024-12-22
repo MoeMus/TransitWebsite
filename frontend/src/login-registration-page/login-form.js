@@ -5,6 +5,8 @@ import {useDispatch} from "react-redux";
 import updateAccessToken from "../storeConfig/updateAccessToken";
 import toast, { Toaster } from 'react-hot-toast';
 import Button from "react-bootstrap/Button";
+import {Heading, Input, Text} from "@chakra-ui/react";
+import { PasswordInput } from "../components/ui/password-input"
 
 
 export function Login() {
@@ -69,15 +71,15 @@ export function Login() {
 
                     <div className="Auth-form-content">
 
-                        <p className="Auth-form-title">
+                        <Heading textAlign="center" fontSize="20px" fontWeight="normal" my="10px">
                             Enter your username and password to continue
-                        </p>
+                        </Heading>
 
                         <div className="form-group mt-3">
 
                             <label>Username</label>
 
-                            <input className="form-control mt-1"
+                            <Input variant="subtle"
                                    placeholder="Enter Username"
                                    name='username'
                                    type='text' value={username}
@@ -89,14 +91,8 @@ export function Login() {
                         <div className="form-group mt-3">
 
                             <label>Password</label>
-
-                            <input name='password'
-                                   type="password"
-                                   className="form-control mt-1"
-                                   placeholder="Enter password"
-                                   value={password}
-                                   required
-                                   onChange={e => setPassword(e.target.value)}/>
+                            <PasswordInput placeholder="Enter password" variant="subtle"
+                                           value={password} required onChange={e => setPassword(e.target.value)}/>
 
                         </div>
 
@@ -113,6 +109,8 @@ export function Login() {
                 </form>
 
             </div>
+
+
 
         </>
 

@@ -9,6 +9,8 @@ import {useDispatch} from "react-redux";
 import updateAccessToken from "../storeConfig/updateAccessToken";
 import {toast, Toaster} from "react-hot-toast";
 import WelcomePage from "../components/welcomePage";
+import {Heading} from "@chakra-ui/react";
+import {PasswordInput} from "../components/ui/password-input";
 
 export function Register(){
     const [username, setUsername] = useState('');
@@ -21,15 +23,17 @@ export function Register(){
     const dispatch = useDispatch();
 
     useEffect(()=>{
-        if(confirmPassword !== password){
+        if(confirmPassword !== password && confirmPassword.length > 0){
             setStatus("Passwords must match");
             setIsError(true);
         } else if (username === ''){
+            setStatus('');
             setIsError(true);
         } else if (email === ''){
+            setStatus('');
             setIsError(true);
         }else if (password === ''){
-            setStatus(' ');
+            setStatus('');
             setIsError(true);
         } else {
             setIsError(false);
@@ -101,31 +105,35 @@ export function Register(){
 
                     <Form onSubmit={submitCredentials}>
 
-                        <p className="Auth-form-title"> Please enter a username, email, and password to register </p>
+                        <Heading fontSize="25px" fontWeight="normal" marginBottom="55px"> Please enter a username, email, and password to register </Heading>
 
                         <fieldset>
                             <legend className='input-text'>Username</legend>
-                            <Form.Control type="text" value={username}
+                            <Form.Control type="text" value={username} placeholder="Enter a username"
                                           onInput={(event) => setUsername(event.target.value)}/>
                         </fieldset>
 
                         <fieldset>
                             <legend className='input-text'>Email</legend>
-                            <Form.Control type="email" value={email}
+                            <Form.Control type="email" value={email} placeholder="Enter your email address"
                                           onInput={(event) => setEmail(event.target.value)}/>
                         </fieldset>
 
 
                         <fieldset>
                             <legend className='input-text'>Password</legend>
-                            <Form.Control type="password" value={password}
-                                          onInput={(event) => setPassword(event.target.value)}/>
+                            {/*<Form.Control type="password" value={password}*/}
+                            {/*              onInput={(event) => setPassword(event.target.value)}/>*/}
+                            <PasswordInput type="password" value={password} placeholder="Enter a password" required
+                                          onChange={(event) => setPassword(event.target.value)}/>
                         </fieldset>
 
                         {password !== '' ? (<fieldset>
                             <legend className='input-text'>Confirm Password</legend>
-                            <Form.Control type="password" value={confirmPassword}
-                                          onInput={(event) => setConfirmPassword(event.target.value)}/>
+                            {/*<Form.Control type="password" value={confirmPassword}*/}
+                            {/*              onInput={(event) => setConfirmPassword(event.target.value)}/>*/}
+                            <PasswordInput type="password" value={confirmPassword} placeholder="Reenter your password"
+                                          required onChange={(event) => setConfirmPassword(event.target.value)}/>
                         </fieldset>) : null}
 
                         <Button className='button' type="submit" variant="success" style={{marginTop: '10px', marginBottom: '10px'}}>Register</Button>{' '}

@@ -70,9 +70,8 @@ export function RegistrationPage (){
                 </Flex>
 
                 <Flex justifyContent="center" direction="column">
-                    <Text textAlign="center"> Don't have an account? Sign up for free </Text>
+                    <Text textAlign="center"> Don't have an account? <Link onClick={handleClick}> Sign Up </Link> for free </Text>
                     <Flex justifyContent="center">
-                        <Button onClick={handleClick} variant="solid" size="xs" my="20px"> Sign Up </Button>
                     </Flex>
                     <Flex justifyContent="center" >
                         <Text >

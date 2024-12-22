@@ -10,12 +10,10 @@ import {
   useMap,
 } from "@vis.gl/react-google-maps";
 import Container from "react-bootstrap/Container";
-import { useLocation } from "react-router-dom";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import {Dropdown} from "react-bootstrap";
-import axios from "axios";
-
+import ServiceAlerts from "../translink-alerts/ServiceAlerts";
 export function Dashboard() {
   const [userInfoLoaded, setUserInfoLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -301,7 +299,9 @@ export function Dashboard() {
 
             </div>
 
+            <ServiceAlerts/>
           </Container>
+
         </Container>
 
       </div>

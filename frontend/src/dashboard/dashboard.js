@@ -14,6 +14,7 @@ import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import {Dropdown} from "react-bootstrap";
 import ServiceAlerts from "../translink-alerts/ServiceAlerts";
+import {Box, Flex, Spinner} from "@chakra-ui/react";
 export function Dashboard() {
   const [userInfoLoaded, setUserInfoLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -205,7 +206,7 @@ export function Dashboard() {
   }
 
   if (loading) {
-    return <div>Loading...</div>;
+    return  <Spinner size="sm" />;
   }
 
   if (error) {
@@ -218,7 +219,7 @@ export function Dashboard() {
 
   return (
     <>
-      <div>
+      <Box>
         <Toaster position="top-left" reverseOrder={false} />
         <Container fluid={"md"} >
 
@@ -299,12 +300,14 @@ export function Dashboard() {
 
             </div>
 
-            <ServiceAlerts/>
+            <Flex justifyContent="center">
+              <ServiceAlerts/>
+            </Flex>
           </Container>
 
         </Container>
 
-      </div>
+      </Box>
 
 
     </>

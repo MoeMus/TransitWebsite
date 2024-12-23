@@ -7,13 +7,13 @@ import toast, { Toaster } from 'react-hot-toast';
 import Button from "react-bootstrap/Button";
 import {Heading, Input, Text} from "@chakra-ui/react";
 import { PasswordInput } from "../components/ui/password-input"
-
+import { Alert } from "../components/ui/alert"
 
 export function Login() {
 
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
-
+    const [loginError, setLoginError] = useState(false);
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
@@ -34,7 +34,7 @@ export function Login() {
 
 
             if (response.status !== 200) {
-                throw new Error(" ");
+                throw new Error("");
             }
 
             //Clear local storage in the browser and update the access and refresh tokens there
@@ -45,12 +45,11 @@ export function Login() {
             sessionStorage.setItem('refresh_token', data.refresh);
             dispatch(updateAccessToken());
             apiClient.defaults.headers.common['Authorization'] = `Bearer ${data.access}`;
+            setLoginError(false);
             navigate("/dashboard", { state: { from: "/registration" } });
             window.location.reload();
         } catch (err) {
-            toast.error("Incorrect Username or Password", {
-                duration: 2000
-            });
+            setLoginError(true);
         }
 
 
@@ -75,6 +74,7 @@ export function Login() {
                             Enter your username and password to continue
                         </Heading>
 
+                        {loginError ?  <Alert status="error" title="Incorrect Fields"> Incorrect Username or Password </Alert> : null}
                         <div className="form-group mt-3">
 
                             <label>Username</label>

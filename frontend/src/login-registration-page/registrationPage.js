@@ -53,9 +53,9 @@ export function RegistrationPage (){
                         <Card.Body gap="2">
                             <Card.Title mt="2" fontSize="30px"> Easy to Set Up </Card.Title>
                             <Card.Description>
-                                To start, make an account and it will prompt you to enter the courses you are
+                                To start, create an account and it will prompt you to enter the courses you are
                                 taking this semester, then you will be able to choose how you want to get there on
-                                the dashboard
+                                the dashboard and see the travel time
                             </Card.Description>
                         </Card.Body>
                     </Card.Root>

@@ -74,7 +74,7 @@ export function Login() {
                             Enter your username and password to continue
                         </Heading>
 
-                        {loginError ?  <Alert status="error" title="Incorrect Fields"> Incorrect Username or Password </Alert> : null}
+                        {loginError ?  <Alert status="error" title="Invalid Credentials"> Incorrect Username or Password </Alert> : null}
                         <div className="form-group mt-3">
 
                             <label>Username</label>

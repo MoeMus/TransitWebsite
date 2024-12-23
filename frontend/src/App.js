@@ -10,7 +10,6 @@ import refreshAccessToken from "./configurations/refreshAccessToken";
 import WelcomePage from "./components/welcomePage";
 import {ScheduleBuilder} from "./schedule-builder/scheduleBuilder";
 import { Provider } from "./components/ui/provider"
-
 function App() {
 
   const [isAuth, setIsAuth] = useState(false);
@@ -28,7 +27,7 @@ function App() {
   }, []);
 
   if (loading) {
-      return <div>Loading...</div>;
+      return (<div> Loading... </div>);
   }
 
   return (

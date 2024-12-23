@@ -43,34 +43,19 @@ export function Register(){
             setAllCredentials(false);
             setStatus('');
         }
-        const button = document.querySelector('.button');
-        if (button) {
-        if (confirmPassword === password && password.length > 0 && confirmPassword.length > 0 && allCredentials) {
-            button.removeAttribute('disabled');
-        } else {
-            button.setAttribute('disabled', '');
-        }
-    }
 
     }, [password, confirmPassword, username, email]);
 
-
-    function changeButton(){
-        if(document.querySelector('.button')){
-            console.log(passwordMatch);
-            console.log(allCredentials);
-            console.log(!isServerError);
-            if(passwordMatch && allCredentials && !isServerError){
-
-                document.querySelector('.button').removeAttribute('disabled');
-
+    useEffect(() => {
+        const button = document.querySelector('.button');
+        if (button) {
+            if (passwordMatch && allCredentials) {
+                button.removeAttribute('disabled');
             } else {
-
-                document.querySelector('.button').setAttribute('disabled', '');
-
+                button.setAttribute('disabled', '');
             }
         }
-    }
+    }, [passwordMatch, allCredentials]);
 
     async function loginUser( userCredentials ){
         try{
@@ -119,7 +104,7 @@ export function Register(){
 
                         <Heading fontSize="25px" fontWeight="normal" marginBottom="55px"> Please enter a username, email, and password to register </Heading>
 
-                        {isServerError ? <Alert status="error" title="Invalid Creditentials"> {serverErrMsg} </Alert> : null}
+                        {isServerError ? <Alert status="error" title="Invalid Credentials"> {serverErrMsg} </Alert> : null}
                         <fieldset>
                             <legend className='input-text'>Username</legend>
                             <Form.Control type="text" value={username} placeholder="Enter a username"

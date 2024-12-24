@@ -15,6 +15,7 @@ import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import {Dropdown} from "react-bootstrap";
 import axios from "axios";
+import CourseCalendar from "../calendar/CourseCalendar";
 
 export function Dashboard() {
   const [userInfoLoaded, setUserInfoLoaded] = useState(false);
@@ -166,6 +167,7 @@ export function Dashboard() {
   //   }
   //
   // }, [currentRoute, fromPage, loginSuccess]);
+
 
   const manualLocationChange = (event)=>{
     event.preventDefault();

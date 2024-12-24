@@ -72,7 +72,7 @@ export default function ServiceAlerts(){
             <DrawerRoot placement="start" size ="md" >
                 <DrawerBackdrop/>
                 <DrawerTrigger asChild>
-                    <Button variant="outline" size="sm" width="280px">
+                    <Button variant="outline" size="sm" width="230px">
                        View TransLink Service Alerts
                     </Button>
                 </DrawerTrigger>
@@ -84,7 +84,7 @@ export default function ServiceAlerts(){
                         <DrawerBody>
                             <ul>
 
-                                {!alerts ? <Text> No Service Alerts Yet </Text> :
+                                {alerts.length === 0 ? <Text fontSize="20px"> No Service Alerts Yet </Text> :
                                  alerts.map((alert) => (
 
                                     <li key={alerts.indexOf(alert)}>

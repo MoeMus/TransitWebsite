@@ -89,7 +89,6 @@ export function Register(){
         }).catch(error => {
             const errorMessage = error.response.data.error;
             setServerErrMsg(errorMessage);
-            console.log(status);
             setIsServerError(true);
         });
     }

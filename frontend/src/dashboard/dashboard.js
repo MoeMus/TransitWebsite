@@ -11,10 +11,13 @@ import {
 } from "@vis.gl/react-google-maps";
 import Container from "react-bootstrap/Container";
 import Form from "react-bootstrap/Form";
-import Button from "react-bootstrap/Button";
+//import Button from "react-bootstrap/Button";
 import {Dropdown} from "react-bootstrap";
 import ServiceAlerts from "../translink-alerts/ServiceAlerts";
-import {Box, Flex, Spinner} from "@chakra-ui/react";
+import {Box, Flex, Spinner, Button, Link, Text} from "@chakra-ui/react";
+
+import CourseCalendar from "../calendar/CourseCalendar";
+
 export function Dashboard() {
   const [userInfoLoaded, setUserInfoLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -29,9 +32,17 @@ export function Dashboard() {
   const [travelTime, setTravelTime] = useState("");
   const [travelDistance, setTravelDistance] = useState("");
   const [userCourses, setUserCourses] = useState([]);
+  const [viewCalendar, setViewCalendar] = useState(false);
 
   let watchID = 0;
 
+  const enableSchedule = ()=> {
+    if(viewCalendar){
+      setViewCalendar(false);
+    } else {
+      setViewCalendar(true);
+    }
+  }
   const onMapLoad = (mapInstance) => {
     setMap(mapInstance);
   };
@@ -292,7 +303,7 @@ export function Dashboard() {
                   </Form.Group>
                 </Form.Group>
 
-                <Button variant="primary" type="submit" onClick={manualLocationChange}>
+                <Button variant="solid" type="submit" onClick={manualLocationChange}>
                   Set Location
                 </Button>
 
@@ -300,11 +311,16 @@ export function Dashboard() {
 
             </div>
 
-            <Flex justifyContent="center">
-              <ServiceAlerts/>
-            </Flex>
           </Container>
 
+          <Container>
+
+            <Flex justifyContent="center">
+              <ServiceAlerts/>
+              <Button variant="outline" size="sm" marginLeft="20px" onClick={enableSchedule} width="230px"> View Weekly Schedule </Button>
+            </Flex>
+            {viewCalendar ? <CourseCalendar/> : null}
+          </Container>
         </Container>
 
       </Box>
@@ -429,19 +445,19 @@ function Directions({userLocation, setTravelTime, setTravelDistance}) {
                 {
                   index === routeIndex?
 
-                    <Button disabled={true} variant="link" onClick={() => {setRouteIndex(index);}} style={{width: "150px"}}>
+                    <Text>
 
                       {route.summary || `Route ${index + 1}`}
 
-                    </Button>
+                    </Text>
 
                     :
 
-                    <Button variant="link" onClick={() => {setRouteIndex(index);}} style={{width: "150px"}}>
+                    <Link variant="plain" onClick={() => {setRouteIndex(index);}}>
 
                       {route.summary || `Route ${index + 1}`}
 
-                    </Button>
+                    </Link>
                 }
 
               </li>

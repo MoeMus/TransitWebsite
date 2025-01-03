@@ -98,8 +98,7 @@ export function Login() {
 
                         <div className="d-grid gap-2 mt-3">
 
-                            <Button type="submit" variant="secondary" className="btn"> Continue
-                            </Button>
+                            <Button type="submit" variant="secondary" className="btn"> Continue </Button>
 
                         </div>
 

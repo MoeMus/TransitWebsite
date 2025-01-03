@@ -28,12 +28,14 @@ export function Register(){
     const [serverErrMsg, setServerErrMsg] = useState(false);
     
     useEffect(()=>{
-        if(confirmPassword !== password){
+        if(confirmPassword !== password && password.length > 0){
             setPasswordMatchMsg("Passwords must match");
             setPasswordMatch(false);
         } else if(confirmPassword === password && password.length > 0 && confirmPassword.length > 0){
             setPasswordMatch(true);
 
+        } else if (password.length === 0){
+            setPasswordMatchMsg('');
         }
 
         if (username && email && password && confirmPassword) {

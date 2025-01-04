@@ -9,7 +9,7 @@ import {Dashboard} from "./dashboard/dashboard";
 import refreshAccessToken from "./configurations/refreshAccessToken";
 import WelcomePage from "./components/welcomePage";
 import {ScheduleBuilder} from "./schedule-builder/scheduleBuilder";
-
+import { Provider } from "./components/ui/provider"
 function App() {
 
   const [isAuth, setIsAuth] = useState(false);
@@ -27,22 +27,26 @@ function App() {
   }, []);
 
   if (loading) {
-      return <div>Loading...</div>;
+      return (<div> Loading... </div>);
   }
 
   return (
     <>
-      <Navigation username={sessionStorage.getItem("user")}/>
+        <Provider>
 
-      <Routes>
-        <Route path="/" element={isAuth ? <Navigate to="/dashboard" replace={true} /> : <Navigate to="/registration" replace={true} />} />
-        <Route path="/dashboard" element={isAuth ? <Dashboard /> : <Navigate to="/registration" replace={true} />} />
-        <Route path="/signup" element={<Register />} />
-        <Route path="/registration" element={ isAuth ?  <Dashboard /> : <RegistrationPage />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/schedule-builder" element={ <ScheduleBuilder /> } />
-        {/* Uncomment and add other routes as needed */}
-      </Routes>
+            <Navigation username={sessionStorage.getItem("user")}/>
+            <Routes>
+            <Route path="/" element={isAuth ? <Navigate to="/dashboard" replace={true} /> : <Navigate to="/registration" replace={true} />} />
+            <Route path="/dashboard" element={isAuth ? <Dashboard /> : <Navigate to="/registration" replace={true} />} />
+            <Route path="/signup" element={<Register />} />
+            <Route path="/registration" element={ isAuth ?  <Dashboard /> : <RegistrationPage />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/schedule-builder" element={ <ScheduleBuilder /> } />
+            {/* Uncomment and add other routes as needed */}
+            </Routes>
+
+        </Provider>
+
     </>
   );
 }

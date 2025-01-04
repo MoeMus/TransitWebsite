@@ -10,11 +10,12 @@ import {
   useMap,
 } from "@vis.gl/react-google-maps";
 import Container from "react-bootstrap/Container";
-import { useLocation } from "react-router-dom";
 import Form from "react-bootstrap/Form";
-import Button from "react-bootstrap/Button";
+//import Button from "react-bootstrap/Button";
 import {Dropdown} from "react-bootstrap";
-import axios from "axios";
+import ServiceAlerts from "../translink-alerts/ServiceAlerts";
+import {Box, Flex, Spinner, Button, Link, Text} from "@chakra-ui/react";
+
 import CourseCalendar from "../calendar/CourseCalendar";
 
 export function Dashboard() {
@@ -31,9 +32,17 @@ export function Dashboard() {
   const [travelTime, setTravelTime] = useState("");
   const [travelDistance, setTravelDistance] = useState("");
   const [userCourses, setUserCourses] = useState([]);
+  const [viewCalendar, setViewCalendar] = useState(false);
 
   let watchID = 0;
 
+  const enableSchedule = ()=> {
+    if(viewCalendar){
+      setViewCalendar(false);
+    } else {
+      setViewCalendar(true);
+    }
+  }
   const onMapLoad = (mapInstance) => {
     setMap(mapInstance);
   };
@@ -168,7 +177,6 @@ export function Dashboard() {
   //
   // }, [currentRoute, fromPage, loginSuccess]);
 
-
   const manualLocationChange = (event)=>{
     event.preventDefault();
     const geocoder = new window.google.maps.Geocoder();
@@ -209,7 +217,7 @@ export function Dashboard() {
   }
 
   if (loading) {
-    return <div>Loading...</div>;
+    return  <Spinner size="sm" />;
   }
 
   if (error) {
@@ -222,7 +230,7 @@ export function Dashboard() {
 
   return (
     <>
-      <div>
+      <Box>
         <Toaster position="top-left" reverseOrder={false} />
         <Container fluid={"md"} >
 
@@ -286,8 +294,8 @@ export function Dashboard() {
                   <Form.Label> Enter your location manually (Use if location tracking is not accurate)</Form.Label>
                   <Form.Control className="location"></Form.Control>
                   <Form.Text className="text-muted">
-                    Enter in the format "&lt;street number&gt; &lt;street name&gt; &lt;city&gt; &lt;state&gt; &lt;postal
-                    code &gt;" ex: 1600 Amphitheatre Parkway, Mountain View, CA 94043. Addresses can also be
+                    Enter in the format <strong>"&lt;street number&gt; &lt;street name&gt; &lt;city&gt; &lt;state&gt; &lt;postal
+                    code&gt;"</strong> ex: 1600 Amphitheatre Parkway, Mountain View, CA 94043. Addresses can also be
                     place names, ex: "Statue of Liberty, New York, NY".
                   </Form.Text>
                   <Form.Group>
@@ -295,7 +303,7 @@ export function Dashboard() {
                   </Form.Group>
                 </Form.Group>
 
-                <Button variant="primary" type="submit" onClick={manualLocationChange}>
+                <Button variant="solid" type="submit" onClick={manualLocationChange}>
                   Set Location
                 </Button>
 
@@ -304,9 +312,18 @@ export function Dashboard() {
             </div>
 
           </Container>
+
+          <Container>
+
+            <Flex justifyContent="center">
+              <ServiceAlerts/>
+              <Button variant="outline" size="sm" marginLeft="20px" onClick={enableSchedule} width="230px"> View Weekly Schedule </Button>
+            </Flex>
+            {viewCalendar ? <CourseCalendar/> : null}
+          </Container>
         </Container>
 
-      </div>
+      </Box>
 
 
     </>
@@ -428,19 +445,19 @@ function Directions({userLocation, setTravelTime, setTravelDistance}) {
                 {
                   index === routeIndex?
 
-                    <Button disabled={true} variant="link" onClick={() => {setRouteIndex(index);}} style={{width: "150px"}}>
+                    <Text fontWeight="bold">
 
                       {route.summary || `Route ${index + 1}`}
 
-                    </Button>
+                    </Text>
 
                     :
 
-                    <Button variant="link" onClick={() => {setRouteIndex(index);}} style={{width: "150px"}}>
+                    <Link variant="plain" onClick={() => {setRouteIndex(index);}}>
 
                       {route.summary || `Route ${index + 1}`}
 
-                    </Button>
+                    </Link>
                 }
 
               </li>

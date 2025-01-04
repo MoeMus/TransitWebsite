@@ -9,6 +9,9 @@ import {useDispatch} from "react-redux";
 import updateAccessToken from "../storeConfig/updateAccessToken";
 import {toast, Toaster} from "react-hot-toast";
 import WelcomePage from "../components/welcomePage";
+import {Heading} from "@chakra-ui/react";
+import {PasswordInput} from "../components/ui/password-input";
+import {Alert} from "../components/ui/alert";
 
 export function Register(){
     const [username, setUsername] = useState('');
@@ -16,43 +19,45 @@ export function Register(){
     const [confirmPassword, setConfirmPassword] = useState('');
     const [email, setEmail] = useState('');
     const [status, setStatus] = useState('');
-    const [isError, setIsError] = useState(false);
+    const [allCredentials, setAllCredentials] = useState(false);
     const [successfulRegister, setSuccessfulRegister] = useState(false);
     const dispatch = useDispatch();
-
+    const [passwordMatch, setPasswordMatch] = useState(true);
+    const [passwordMatchMsg, setPasswordMatchMsg] = useState("");
+    const [isServerError, setIsServerError] = useState(false);
+    const [serverErrMsg, setServerErrMsg] = useState(false);
+    
     useEffect(()=>{
-        if(confirmPassword !== password){
-            setStatus("Passwords must match");
-            setIsError(true);
-        } else if (username === ''){
-            setIsError(true);
-        } else if (email === ''){
-            setIsError(true);
-        }else if (password === ''){
-            setStatus(' ');
-            setIsError(true);
+        if(confirmPassword !== password && password.length > 0){
+            setPasswordMatchMsg("Passwords must match");
+            setPasswordMatch(false);
+        } else if(confirmPassword === password && password.length > 0 && confirmPassword.length > 0){
+            setPasswordMatch(true);
+
+        } else if (password.length === 0){
+            setPasswordMatchMsg('');
+        }
+
+        if (username && email && password && confirmPassword) {
+            setAllCredentials(true);
+            setStatus('');
         } else {
-            setIsError(false);
+            setAllCredentials(false);
             setStatus('');
         }
-        changeButton();
 
-    }, );
+    }, [password, confirmPassword, username, email]);
 
-
-    function changeButton(){
-        if(document.querySelector('.button')){
-            if(isError){
-
-                document.querySelector('.button').setAttribute('disabled', '');
-
+    useEffect(() => {
+        const button = document.querySelector('.button');
+        if (button) {
+            if (passwordMatch && allCredentials) {
+                button.removeAttribute('disabled');
             } else {
-
-                document.querySelector('.button').removeAttribute('disabled');
-
+                button.setAttribute('disabled', '');
             }
         }
-    }
+    }, [passwordMatch, allCredentials]);
 
     async function loginUser( userCredentials ){
         try{
@@ -85,11 +90,8 @@ export function Register(){
             loginUser(userCredentials);
         }).catch(error => {
             const errorMessage = error.response.data.error;
-            setStatus(errorMessage);
-            setIsError(true);
-            toast.error(errorMessage, {
-                duration: 2000
-            });
+            setServerErrMsg(errorMessage);
+            setIsServerError(true);
         });
     }
 
@@ -101,40 +103,43 @@ export function Register(){
 
                     <Form onSubmit={submitCredentials}>
 
-                        <p className="Auth-form-title"> Please enter a username, email, and password to register </p>
+                        <Heading fontSize="25px" fontWeight="normal" marginBottom="55px"> Please enter a username, email, and password to register </Heading>
 
+                        {isServerError ? <Alert status="error" title="Invalid Credentials"> {serverErrMsg} </Alert> : null}
                         <fieldset>
                             <legend className='input-text'>Username</legend>
-                            <Form.Control type="text" value={username}
+                            <Form.Control type="text" value={username} placeholder="Enter a username"
                                           onInput={(event) => setUsername(event.target.value)}/>
                         </fieldset>
 
                         <fieldset>
                             <legend className='input-text'>Email</legend>
-                            <Form.Control type="email" value={email}
+                            <Form.Control type="email" value={email} placeholder="Enter your email address"
                                           onInput={(event) => setEmail(event.target.value)}/>
                         </fieldset>
 
 
                         <fieldset>
                             <legend className='input-text'>Password</legend>
-                            <Form.Control type="password" value={password}
-                                          onInput={(event) => setPassword(event.target.value)}/>
+                            {/*<Form.Control type="password" value={password}*/}
+                            {/*              onInput={(event) => setPassword(event.target.value)}/>*/}
+                            <PasswordInput type="password" value={password} placeholder="Enter a password" required
+                                          onChange={(event) => setPassword(event.target.value)}/>
                         </fieldset>
 
                         {password !== '' ? (<fieldset>
                             <legend className='input-text'>Confirm Password</legend>
-                            <Form.Control type="password" value={confirmPassword}
-                                          onInput={(event) => setConfirmPassword(event.target.value)}/>
+                            {/*<Form.Control type="password" value={confirmPassword}*/}
+                            {/*              onInput={(event) => setConfirmPassword(event.target.value)}/>*/}
+                            <PasswordInput type="password" value={confirmPassword} placeholder="Reenter your password"
+                                          required onChange={(event) => setConfirmPassword(event.target.value)}/>
                         </fieldset>) : null}
 
                         <Button className='button' type="submit" variant="success" style={{marginTop: '10px', marginBottom: '10px'}}>Register</Button>{' '}
 
                     </Form>
+                    {!passwordMatch ? <p style={{color: "indianred"}}> {passwordMatchMsg} </p> : null}
 
-                    <p style={{
-                        color: "indianred"
-                    }}> {status} </p>
 
                 </div>
 

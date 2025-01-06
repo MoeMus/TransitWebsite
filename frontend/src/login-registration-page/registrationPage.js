@@ -16,11 +16,6 @@ export function RegistrationPage (){
         navigate("/signup");
     }
 
-    const DescriptionCard = ()=>{
-
-
-    }
-
     return(
         <>
             <Flex direction="column">
@@ -35,6 +30,7 @@ export function RegistrationPage (){
 
                 {/*<img src="/websiteLogo.jpg" alt="" style={{marginBottom: "20px"}}/>*/}
                 <Flex justifyContent="center">
+
                     <Card.Root width="320px" marginRight="50px" marginY="50px">
                         <Card.Body gap="2">
                             <Card.Title mt="2" fontSize="30px"> A Transit Website Designed for SFU Students </Card.Title>
@@ -44,9 +40,7 @@ export function RegistrationPage (){
                                 routes to get to your next course, as well as allowing you to
                                 easily customize how and when you want to get there
                             </Card.Description>
-
                         </Card.Body>
-
                     </Card.Root>
 
                     <Card.Root width="320px" marginY="50px">
@@ -61,9 +55,6 @@ export function RegistrationPage (){
                     </Card.Root>
 
                 </Flex>
-
-
-
 
                 <Flex justifyContent="center">
                     <Login/>

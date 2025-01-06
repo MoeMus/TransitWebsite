@@ -33,14 +33,19 @@ def get_current_term_code_season():
         return 7
 
 
+SPRING_SEM_MONTHS = {1, 2, 3, 4}
+SUMMER_SEM_MONTHS = {5, 6, 7, 8}
+FALL_SEM_MONTHS = {9, 10, 11, 12}
+
+
 def get_current_term():
-    month = DATE.strftime("%d")
-    if month in SPRING_SEMESTER_MONTHS:
+    month_date = datetime.datetime.now()
+    month = month_date.month
+
+    if month in SPRING_SEM_MONTHS:
         return "spring"
-
-    elif month in SUMMER_SEMESTER_MONTHS:
+    elif month in SUMMER_SEM_MONTHS:
         return "summer"
-
     else:
         return "fall"
 

@@ -1,7 +1,7 @@
 //import Container from 'react-bootstrap/Container';
 import {Login} from "./login-form";
 import {Navigate, useNavigate} from 'react-router-dom';
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 //import Button from "react-bootstrap/Button";
 import '../styles/loginStyles.css';
 import {Card , Container, Heading, Text, Flex, Link } from "@chakra-ui/react"
@@ -10,6 +10,25 @@ import { LuExternalLink } from "react-icons/lu"
 
 export function RegistrationPage (){
 
+    const [showCookieNotice, setShowCookieNotice] = useState(false);
+
+    useEffect(() => {
+        if(localStorage.getItem('ask_for_cookies') === 'true'){
+            setShowCookieNotice(true)
+        }
+    }, []);
+
+    function handleAccept(){
+        localStorage.setItem('ask_for_cookies', 'false');
+        setShowCookieNotice(false);
+        localStorage.setItem('cookies_enabled', 'true');
+    }
+
+    function handleReject(){
+        localStorage.setItem('ask_for_cookies', 'false');
+        setShowCookieNotice(false);
+        localStorage.setItem('cookies_enabled', 'false');
+    }
 
     let navigate = useNavigate();
     function handleClick() {
@@ -91,6 +110,16 @@ export function RegistrationPage (){
                         your classes
                     </Text>
 
+                    {
+                        showCookieNotice ? <Alert status="info" title="We use cookies in order to improve performance and
+                        enhance your user experience. By clicking Accept, you will agree to this">
+
+                            <Button size="sm" onClick={handleAccept}> Accept All </Button>
+                            <Button size="sm" onClick={handleReject}> Reject All </Button>
+
+
+                        </Alert>: null
+                    }
 
                 </Container>
 

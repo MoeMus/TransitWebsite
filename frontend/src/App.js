@@ -10,15 +10,34 @@ import refreshAccessToken from "./configurations/refreshAccessToken";
 import WelcomePage from "./components/welcomePage";
 import {ScheduleBuilder} from "./schedule-builder/scheduleBuilder";
 import { Provider } from "./components/ui/provider"
+import apiClient from "./configurations/configAxios";
 function App() {
 
   const [isAuth, setIsAuth] = useState(false);
   const [loading, setLoading] = useState(true);
-
+  const [cookieExpired, setCookieExpired] = useState(false)
   refreshAccessToken(); //Refreshes access and refresh tokens before they expire
 
+    useEffect(() => {
+
+        //If cookies are enabled, then the site will automatically log in
+        if(localStorage.getItem('cookies_enabled') === 'true'){
+          apiClient.get("http://127.0.0.1:8000/api/approve_cookie", {
+              withCredentials: true
+          }).then(
+              ()=>{
+                  setIsAuth(true);
+                  setCookieExpired(false)
+              }
+          ).catch(()=>{ //A 400 is returned if the cookie expired
+              setCookieExpired(true)
+          })
+        }
+    }, []);
+
   useEffect(() => {
-     if (sessionStorage.getItem('access_token') !== null) {
+
+     if (sessionStorage.getItem('access_token') !== null && !cookieExpired) {
         setIsAuth(true);
      } else {
          setIsAuth(false);

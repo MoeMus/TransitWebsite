@@ -79,7 +79,7 @@ export function Login() {
 
                             <label>Username</label>
 
-                            <Input variant="subtle"
+                            <Input
                                    placeholder="Enter Username"
                                    name='username'
                                    type='text' value={username}
@@ -91,7 +91,7 @@ export function Login() {
                         <div className="form-group mt-3">
 
                             <label>Password</label>
-                            <PasswordInput placeholder="Enter password" variant="subtle"
+                            <PasswordInput placeholder="Enter password"
                                            value={password} required onChange={e => setPassword(e.target.value)}/>
 
                         </div>

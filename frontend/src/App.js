@@ -22,15 +22,16 @@ function App() {
 
         //If cookies are enabled, then the site will automatically log in
         if(localStorage.getItem('cookies_enabled') === 'true'){
-          apiClient.get("http://127.0.0.1:8000/api/approve_cookie", {
+          apiClient.get("http://127.0.0.1:8000/approve_cookie", {
               withCredentials: true
           }).then(
               ()=>{
                   setIsAuth(true);
                   setCookieExpired(false)
               }
-          ).catch(()=>{ //A 400 is returned if the cookie expired
+          ).catch(()=>{ //A 404 is returned if the cookie expired
               setCookieExpired(true)
+
           })
         }
     }, []);

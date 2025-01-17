@@ -7,13 +7,14 @@ import '../styles/loginStyles.css';
 import {Card , Container, Heading, Text, Flex, Link } from "@chakra-ui/react"
 import { Button } from "../components/ui/button"
 import { LuExternalLink } from "react-icons/lu"
+import {Alert} from "../components/ui/alert"
 
 export function RegistrationPage (){
 
     const [showCookieNotice, setShowCookieNotice] = useState(false);
 
     useEffect(() => {
-        if(localStorage.getItem('ask_for_cookies') === 'true'){
+        if(localStorage.getItem('ask_for_cookies') === 'true' || localStorage.getItem('ask_for_cookies') === null){
             setShowCookieNotice(true)
         }
     }, []);
@@ -112,11 +113,17 @@ export function RegistrationPage (){
 
                     {
                         showCookieNotice ? <Alert status="info" title="We use cookies in order to improve performance and
-                        enhance your user experience. By clicking Accept, you will agree to this">
+                        enhance your user experience. By clicking Accept, you will agree to this. Cookies can always be
+                        adjusted in settings.">
 
-                            <Button size="sm" onClick={handleAccept}> Accept All </Button>
-                            <Button size="sm" onClick={handleReject}> Reject All </Button>
-
+                        <Flex direction="row" justify="center">
+                            <div>
+                                <Button size="sm" marginRight="10px" onClick={handleAccept}> Accept All </Button>
+                            </div>
+                            <div>
+                                <Button size="sm" onClick={handleReject}> Reject All </Button>
+                            </div>
+                        </Flex>
 
                         </Alert>: null
                     }

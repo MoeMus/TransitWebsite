@@ -294,3 +294,10 @@ class GetNonLectureSectionsView(APIView):
             return JsonResponse(data, safe=False)
         except LectureSection.DoesNotExist:
             return Response({"error": "Lecture section not found"}, status=status.HTTP_404_NOT_FOUND)
+
+
+# Retrieve the status of the cookie (It's available, or it isn't)
+class ApproveCookieView(APIView):
+    def get(self):
+        return Response({"status: cookie not found"}, status=status.HTTP_404_NOT_FOUND)
+

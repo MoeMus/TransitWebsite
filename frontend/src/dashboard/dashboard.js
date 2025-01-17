@@ -104,9 +104,9 @@ export function Dashboard() {
       );
       setUserInfo(userData.data);
 
-      //console.log(JSON.stringify(userData.data, null, 2));
+      // console.log(JSON.stringify(userData.data, null, 2));
       setUserCourses(userData.data.Courses);
-      //getCourseInfo(userData.data.Courses);
+      // getCourseInfo(userData.data.Courses);
       setUserInfoLoaded(true);
     } catch (err) {
       const errorMessage = err.response.data.error;

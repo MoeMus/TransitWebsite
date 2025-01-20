@@ -70,6 +70,38 @@ export function ScheduleBuilder() {
     }
   };
 
+  const fetchAvailableLectures = async () => {
+      const accessToken = sessionStorage.getItem('access_token');
+      if (!accessToken) {
+        toast.error("User is not authenticated");
+        return;
+      }
+
+      const isTokenValid = await refreshAccessToken();
+      if (!isTokenValid) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`http://localhost:8000/api/courses/lectures/`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        const data = await response.json();
+        if (data.length > 0) {
+          setLectureSections(data);
+          setSelectionStage("lecture");
+        } else {
+          toast.error("No lecture sections found");
+        }
+      } catch (err) {
+        toast.error("Failed to load lectures");
+      }
+    };
+
   // Fetch the user's saved courses
   const fetchUserCourses = async () => {
     const accessToken = sessionStorage.getItem('access_token');
@@ -207,25 +239,21 @@ export function ScheduleBuilder() {
 
 
   // Handle removing a course
-  const handleRemoveCourse = async (course) => {
-      // Extract the actual course data, checking if course.course exists.
-      const courseData = course.course || course;
-
-      console.log(selectedCourses)
-
-      // Filter the selectedCourses state using the extracted course data.
-      const updatedCourses = selectedCourses.filter((c) => {
-        const cData = c.course || c;
-        return cData.id !== courseData.id;
-      });
+  const handleRemoveCourse = async (course, indexToRemove) => {
+      // Remove the specific course entry using its index.
+      const updatedCourses = selectedCourses.filter((_, idx) => idx !== indexToRemove);
       setSelectedCourses(updatedCourses);
 
-      // Build the payload for deletion using the actual course data.
+      // Extract the actual course data from the entry (in case it is nested).
+      const courseData = course.course || course;
+
+      // Build the payload for the backend deletion.
       let post_request = {
         username: username,
         course_name: courseData.title,
         section_name: courseData.section_name,
       };
+
       console.log("Removing course with payload:", post_request);
 
       try {
@@ -240,7 +268,6 @@ export function ScheduleBuilder() {
         toast.error(err.response?.data?.error || "Error removing course");
       }
 
-      // Optionally, update available courses if needed.
       try {
         const response = await fetch("http://localhost:8000/api/courses/");
         const data = await response.json();
@@ -430,14 +457,13 @@ export function ScheduleBuilder() {
 
               return (
                 <ListGroup.Item key={index}>
-                  {courseData.title}
-                  (Lecture: {lectureData.section_code ? lectureData.section_code : "N/A"},
-                   Non-Lecture: {nonLectureData ? nonLectureData.section_code : "No Non-Lecture Sections"})
+                  {courseData.title} (Lecture: {lectureData.section_code ? lectureData.section_code : "N/A"},
+                  Non-Lecture: {nonLectureData ? nonLectureData.section_code : "No Non-Lecture Sections"})
                   <Button
                     variant="danger"
                     size="sm"
                     className="float-right"
-                    onClick={() => handleRemoveCourse(item)}
+                    onClick={() => handleRemoveCourse(item, index)}
                   >
                     Remove
                   </Button>

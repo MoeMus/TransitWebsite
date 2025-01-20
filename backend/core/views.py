@@ -7,7 +7,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import *
 
-from .serializers import CourseSerializer, UserSerializer
+from .serializers import CourseSerializer, UserSerializer, LectureSectionSerializer
 import io
 from .utils import *
 from rest_framework.response import Response
@@ -252,6 +252,16 @@ def fetch_all_courses(request):
     return JsonResponse(list(courses), safe=False)
 
 
+class GetAvailableLecturesView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        # Filter lecture sections with section_code equal to "LEC"
+        lectures = LectureSection.objects.filter(section_code="LEC")
+        serializer = LectureSectionSerializer(lectures, many=True)
+        return Response(serializer.data)
+
+
 # Get the user's list of courses
 class GetUserCoursesView(APIView):
     permission_classes = (IsAuthenticated,)
@@ -272,7 +282,7 @@ class GetLectureSectionsView(APIView):
     def get(self, request, course_id):
         try:
             course = Course.objects.get(id=course_id)
-            lecture_sections = course.lecturesection_set.all()  # Fetch related lecture sections
+            lecture_sections = course.lecturesection_set.all()
             data = [{"id": ls.id, "section_code": ls.section_code, "start_time": ls.start_time, "end_time": ls.end_time}
                     for ls in lecture_sections]
             return JsonResponse(data, safe=False)

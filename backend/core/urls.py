@@ -25,4 +25,5 @@ urlpatterns = [
     path('lectures/<int:lecture_section_id>/non-lectures/', views.GetNonLectureSectionsView.as_view(),
          name='get-non-lecture-sections'),
     path('approve_cookie/', views.ApproveCookieView.as_view(), name='approve-cookie'),
+    path('set_cookie/', views.SetCookieView.as_view(), name='set-cookie')
 ]

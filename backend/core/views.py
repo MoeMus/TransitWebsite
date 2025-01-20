@@ -4,6 +4,7 @@ from django.http import HttpResponse, JsonResponse
 from rest_framework import status
 import requests  # Used to make requests to SFU Course API
 from rest_framework_simplejwt.tokens import RefreshToken
+import json
 
 from .models import *
 
@@ -29,6 +30,7 @@ class UserView(APIView):
 
     # Retrieve user info if logged in
     def get(self, request):
+
         username = request.query_params.get('username')
 
         try:
@@ -242,7 +244,7 @@ class GetCourseView(APIView):
             return Response({"error": "Courses could not be retrieved"}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response({"lecture_sections": list(lecture_sections)
-                        , "non_lecture_sections": list(non_lecture_components)}
+                            , "non_lecture_sections": list(non_lecture_components)}
                         , status=status.HTTP_200_OK)
 
 
@@ -298,6 +300,44 @@ class GetNonLectureSectionsView(APIView):
 
 # Retrieve the status of the cookie (It's available, or it isn't)
 class ApproveCookieView(APIView):
-    def get(self):
-        return Response({"status: cookie not found"}, status=status.HTTP_404_NOT_FOUND)
+    def get(self, request):
+        if 'user_session' in request.COOKIES:
+            return Response({"status: Cookie found"}, status=status.HTTP_200_OK)
 
+        return Response({"error: Cookie not found"}, status=status.HTTP_404_NOT_FOUND)
+
+
+# Create a new cookie
+class SetCookieView(APIView):
+
+    def post(self, request):
+        cookie_info = {
+            'access_token': request.data['access_token'],
+            'refresh_token': request.data['refresh_token'],
+            'username': request.data['username'],
+            'Courses': request.data['Courses']
+        }
+
+        response = Response({"status: Cookie successfully created"}, status=status.HTTP_201_CREATED)
+        response.set_cookie(
+            'user_session',
+            json.dumps(cookie_info),
+            httponly=True,
+            secure=True,
+            domain='localhost:3000/',
+            samesite='Strict'
+        )
+        return response
+
+
+# Retrieve user info from cookie
+class CookieGetUserInfoView(APIView):
+
+    def get(self, request):
+        user_cookie = request.COOKIES.get('user_session')
+
+        if user_cookie is None:
+            return Response({'error': 'Cookie not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        user_info = json.loads(user_cookie['user_session'])
+        return Response(user_info, status=status.HTTP_200_OK)

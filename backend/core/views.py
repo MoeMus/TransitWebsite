@@ -248,17 +248,18 @@ class GetCourseView(APIView):
 
 # Returns all courses to scheduleBuilder.js in the frontend via url
 def fetch_all_courses(request):
-    #courses = Course.objects.all().values()
-    #return JsonResponse(list(courses), safe=False)
+    courses = Course.objects.all().values()
+    return JsonResponse(list(courses), safe=False)
 
-    # Filter LectureSection objects where section_code starts with "LEC"
+
     #lecture_sections = Course.objects.all().values()
-    # Return the filtered lecture sections as a JSON response
     #return JsonResponse(list(lecture_sections), safe=False)
-    lectures = Course.objects.filter(
-        class_type__in=[Course.Component.LECTURE, Course.Component.SEMINAR]
-    )
-    return JsonResponse(list(lectures), safe=False)
+
+
+    #lectures = Course.objects.filter(
+    #    class_type__in=[Course.Component.LECTURE, Course.Component.SEMINAR]
+    #)
+    #return JsonResponse(list(lectures), safe=False)
 
 
 class GetAvailableLecturesView(APIView):

@@ -248,18 +248,28 @@ class GetCourseView(APIView):
 
 # Returns all courses to scheduleBuilder.js in the frontend via url
 def fetch_all_courses(request):
-    courses = Course.objects.all().values()
-    return JsonResponse(list(courses), safe=False)
+    #courses = Course.objects.all().values()
+    #return JsonResponse(list(courses), safe=False)
+
+    # Filter LectureSection objects where section_code starts with "LEC"
+    #lecture_sections = Course.objects.all().values()
+    # Return the filtered lecture sections as a JSON response
+    #return JsonResponse(list(lecture_sections), safe=False)
+    lectures = Course.objects.filter(
+        class_type__in=[Course.Component.LECTURE, Course.Component.SEMINAR]
+    )
+    return JsonResponse(list(lectures), safe=False)
 
 
 class GetAvailableLecturesView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        # Filter lecture sections with section_code equal to "LEC"
-        lectures = LectureSection.objects.filter(section_code="LEC")
-        serializer = LectureSectionSerializer(lectures, many=True)
-        return Response(serializer.data)
+        # Filter LectureSection objects where class_type is either LECTURE or SEMINAR.
+        lectures = Course.objects.filter(
+            class_type__in=[Course.Component.LECTURE, Course.Component.SEMINAR]
+        )
+        return JsonResponse(list(lectures), safe=False)
 
 
 # Get the user's list of courses
@@ -282,7 +292,7 @@ class GetLectureSectionsView(APIView):
     def get(self, request, course_id):
         try:
             course = Course.objects.get(id=course_id)
-            lecture_sections = course.lecturesection_set.all()
+            lecture_sections = course.lecturesection_set.all()  # Fetch related lecture sections
             data = [{"id": ls.id, "section_code": ls.section_code, "start_time": ls.start_time, "end_time": ls.end_time}
                     for ls in lecture_sections]
             return JsonResponse(data, safe=False)

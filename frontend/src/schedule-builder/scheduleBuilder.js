@@ -71,28 +71,11 @@ export function ScheduleBuilder() {
   };
 
   const fetchAvailableLectures = async () => {
-      const accessToken = sessionStorage.getItem('access_token');
-      if (!accessToken) {
-        toast.error("User is not authenticated");
-        return;
-      }
-
-      const isTokenValid = await refreshAccessToken();
-      if (!isTokenValid) {
-        return;
-      }
-
       try {
-        const response = await fetch(`http://localhost:8000/api/courses/lectures/`, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json',
-          },
-        });
+        const response = await fetch(`http://localhost:8000/api/courses/lectures/`);
         const data = await response.json();
         if (data.length > 0) {
-          setLectureSections(data);
+          setAvailableCourses(data);
           setSelectionStage("lecture");
         } else {
           toast.error("No lecture sections found");

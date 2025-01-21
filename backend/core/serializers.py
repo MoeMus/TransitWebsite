@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, Course
+from .models import User, Course, LectureSection
 
 
 class CourseSerializer(serializers.ModelSerializer):
@@ -32,3 +32,23 @@ class UserSerializer(serializers.ModelSerializer):
                                         , password=validated_data['password'])
         user.save()
         return user
+
+
+class LectureSectionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LectureSection
+        fields = [
+            "id",
+            "section_code",
+            "start_time",
+            "end_time",
+            "start_date",
+            "end_date",
+            "days",
+            "campus",
+            "class_type",
+            "professor",
+            "associated_class",
+            "title",
+            "number"
+        ]

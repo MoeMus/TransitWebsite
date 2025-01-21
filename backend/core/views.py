@@ -7,7 +7,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import *
 
-from .serializers import CourseSerializer, UserSerializer
+from .serializers import CourseSerializer, UserSerializer, LectureSectionSerializer
 import io
 from .utils import *
 from rest_framework.response import Response
@@ -252,19 +252,39 @@ def fetch_all_courses(request):
     return JsonResponse(list(courses), safe=False)
 
 
+    #lecture_sections = Course.objects.all().values()
+    #return JsonResponse(list(lecture_sections), safe=False)
+
+
+    #lectures = Course.objects.filter(
+    #    class_type__in=[Course.Component.LECTURE, Course.Component.SEMINAR]
+    #)
+    #return JsonResponse(list(lectures), safe=False)
+
+
+class GetAvailableLecturesView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        # Filter LectureSection objects where class_type is either LECTURE or SEMINAR.
+        lectures = Course.objects.filter(
+            class_type__in=[Course.Component.LECTURE, Course.Component.SEMINAR]
+        )
+        return JsonResponse(list(lectures), safe=False)
+
+
 # Get the user's list of courses
-# class GetUserCoursesView(APIView):
-#     permission_classes = (IsAuthenticated,)
-#
-#     def get(self, request):
-#         username = request.query_params.get('username')
-#         try:
-#             user = User.objects.get(username=username)
-#             courses = user.Courses.all()
-#             serializer = CourseSerializer(courses, many=True)
-#             return Response(serializer.data, status=status.HTTP_200_OK)
-#         except User.DoesNotExist:
-#             return Response({"error": "User: " + username + " not found"}, status=status.HTTP_404_NOT_FOUND)
+class GetUserCoursesView(APIView):
+    permission_classes = (IsAuthenticated,)
+    def get(self, request):
+        username = request.query_params.get('username')
+        try:
+            user = User.objects.get(username=username)
+            courses = user.Courses.all()
+            serializer = CourseSerializer(courses, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({"error": "User: " + username + " not found"}, status=status.HTTP_404_NOT_FOUND)
 
 
 class GetLectureSectionsView(APIView):

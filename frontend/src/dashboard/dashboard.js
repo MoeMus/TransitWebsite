@@ -78,7 +78,7 @@ export function Dashboard() {
   //     //let request = {course_ids: courseIDs};
   //     //let request = {username: sessionStorage.getItem(username)}
   //     await apiClient.get(
-  //         `http://127.0.0.1:8000/api/user/courses/get/all/?username=${username}`,
+  //         `api/user/courses/get/all/?username=${username}`,
   //         {
   //           method: "GET",
   //           withCredentials: true
@@ -98,7 +98,7 @@ export function Dashboard() {
   async function retrieveUserDataManually() {
     try {
       const userData = await apiClient.get(
-          `http://127.0.0.1:8000/api/user/get/?username=${username}`,
+          `/api/user/get/?username=${username}`,
           {
             method: "GET",
           }
@@ -123,7 +123,7 @@ export function Dashboard() {
     if(localStorage.getItem('cookies_enabled') === 'true'){
       try{
 
-        const userData = await apiClient.get('http://127.0.0.1:8000/api/get-cookie_info',
+        const userData = await apiClient.get('api/get-cookie_info',
             {
               withCredentials: true
             });
@@ -141,7 +141,7 @@ export function Dashboard() {
         await retrieveUserDataManually();
 
         //Create the cookie
-        await apiClient.post('http://127.0.0.1:8000/api/set-cookie/', userInfo, {
+        await apiClient.post('/api/set-cookie/', userInfo, {
           withCredentials: true
         })
 

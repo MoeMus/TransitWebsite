@@ -62,7 +62,7 @@ export function Register(){
     async function loginUser( userCredentials ){
         try{
 
-            const response = await apiClient.post('http://127.0.0.1:8000/token/', userCredentials, {
+            const response = await apiClient.post('token/', userCredentials, {
                 withCredentials: true
             });
 
@@ -83,7 +83,7 @@ export function Register(){
     function submitCredentials(evt){
         evt.preventDefault();
         const userCredentials = {username: username, email: email, password: password};
-        apiClient.post('http://127.0.0.1:8000/api/user/register/', userCredentials, {
+        apiClient.post('api/user/register/', userCredentials, {
                 method: 'POST',
                 withCredentials: true
         }).then( async () => {

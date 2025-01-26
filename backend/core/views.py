@@ -49,7 +49,14 @@ class LogoutView(APIView):
             refresh_token = request.data["refresh_token"]
             token = RefreshToken(refresh_token)
             token.blacklist()
-            return Response(status=status.HTTP_205_RESET_CONTENT)
+            response = Response(status=status.HTTP_205_RESET_CONTENT)
+
+            # Delete the user's cookie when they log out (if it exists)
+            if 'user_session' in request.COOKIES:
+                response.delete_cookie('user_session')
+
+            return response
+
         except Exception as e:
             logger.error(f"Logout failed: {str(e)}")
             return Response({"error": "Logout failed"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -324,7 +331,7 @@ class SetCookieView(APIView):
             json.dumps(cookie_info),
             httponly=True,
             secure=True,
-            domain='localhost:3000/',
+            domain='localhost:3000/',  # TODO: Change to proper domain once deployed
             samesite='Strict'
         )
         return response

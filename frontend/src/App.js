@@ -22,7 +22,7 @@ function App() {
 
         //If cookies are enabled, then the site will automatically log in
         if(localStorage.getItem('cookies_enabled') === 'true'){
-          apiClient.get("http://127.0.0.1:8000/approve_cookie", {
+          apiClient.get("http://127.0.0.1:8000/approve-cookie", {
               withCredentials: true
           }).then(
               ()=>{

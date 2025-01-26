@@ -28,7 +28,7 @@ export function Login() {
 
         try {
             //Send credentials to retrieve access and login tokens at /token/
-            const response = await apiClient.post('http://127.0.0.1:8000/token/', userCredentials, {
+            const response = await apiClient.post('token/', userCredentials, {
                 withCredentials: true
             });
 

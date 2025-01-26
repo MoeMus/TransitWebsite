@@ -19,6 +19,7 @@ import {Box, Flex, Spinner, Button, Link, Text} from "@chakra-ui/react";
 import CourseCalendar from "../calendar/CourseCalendar";
 
 export function Dashboard() {
+
   const [userInfoLoaded, setUserInfoLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
   const [userInfo, setUserInfo] = useState({});
@@ -94,17 +95,18 @@ export function Dashboard() {
   //     });
   // }
 
-  async function getUserInfo() {
+  async function retrieveUserDataManually() {
     try {
       const userData = await apiClient.get(
-        `http://127.0.0.1:8000/api/user/get/?username=${username}`,
-        {
-          method: "GET",
-        }
+          `http://127.0.0.1:8000/api/user/get/?username=${username}`,
+          {
+            method: "GET",
+          }
       );
       setUserInfo(userData.data);
 
-      // console.log(JSON.stringify(userData.data, null, 2));
+      //TODO: For testing only to see user data
+      console.log(JSON.stringify(userData.data, null, 2));
       setUserCourses(userData.data.Courses);
       // getCourseInfo(userData.data.Courses);
       setUserInfoLoaded(true);
@@ -113,10 +115,42 @@ export function Dashboard() {
       toast.error(errorMessage, {
         duration: 2000,
       });
-    } finally {
-      setLoading(false);
     }
   }
+  async function getUserInfo() {
+
+    //If the user enabled cookies, try to retrieve it first
+    if(localStorage.getItem('cookies_enabled') === 'true'){
+      try{
+
+        const userData = await apiClient.get('http://127.0.0.1:8000/api/get-cookie_info',
+            {
+              withCredentials: true
+            });
+
+        setUserInfo(userData.data);
+        setUserCourses(userData.data.Courses)
+        setUserInfoLoaded(true)
+
+        //TODO: For testing only to see user data
+        console.log(JSON.stringify(userData.data, null, 2));
+
+      } catch (err){
+
+        //If cookies are enabled but no cookie exists, retrieve it from the database
+        await retrieveUserDataManually();
+
+        //Create the cookie
+        await apiClient.post('http://127.0.0.1:8000/api/set-cookie/', userInfo, {
+          withCredentials: true
+        })
+
+      }
+    } else {
+      await retrieveUserDataManually();
+    }
+  }
+
 
 
 
@@ -166,6 +200,11 @@ export function Dashboard() {
     }
   }, [map]);
 
+  useEffect(() => {
+    if(userInfoLoaded){
+      setLoading(false);
+    }
+  }, [userInfoLoaded]);
   //TODO: This useEffect does not work, will fix later
   // useEffect(() => {
   //   if (

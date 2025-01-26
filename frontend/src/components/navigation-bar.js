@@ -28,6 +28,8 @@ import {
 export function Navigation({username = ""}){
     const navigate = useNavigate();
     const [isAuth, setIsAuth] = useState(false);
+    const [cookiesEnabled, setCookiesEnabled] = useState(false);
+
     const dispatch = useDispatch();
 
     const logout_msg = "You are about to sign out, are you sure?";
@@ -35,10 +37,16 @@ export function Navigation({username = ""}){
 
     useEffect(() => {
         let token = sessionStorage.getItem('access_token');
+        let isCookiesEnabled = localStorage.getItem('cookies_enabled');
         if(token !== null){
             setIsAuth(true);
         } else {
             setIsAuth(false);
+        }
+        if(isCookiesEnabled === 'true'){
+            setCookiesEnabled(true);
+        } else{
+            setCookiesEnabled(false)
         }
     }, []);
 
@@ -91,6 +99,16 @@ export function Navigation({username = ""}){
 
     }
 
+    function enableCookies(){
+        setCookiesEnabled(true);
+        localStorage.setItem('cookies_enabled', 'true');
+    }
+
+    function disableCookies(){
+        setCookiesEnabled(false);
+        localStorage.setItem('cookies_enabled', 'false');
+    }
+
     function logout() {
 
         const request = {access_token: sessionStorage.getItem('access_token'), refresh_token: sessionStorage.getItem('refresh_token')}
@@ -106,7 +124,6 @@ export function Navigation({username = ""}){
         })
 
     }
-
 
     function deleteAccount(){
 
@@ -139,9 +156,15 @@ export function Navigation({username = ""}){
                 </Nav>
 
                 <Nav>
+
                     {isAuth ? <NavDropdown title={username} menuVariant="light" align="end" style={{marginRight: "20px"}}>
+
                         <NavDropdown.Item> <Dialog dialog_func={deleteAccount} confirmation_msg={account_deletion_msg} action="Delete Account"/> </NavDropdown.Item>
                         <NavDropdown.Item> <Dialog dialog_func={logout} confirmation_msg={logout_msg} action="Sign Out"/> </NavDropdown.Item>
+
+                        {cookiesEnabled ? <NavDropdown.Item action="Diable Cookies" onClick={disableCookies} />
+                            : <NavDropdown.Item action="Enable Cookies" onClick={enableCookies} />
+                        }
 
                         {/*<NavDropdown.Item className="delete-button" onClick={confirmDelete}> Delete account </NavDropdown.Item>*/}
                         {/*<NavDropdown.Item> <Nav.Link onClick={confirmLogout}> Logout </Nav.Link> </NavDropdown.Item>*/}

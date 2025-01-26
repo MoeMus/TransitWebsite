@@ -103,6 +103,9 @@ export function Dashboard() {
             method: "GET",
           }
       );
+
+      userData.data['access_token'] = sessionStorage.getItem('access_token');
+      userData.data['refresh_token'] = sessionStorage.getItem('refresh_token');
       setUserInfo(userData.data);
 
       //TODO: For testing only to see user data
@@ -127,7 +130,7 @@ export function Dashboard() {
             {
               withCredentials: true
             });
-
+        sessionStorage.setItem('access_token', userData.access_token)
         setUserInfo(userData.data);
         setUserCourses(userData.data.Courses)
         setUserInfoLoaded(true)

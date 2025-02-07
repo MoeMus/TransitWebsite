@@ -18,11 +18,12 @@ function App() {
   const [cookieExpired, setCookieExpired] = useState(false)
   refreshAccessToken(); //Refreshes access and refresh tokens before they expire
 
-    useEffect(() => {
+  useEffect(() => {
 
-        //If cookies are enabled, then the site will automatically log in
-        if(localStorage.getItem('cookies_enabled') === 'true'){
-          apiClient.get("api/approve-cookie", {
+      //If cookies are enabled, then the site will automatically log in
+      if(localStorage.getItem('cookies_enabled') === 'true'){
+          apiClient.get("/api/approve-cookie/", {
+              method: "GET",
               withCredentials: true
           }).then(
               ()=>{
@@ -32,9 +33,9 @@ function App() {
           ).catch(()=>{ //A 404 is returned if the cookie expired
               setCookieExpired(true)
 
-          })
-        }
-    }, []);
+          });
+      }
+  }, []);
 
   useEffect(() => {
 

@@ -5,6 +5,7 @@ from rest_framework import status
 import requests  # Used to make requests to SFU Course API
 from rest_framework_simplejwt.tokens import RefreshToken
 import json
+from django.views.decorators.csrf import csrf_exempt
 
 from .models import *
 
@@ -50,10 +51,6 @@ class LogoutView(APIView):
             token = RefreshToken(refresh_token)
             token.blacklist()
             response = Response(status=status.HTTP_205_RESET_CONTENT)
-
-            # Delete the user's cookie when they log out (if it exists)
-            if 'user_session' in request.COOKIES:
-                response.delete_cookie('user_session')
 
             return response
 
@@ -307,6 +304,7 @@ class GetNonLectureSectionsView(APIView):
 
 # Retrieve the status of the cookie (It's available, or it isn't)
 class ApproveCookieView(APIView):
+    @csrf_exempt
     def get(self, request):
         if 'user_session' in request.COOKIES:
             return Response({"status: Cookie found"}, status=status.HTTP_200_OK)
@@ -317,22 +315,24 @@ class ApproveCookieView(APIView):
 # Create a new cookie
 class SetCookieView(APIView):
 
+    @csrf_exempt
     def post(self, request):
-        cookie_info = {
-            'access_token': request.data['access_token'],
-            'refresh_token': request.data['refresh_token'],
-            'username': request.data['username'],
-            'Courses': request.data['Courses']
-        }
+        # cookie_info = {
+        #     'access_token': request.data['access_token'],
+        #     'refresh_token': request.data['refresh_token'],
+        #     'username': request.data['username'],
+        #     'Courses': request.data['Courses']
+        # }
 
         response = Response({"status: Cookie successfully created"}, status=status.HTTP_201_CREATED)
         response.set_cookie(
             'user_session',
-            json.dumps(cookie_info),
+            json.dumps(request.data),
             httponly=True,
-            secure=True,
-            domain='localhost:3000/',  # TODO: Change to proper domain once deployed
-            samesite='Strict'
+            secure=False,
+            # domain='/',  # TODO: Change to proper domain once deployed
+            samesite='None',
+            expires="Tue, 15-Feb-2025 00:00:00 PST"
         )
         return response
 
@@ -340,11 +340,25 @@ class SetCookieView(APIView):
 # Retrieve user info from cookie
 class CookieGetUserInfoView(APIView):
 
+    @csrf_exempt
     def get(self, request):
+        print(request.COOKIES)
         user_cookie = request.COOKIES.get('user_session')
 
         if user_cookie is None:
             return Response({'error': 'Cookie not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        user_info = json.loads(user_cookie['user_session'])
+        user_info = json.loads(user_cookie)
         return Response(user_info, status=status.HTTP_200_OK)
+
+
+class DeleteCookieView(APIView):
+    @csrf_exempt
+    def get(self, request):
+        response = Response({"status": 'Cookie not found'}, status=status.HTTP_200_OK)
+
+        if 'user_session' in request.COOKIES:
+            response = Response({'status': "Cookie deleted"}, status=status.HTTP_200_OK)
+            response.delete_cookie('user_session')
+
+        return response

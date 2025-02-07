@@ -64,7 +64,7 @@ export default function ServiceAlerts(){
         }
     }
 
-    const interval = 60000; //1 minute
+    const interval = 5*60000; //1 minute
 
     getServiceAlerts();
     setInterval(getServiceAlerts, interval);

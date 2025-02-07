@@ -26,5 +26,6 @@ urlpatterns = [
          name='get-non-lecture-sections'),
     path('approve-cookie/', views.ApproveCookieView.as_view(), name='approve-cookie'),
     path('set-cookie/', views.SetCookieView.as_view(), name='set-cookie'),
-    path('get-cookie_info/', views.CookieGetUserInfoView.as_view(), name='get-cookie-info'),
+    path('get-cookie-info/', views.CookieGetUserInfoView.as_view(), name='get-cookie-info'),
+    path('delete-cookie/', views.DeleteCookieView.as_view(), name='delete-cookie'),
 ]

@@ -50,54 +50,54 @@ export function Navigation({username = ""}){
         }
     }, []);
 
-    function confirmLogout(){
-         toast(
-             (t)=> (
-                 <div style={{display: "flex", justifyContent: "center", flexDirection: "column"}}>
-                     <div>
-                         <p> You are about to sign out, are you sure? </p>
-                     </div>
-
-                     <div style={{display: "flex", justifyContent: "center", flexDirection: "row"}}>
-                         <div>
-                             <Button variant="solid" size="xs" onClick={logout}> Yes </Button>
-                         </div>
-                         <div>
-                             <Button variant="subtle"  size="xs" onClick={() => toast.dismiss(t.id)}> No </Button>
-                         </div>
-                     </div>
-                 </div>
-             ), {
-                 position: "top-center",
-                 duration: 360000000
-             })
-    }
-
-    function confirmDelete() {
-        toast(
-            (t) => (
-
-                <div style={{display: "flex", justifyContent: "center", flexDirection: "column"}}>
-                    <div>
-                        <p style={{textAlign: "center"}}> You are about to delete your account, are you sure? This
-                            action cannot be undone</p>
-                     </div>
-                     <div style={{display: "flex", justifyContent: "center", flexDirection: "row"}}>
-                         <div>
-                             <Button variant="solid" size="xs" onClick={deleteAccount}> Yes </Button>
-                         </div>
-                         <div>
-                             <Button variant="subtle" size="xs" onClick={() => toast.dismiss(t.id)}> No </Button>
-                         </div>
-                     </div>
-
-                 </div>
-             ), {
-                position: "top-center",
-                duration: 360000000
-            });
-
-    }
+    // function confirmLogout(){
+    //      toast(
+    //          (t)=> (
+    //              <div style={{display: "flex", justifyContent: "center", flexDirection: "column"}}>
+    //                  <div>
+    //                      <p> You are about to sign out, are you sure? </p>
+    //                  </div>
+    //
+    //                  <div style={{display: "flex", justifyContent: "center", flexDirection: "row"}}>
+    //                      <div>
+    //                          <Button variant="solid" size="xs" onClick={logout}> Yes </Button>
+    //                      </div>
+    //                      <div>
+    //                          <Button variant="subtle"  size="xs" onClick={() => toast.dismiss(t.id)}> No </Button>
+    //                      </div>
+    //                  </div>
+    //              </div>
+    //          ), {
+    //              position: "top-center",
+    //              duration: 360000000
+    //          })
+    // }
+    //
+    // function confirmDelete() {
+    //     toast(
+    //         (t) => (
+    //
+    //             <div style={{display: "flex", justifyContent: "center", flexDirection: "column"}}>
+    //                 <div>
+    //                     <p style={{textAlign: "center"}}> You are about to delete your account, are you sure? This
+    //                         action cannot be undone</p>
+    //                  </div>
+    //                  <div style={{display: "flex", justifyContent: "center", flexDirection: "row"}}>
+    //                      <div>
+    //                          <Button variant="solid" size="xs" onClick={deleteAccount}> Yes </Button>
+    //                      </div>
+    //                      <div>
+    //                          <Button variant="subtle" size="xs" onClick={() => toast.dismiss(t.id)}> No </Button>
+    //                      </div>
+    //                  </div>
+    //
+    //              </div>
+    //          ), {
+    //             position: "top-center",
+    //             duration: 360000000
+    //         });
+    //
+    // }
 
     function enableCookies(){
         setCookiesEnabled(true);
@@ -107,6 +107,10 @@ export function Navigation({username = ""}){
     function disableCookies(){
         setCookiesEnabled(false);
         localStorage.setItem('cookies_enabled', 'false');
+        apiClient.get('api/delete-cookie/', {
+            method: "GET",
+            withCredentials: true
+        });
     }
 
     function logout() {
@@ -162,8 +166,8 @@ export function Navigation({username = ""}){
                         <NavDropdown.Item> <Dialog dialog_func={deleteAccount} confirmation_msg={account_deletion_msg} action="Delete Account"/> </NavDropdown.Item>
                         <NavDropdown.Item> <Dialog dialog_func={logout} confirmation_msg={logout_msg} action="Sign Out"/> </NavDropdown.Item>
 
-                        {cookiesEnabled ? <NavDropdown.Item action="Diable Cookies" onClick={disableCookies} />
-                            : <NavDropdown.Item action="Enable Cookies" onClick={enableCookies} />
+                        {cookiesEnabled ? <NavDropdown.Item> <Button action="Disable Cookies" onClick={disableCookies}> Disable Cookies </Button> </NavDropdown.Item>
+                            : <NavDropdown.Item> <Button action="Enable Cookies" onClick={enableCookies}  size="xs"> Enable Cookies </Button> </NavDropdown.Item>
                         }
 
                         {/*<NavDropdown.Item className="delete-button" onClick={confirmDelete}> Delete account </NavDropdown.Item>*/}

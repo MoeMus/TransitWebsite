@@ -113,7 +113,7 @@ export function RegistrationPage (){
 
                     {
                         showCookieNotice ? <Alert status="info" title="We use cookies in order to improve performance and
-                        enhance your user experience. By clicking Accept, you will agree to this. Cookies can always be
+                        enhance your user experience. By clicking Accept All, you will enable cookies. Cookies can always be
                         adjusted in settings.">
 
                         <Flex direction="row" justify="center">

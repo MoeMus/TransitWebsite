@@ -109,6 +109,7 @@ export function Dashboard() {
       setUserInfo(userData.data);
 
       //TODO: For testing only to see user data
+      console.log("Retrieved from database");
       console.log(JSON.stringify(userData.data, null, 2));
       setUserCourses(userData.data.Courses);
       // getCourseInfo(userData.data.Courses);
@@ -126,16 +127,21 @@ export function Dashboard() {
     if(localStorage.getItem('cookies_enabled') === 'true'){
       try{
 
-        const userData = await apiClient.get('api/get-cookie_info',
+        const userData = await apiClient.get('/api/get-cookie-info/',
             {
-              withCredentials: true
+              method: "GET",
+              withCredentials: true, // Ensures cookies are sent & received
             });
-        sessionStorage.setItem('access_token', userData.access_token)
+
+        sessionStorage.setItem('access_token', userData.access_token);
+        sessionStorage.setItem('refresh_token', userData.refresh_token);
+        sessionStorage.setItem('user', userData.username)
         setUserInfo(userData.data);
-        setUserCourses(userData.data.Courses)
-        setUserInfoLoaded(true)
+        setUserCourses(userData.data.Courses);
+        setUserInfoLoaded(true);
 
         //TODO: For testing only to see user data
+        console.log("Retrieved from cookie");
         console.log(JSON.stringify(userData.data, null, 2));
 
       } catch (err){
@@ -144,9 +150,10 @@ export function Dashboard() {
         await retrieveUserDataManually();
 
         //Create the cookie
-        await apiClient.post('/api/set-cookie/', userInfo, {
-          withCredentials: true
-        })
+        await apiClient.post('/api/set-cookie/', JSON.stringify(userInfo, null, 2), {
+          method: "POST",
+          withCredentials: true, // Ensures cookies are sent & received
+        });
 
       }
     } else {

@@ -71,7 +71,7 @@ class NonLectureSection(models.Model):
         null=True,
         default=None
     )
-    dummy_test_field = models.BooleanField(default=False)
+    #dummy_test_field = models.BooleanField(default=False)
     section_code = models.CharField(max_length=10)
     class_type = models.CharField(max_length=10)  # e.g., "e" or "n"
     associated_class = models.CharField(max_length=10, default=0)

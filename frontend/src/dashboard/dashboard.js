@@ -19,6 +19,7 @@ import {Box, Flex, Spinner, Button, Link, Text} from "@chakra-ui/react";
 import CourseCalendar from "../calendar/CourseCalendar";
 
 export function Dashboard() {
+
   const [userInfoLoaded, setUserInfoLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
   const [userInfo, setUserInfo] = useState({});
@@ -77,7 +78,7 @@ export function Dashboard() {
   //     //let request = {course_ids: courseIDs};
   //     //let request = {username: sessionStorage.getItem(username)}
   //     await apiClient.get(
-  //         `http://127.0.0.1:8000/api/user/courses/get/all/?username=${username}`,
+  //         `api/user/courses/get/all/?username=${username}`,
   //         {
   //           method: "GET",
   //           withCredentials: true
@@ -94,29 +95,65 @@ export function Dashboard() {
   //     });
   // }
 
-  async function getUserInfo() {
+  async function retrieveUserDataManually() {
     try {
       const userData = await apiClient.get(
-        `http://127.0.0.1:8000/api/user/get/?username=${username}`,
-        {
-          method: "GET",
-        }
+          `/api/user/get/?username=${username}`,
+          {
+            method: "GET",
+          }
       );
+
+      userData.data['access_token'] = sessionStorage.getItem('access_token');
+      userData.data['refresh_token'] = sessionStorage.getItem('refresh_token');
       setUserInfo(userData.data);
 
-      //console.log(JSON.stringify(userData.data, null, 2));
+      //TODO: For testing only to see user data
+      console.log(JSON.stringify(userData.data, null, 2));
       setUserCourses(userData.data.Courses);
-      //getCourseInfo(userData.data.Courses);
+      // getCourseInfo(userData.data.Courses);
       setUserInfoLoaded(true);
     } catch (err) {
       const errorMessage = err.response.data.error;
       toast.error(errorMessage, {
         duration: 2000,
       });
-    } finally {
-      setLoading(false);
     }
   }
+  async function getUserInfo() {
+
+    //If the user enabled cookies, try to retrieve it first
+    if(localStorage.getItem('cookies_enabled') === 'true'){
+      try{
+
+        const userData = await apiClient.get('api/get-cookie_info',
+            {
+              withCredentials: true
+            });
+        sessionStorage.setItem('access_token', userData.access_token)
+        setUserInfo(userData.data);
+        setUserCourses(userData.data.Courses)
+        setUserInfoLoaded(true)
+
+        //TODO: For testing only to see user data
+        console.log(JSON.stringify(userData.data, null, 2));
+
+      } catch (err){
+
+        //If cookies are enabled but no cookie exists, retrieve it from the database
+        await retrieveUserDataManually();
+
+        //Create the cookie
+        await apiClient.post('/api/set-cookie/', userInfo, {
+          withCredentials: true
+        })
+
+      }
+    } else {
+      await retrieveUserDataManually();
+    }
+  }
+
 
 
 
@@ -166,6 +203,11 @@ export function Dashboard() {
     }
   }, [map]);
 
+  useEffect(() => {
+    if(userInfoLoaded){
+      setLoading(false);
+    }
+  }, [userInfoLoaded]);
   //TODO: This useEffect does not work, will fix later
   // useEffect(() => {
   //   if (

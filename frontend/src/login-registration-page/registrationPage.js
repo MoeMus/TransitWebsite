@@ -1,24 +1,39 @@
 //import Container from 'react-bootstrap/Container';
 import {Login} from "./login-form";
 import {Navigate, useNavigate} from 'react-router-dom';
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 //import Button from "react-bootstrap/Button";
 import '../styles/loginStyles.css';
 import {Card , Container, Heading, Text, Flex, Link } from "@chakra-ui/react"
 import { Button } from "../components/ui/button"
 import { LuExternalLink } from "react-icons/lu"
+import {Alert} from "../components/ui/alert"
 
 export function RegistrationPage (){
 
+    const [showCookieNotice, setShowCookieNotice] = useState(false);
+
+    useEffect(() => {
+        if(localStorage.getItem('ask_for_cookies') === 'true' || localStorage.getItem('ask_for_cookies') === null){
+            setShowCookieNotice(true)
+        }
+    }, []);
+
+    function handleAccept(){
+        localStorage.setItem('ask_for_cookies', 'false');
+        setShowCookieNotice(false);
+        localStorage.setItem('cookies_enabled', 'true');
+    }
+
+    function handleReject(){
+        localStorage.setItem('ask_for_cookies', 'false');
+        setShowCookieNotice(false);
+        localStorage.setItem('cookies_enabled', 'false');
+    }
 
     let navigate = useNavigate();
     function handleClick() {
         navigate("/signup");
-    }
-
-    const DescriptionCard = ()=>{
-
-
     }
 
     return(
@@ -35,6 +50,7 @@ export function RegistrationPage (){
 
                 {/*<img src="/websiteLogo.jpg" alt="" style={{marginBottom: "20px"}}/>*/}
                 <Flex justifyContent="center">
+
                     <Card.Root width="320px" marginRight="50px" marginY="50px">
                         <Card.Body gap="2">
                             <Card.Title mt="2" fontSize="30px"> A Transit Website Designed for SFU Students </Card.Title>
@@ -44,9 +60,7 @@ export function RegistrationPage (){
                                 routes to get to your next course, as well as allowing you to
                                 easily customize how and when you want to get there
                             </Card.Description>
-
                         </Card.Body>
-
                     </Card.Root>
 
                     <Card.Root width="320px" marginY="50px">
@@ -61,9 +75,6 @@ export function RegistrationPage (){
                     </Card.Root>
 
                 </Flex>
-
-
-
 
                 <Flex justifyContent="center">
                     <Login/>
@@ -100,6 +111,22 @@ export function RegistrationPage (){
                         your classes
                     </Text>
 
+                    {
+                        showCookieNotice ? <Alert status="info" title="We use cookies in order to improve performance and
+                        enhance your user experience. By clicking Accept, you will agree to this. Cookies can always be
+                        adjusted in settings.">
+
+                        <Flex direction="row" justify="center">
+                            <div>
+                                <Button size="sm" marginRight="10px" onClick={handleAccept}> Accept All </Button>
+                            </div>
+                            <div>
+                                <Button size="sm" onClick={handleReject}> Reject All </Button>
+                            </div>
+                        </Flex>
+
+                        </Alert>: null
+                    }
 
                 </Container>
 

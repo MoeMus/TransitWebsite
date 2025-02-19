@@ -55,6 +55,9 @@ export default function ServiceAlerts(){
                         affectedEntities: entity.alert.informedEntity,
                     };
             }).filter((alert)=>alert);
+
+            serviceAlerts.reverse(); //Newest alerts first
+
             setAlerts(serviceAlerts);
         } catch (err){
             console.log(err);

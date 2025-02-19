@@ -42,3 +42,4 @@ yarn-error.log
 *.swp
 
 backend/core/migrations
+backend/db_backup.json

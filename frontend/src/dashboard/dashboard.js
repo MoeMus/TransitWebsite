@@ -125,18 +125,18 @@ export function Dashboard() {
     //If the user enabled cookies, try to retrieve it first
     if(localStorage.getItem('cookies_enabled') === 'true'){
       try{
-
-        const userData = await apiClient.get('api/get-cookie_info',
-            {
-              withCredentials: true
-            });
-        sessionStorage.setItem('access_token', userData.access_token)
-        setUserInfo(userData.data);
-        setUserCourses(userData.data.Courses)
-        setUserInfoLoaded(true)
-
-        //TODO: For testing only to see user data
-        console.log(JSON.stringify(userData.data, null, 2));
+        //
+        // const userData = await apiClient.get('api/get-cookie_info',
+        //     {
+        //       withCredentials: true
+        //     });
+        // sessionStorage.setItem('access_token', userData.access_token)
+        // setUserInfo(userData.data);
+        // setUserCourses(userData.data.Courses)
+        // setUserInfoLoaded(true)
+        //
+        // //TODO: For testing only to see user data
+        // console.log(JSON.stringify(userData.data, null, 2));
 
       } catch (err){
 

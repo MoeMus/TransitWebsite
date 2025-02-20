@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import User, Course, LectureSection
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 
 class CourseSerializer(serializers.ModelSerializer):
@@ -32,6 +33,23 @@ class UserSerializer(serializers.ModelSerializer):
                                         , password=validated_data['password'])
         user.save()
         return user
+
+
+class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+
+
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+
+        serializer = UserSerializer(user)
+
+        # Add custom claims
+        token['username'] = user.username
+        token['email'] = user.email
+        token['courses'] = serializer.data.get('Courses', [])
+
+        return token
 
 
 class LectureSectionSerializer(serializers.ModelSerializer):

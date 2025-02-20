@@ -22,17 +22,17 @@ function App() {
 
         //If cookies are enabled, then the site will automatically log in
         if(localStorage.getItem('cookies_enabled') === 'true'){
-          apiClient.get("api/approve-cookie", {
-              withCredentials: true
-          }).then(
-              ()=>{
-                  setIsAuth(true);
-                  setCookieExpired(false)
-              }
-          ).catch(()=>{ //A 404 is returned if the cookie expired
-              setCookieExpired(true)
-
-          })
+          // apiClient.get("api/approve-cookie", {
+          //     withCredentials: true
+          // }).then(
+          //     ()=>{
+          //         setIsAuth(true);
+          //         setCookieExpired(false)
+          //     }
+          // ).catch(()=>{ //A 404 is returned if the cookie expired
+          //     setCookieExpired(true)
+          //
+          // })
         }
     }, []);
 

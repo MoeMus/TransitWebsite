@@ -5,11 +5,9 @@ from rest_framework import status
 import requests  # Used to make requests to SFU Course API
 from rest_framework_simplejwt.tokens import RefreshToken
 import json
-
+from rest_framework_simplejwt.views import TokenObtainPairView
 from .models import *
-
-from .serializers import CourseSerializer, UserSerializer, LectureSectionSerializer
-import io
+from .serializers import CourseSerializer, UserSerializer, LectureSectionSerializer, MyTokenObtainPairSerializer
 from .utils import *
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -24,6 +22,9 @@ CURRENT_TERM = get_current_term()
 # Logging/debugging for Python, using when returning response errors
 logger = logging.getLogger(__name__)
 
+
+class MyTokenObtainPairView(TokenObtainPairView):
+    serializer_class = MyTokenObtainPairSerializer
 
 class UserView(APIView):
     permission_classes = (IsAuthenticated,)
@@ -51,10 +52,10 @@ class LogoutView(APIView):
             token.blacklist()
             response = Response(status=status.HTTP_205_RESET_CONTENT)
 
-            # Delete the user's cookie when they log out (if it exists)
-            if 'user_session' in request.COOKIES:
-                response.delete_cookie('user_session')
-
+            # # Delete the user's cookie when they log out (if it exists)
+            # if 'user_session' in request.COOKIES:
+            #     response.delete_cookie('user_session')
+            #
             return response
 
         except Exception as e:
@@ -326,45 +327,45 @@ class GetNonLectureSectionsView(APIView):
 
 
 # Retrieve the status of the cookie (It's available, or it isn't)
-class ApproveCookieView(APIView):
-    def get(self, request):
-        if 'user_session' in request.COOKIES:
-            return Response({"status: Cookie found"}, status=status.HTTP_200_OK)
-
-        return Response({"error: Cookie not found"}, status=status.HTTP_404_NOT_FOUND)
-
-
-# Create a new cookie
-class SetCookieView(APIView):
-
-    def post(self, request):
-        cookie_info = {
-            'access_token': request.data['access_token'],
-            'refresh_token': request.data['refresh_token'],
-            'username': request.data['username'],
-            'Courses': request.data['Courses']
-        }
-
-        response = Response({"status: Cookie successfully created"}, status=status.HTTP_201_CREATED)
-        response.set_cookie(
-            'user_session',
-            json.dumps(cookie_info),
-            httponly=True,
-            secure=True,
-            domain='localhost:3000/',  # TODO: Change to proper domain once deployed
-            samesite='Strict'
-        )
-        return response
-
-
-# Retrieve user info from cookie
-class CookieGetUserInfoView(APIView):
-
-    def get(self, request):
-        user_cookie = request.COOKIES.get('user_session')
-
-        if user_cookie is None:
-            return Response({'error': 'Cookie not found'}, status=status.HTTP_404_NOT_FOUND)
-
-        user_info = json.loads(user_cookie['user_session'])
-        return Response(user_info, status=status.HTTP_200_OK)
+# class ApproveCookieView(APIView):
+#     def get(self, request):
+#         if 'user_session' in request.COOKIES:
+#             return Response({"status: Cookie found"}, status=status.HTTP_200_OK)
+#
+#         return Response({"error: Cookie not found"}, status=status.HTTP_404_NOT_FOUND)
+#
+#
+# # Create a new cookie
+# class SetCookieView(APIView):
+#
+#     def post(self, request):
+#         cookie_info = {
+#             'access_token': request.data['access_token'],
+#             'refresh_token': request.data['refresh_token'],
+#             'username': request.data['username'],
+#             'Courses': request.data['Courses']
+#         }
+#
+#         response = Response({"status: Cookie successfully created"}, status=status.HTTP_201_CREATED)
+#         response.set_cookie(
+#             'user_session',
+#             json.dumps(cookie_info),
+#             httponly=True,
+#             secure=True,
+#             domain='localhost:3000/',  # TODO: Change to proper domain once deployed
+#             samesite='Strict'
+#         )
+#         return response
+#
+#
+# # Retrieve user info from cookie
+# class CookieGetUserInfoView(APIView):
+#
+#     def get(self, request):
+#         user_cookie = request.COOKIES.get('user_session')
+#
+#         if user_cookie is None:
+#             return Response({'error': 'Cookie not found'}, status=status.HTTP_404_NOT_FOUND)
+#
+#         user_info = json.loads(user_cookie['user_session'])
+#         return Response(user_info, status=status.HTTP_200_OK)

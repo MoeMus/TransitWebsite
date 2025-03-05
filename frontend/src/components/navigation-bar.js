@@ -136,7 +136,10 @@ export function Navigation({username = ""}){
                 <Navbar.Brand style={{marginLeft: '10px'}}> TransitTail </Navbar.Brand>
                 <Nav className="me-auto">
                     {isAuth ?  <Nav.Link href="/">Home</Nav.Link> : null }
+                    {isAuth ?  <Nav.Link href="/schedule-builder" className="ms-3">Schedule Builder</Nav.Link> : null }
                 </Nav>
+
+
 
                 <Nav>
                     {isAuth ? <NavDropdown title={username} menuVariant="light" align="end" style={{marginRight: "20px"}}>

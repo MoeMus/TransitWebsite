@@ -215,7 +215,7 @@ export function ScheduleBuilder() {
           setSelectionStage("course");
         }
       } else {
-        toast.error("Please complete all selections");
+        //toast.error("Please complete all selections");
       }
     };
 
@@ -446,6 +446,7 @@ export function ScheduleBuilder() {
                     variant="danger"
                     size="sm"
                     className="float-right"
+                    style={{ marginLeft: '1rem' }}
                     onClick={() => handleRemoveCourse(item, index)}
                   >
                     Remove

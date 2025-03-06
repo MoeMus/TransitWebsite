@@ -8,7 +8,7 @@ from django.utils.dateparse import parse_time
 from dateutil import parser
 
 
-#Course.objects.all().delete()  # TODO: For debugging only
+Course.objects.all().delete()  # TODO: For debugging only
 
 logger = logging.getLogger(__name__)
 
@@ -80,28 +80,25 @@ class SyncCoursesCronJob(CronJobBase):
 
                         for schedule in course_schedules:
                             if section.get("sectionCode") == "LEC" and text_value == info.get("section"):
-                                # Create LectureSection
                                 parsed_start_time = parse_time(schedule.get("startTime", ""))
-                                parsed_end_time   = parse_time(schedule.get("endTime", ""))
+                                parsed_end_time = parse_time(schedule.get("endTime", ""))
                                 parsed_start_date = parse_date(schedule.get("startDate", ""))
-                                parsed_end_date   = parse_date(schedule.get("endDate", ""))
+                                parsed_end_date = parse_date(schedule.get("endDate", ""))
 
-                                lecture_section, lec_created = LectureSection.objects.update_or_create(
+                                lecture_section = LectureSection.objects.create(
                                     course=course_obj,
                                     section_code=section_code,
-                                    defaults={
-                                        "start_time": schedule.get("startTime", ""),
-                                        "start_date": parsed_start_date,
-                                        "end_time": schedule.get("endTime", ""),
-                                        "end_date": parsed_end_date,
-                                        "days": schedule.get("days", ""),
-                                        "campus": schedule.get("campus", ""),
-                                        "class_type": section.get("classType", ""),
-                                        "professor": first_instructor.get("name", "Unknown"),
-                                        "associated_class": associated_class,
-                                        "title": section_title or "Untitled",
-                                        "number": info.get("number", "000"),
-                                    },
+                                    start_time=schedule.get("startTime", ""),
+                                    start_date=parsed_start_date,
+                                    end_time=schedule.get("endTime", ""),
+                                    end_date=parsed_end_date,
+                                    days=schedule.get("days", ""),
+                                    campus=schedule.get("campus", ""),
+                                    class_type=section.get("classType", ""),
+                                    professor=first_instructor.get("name", "Unknown"),
+                                    associated_class=associated_class,
+                                    title=section_title or "Untitled",
+                                    number=info.get("number", "000"),
                                 )
                                 logger.info(f"LectureSection created: {lecture_section}")
                             else:
@@ -110,23 +107,20 @@ class SyncCoursesCronJob(CronJobBase):
                                     # Only create NonLectureSection if it is a recognized non-lecture section type
                                     try:
                                         logger.info(f"Creating NonLectureSection for section {section_code}")
-                                        NonLectureSection.objects.update_or_create(
+                                        NonLectureSection.objects.create(
                                             lecture_section=lecture_section,  # Associate with LectureSection if needed
                                             section_code=section_code,
                                             associated_class=associated_class,
-                                            defaults={
-                                                "start_time": parse_time(schedule.get("startTime", "")),
-                                                "start_date": parse_date(schedule.get("startDate", "")),
-                                                "end_time": parse_time(schedule.get("endTime", "")),
-                                                "end_date": parse_date(schedule.get("endDate", "")),
-                                                "days": schedule.get("days", ""),
-                                                "campus": schedule.get("campus", ""),
-                                                "class_type": section.get("classType", ""),
-                                                "professor": first_instructor.get("name", "Unknown"),
-                                                "title": section_title,
-                                                "associated_class": associated_class,
-                                                "number": info.get("number")
-                                            }
+                                            start_time=parse_time(schedule.get("startTime", "")),
+                                            start_date=parse_date(schedule.get("startDate", "")),
+                                            end_time=parse_time(schedule.get("endTime", "")),
+                                            end_date=parse_date(schedule.get("endDate", "")),
+                                            days=schedule.get("days", ""),
+                                            campus=schedule.get("campus", ""),
+                                            class_type=section.get("classType", ""),
+                                            professor=first_instructor.get("name", "Unknown"),
+                                            title=section_title,
+                                            number=info.get("number")
                                         )
                                         logger.info(f"NonLectureSection created: {section_code} for {lecture_section}")
                                     except ObjectDoesNotExist:

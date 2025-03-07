@@ -7,6 +7,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 import json
 from django.views.decorators.csrf import csrf_exempt
 
+from backend import settings
 from .models import *
 
 from .serializers import CourseSerializer, UserSerializer
@@ -51,6 +52,9 @@ class LogoutView(APIView):
             token = RefreshToken(refresh_token)
             token.blacklist()
             response = Response(status=status.HTTP_205_RESET_CONTENT)
+
+            if 'user_session' in request.COOKIES:
+                response.delete_cookie('user_session')
 
             return response
 
@@ -302,10 +306,12 @@ class GetNonLectureSectionsView(APIView):
             return Response({"error": "Lecture section not found"}, status=status.HTTP_404_NOT_FOUND)
 
 
-# Retrieve the status of the cookie (It's available, or it isn't)
+# Retrieve the status of the cookie (It's available or it isn't)
 class ApproveCookieView(APIView):
-    @csrf_exempt
+
     def get(self, request):
+
+        print(request.COOKIES)
         if 'user_session' in request.COOKIES:
             return Response({"status: Cookie found"}, status=status.HTTP_200_OK)
 
@@ -313,9 +319,9 @@ class ApproveCookieView(APIView):
 
 
 # Create a new cookie
+
 class SetCookieView(APIView):
 
-    @csrf_exempt
     def post(self, request):
         # cookie_info = {
         #     'access_token': request.data['access_token'],
@@ -326,21 +332,21 @@ class SetCookieView(APIView):
 
         response = Response({"status: Cookie successfully created"}, status=status.HTTP_201_CREATED)
         response.set_cookie(
-            'user_session',
-            json.dumps(request.data),
+            key='user_session',
+            value=json.dumps(request.data),
             httponly=True,
-            secure=False,
-            # domain='/',  # TODO: Change to proper domain once deployed
-            samesite='None',
-            expires="Tue, 15-Feb-2025 00:00:00 PST"
+            secure=True,  # Set to True if using HTTPS
+            samesite='None',  # or 'None' if using HTTPS
+            max_age=3600*24,
+            path='/'
         )
+        # print(response.cookies.get('user_session'))
         return response
 
 
 # Retrieve user info from cookie
 class CookieGetUserInfoView(APIView):
 
-    @csrf_exempt
     def get(self, request):
         print(request.COOKIES)
         user_cookie = request.COOKIES.get('user_session')
@@ -353,7 +359,7 @@ class CookieGetUserInfoView(APIView):
 
 
 class DeleteCookieView(APIView):
-    @csrf_exempt
+
     def get(self, request):
         response = Response({"status": 'Cookie not found'}, status=status.HTTP_200_OK)
 

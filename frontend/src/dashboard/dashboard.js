@@ -22,7 +22,12 @@ export function Dashboard() {
 
   const [userInfoLoaded, setUserInfoLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [userInfo, setUserInfo] = useState({});
+  const [userInfo, setUserInfo] = useState({
+    access_token: "",
+    refresh_token: "",
+    username: "",
+    Courses: []
+  });
   const [error, setError] = useState("");
   const username = sessionStorage.getItem("user");
   const [userLocation, setUserLocation] = useState({ lat: 0, lng: 0 });
@@ -97,23 +102,36 @@ export function Dashboard() {
 
   async function retrieveUserDataManually() {
     try {
-      const userData = await apiClient.get(
+      const response = await apiClient.get(
           `/api/user/get/?username=${username}`,
           {
             method: "GET",
           }
       );
+      let userData = response.data
+      userData['access_token'] = sessionStorage.getItem('access_token');
+      userData['refresh_token'] = sessionStorage.getItem('refresh_token');
 
-      userData.data['access_token'] = sessionStorage.getItem('access_token');
-      userData.data['refresh_token'] = sessionStorage.getItem('refresh_token');
-      setUserInfo(userData.data);
+
+      setUserInfo((prevState) => (
+          {...prevState,
+          access_token: userData.access_token,
+          refresh_token: userData.refresh_token,
+          username: userData.username,
+          Courses: userData.Courses
+      })
+      );
 
       //TODO: For testing only to see user data
       console.log("Retrieved from database");
-      console.log(JSON.stringify(userData.data, null, 2));
-      setUserCourses(userData.data.Courses);
+      console.log(userInfo);
+
+      setUserCourses(userData.Courses);
+
       // getCourseInfo(userData.data.Courses);
+
       setUserInfoLoaded(true);
+
     } catch (err) {
       const errorMessage = err.response.data.error;
       toast.error(errorMessage, {
@@ -121,6 +139,18 @@ export function Dashboard() {
       });
     }
   }
+
+  async function createCookie() {
+    //Create the cookie
+    // console.log("Going to cookie");
+    // console.log(JSON.stringify(userInfo, null, 2))
+
+    await apiClient.post('/api/set-cookie/', JSON.stringify(userInfo, null, 2), {
+      method: "POST",
+      withCredentials: true, // Ensures cookies are sent & received
+    });
+  }
+
   async function getUserInfo() {
 
     //If the user enabled cookies, try to retrieve it first
@@ -148,12 +178,7 @@ export function Dashboard() {
 
         //If cookies are enabled but no cookie exists, retrieve it from the database
         await retrieveUserDataManually();
-
-        //Create the cookie
-        await apiClient.post('/api/set-cookie/', JSON.stringify(userInfo, null, 2), {
-          method: "POST",
-          withCredentials: true, // Ensures cookies are sent & received
-        });
+        await createCookie();
 
       }
     } else {

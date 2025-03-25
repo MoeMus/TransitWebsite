@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Container, Form, Button, ListGroup } from "react-bootstrap";
 import apiClient from "../configurations/configAxios";
 import { toast, Toaster } from "react-hot-toast";
@@ -70,7 +70,7 @@ export function ScheduleBuilder() {
     }
   };
 
-  const fetchAvailableLectures = async () => {
+    const fetchAvailableLectures = async () => {
       try {
         const response = await fetch(`http://localhost:8000/api/courses/lectures/`);
         const data = await response.json();
@@ -84,6 +84,17 @@ export function ScheduleBuilder() {
         toast.error("Failed to load lectures");
       }
     };
+
+  const uniqueLectureSections = useMemo(() => {
+    // uses a map to deduplicate by section_code
+    const uniqueMap = new Map();
+    lectureSections.forEach((lecture) => {
+      if (!uniqueMap.has(lecture.section_code)) {
+        uniqueMap.set(lecture.section_code, lecture);
+      }
+    });
+    return Array.from(uniqueMap.values());
+  }, [lectureSections]);
 
   // Fetch the user's saved courses
   const fetchUserCourses = async () => {
@@ -215,7 +226,7 @@ export function ScheduleBuilder() {
           setSelectionStage("course");
         }
       } else {
-        toast.error("Please complete all selections");
+        //toast.error("Please complete all selections");
       }
     };
 
@@ -375,12 +386,14 @@ export function ScheduleBuilder() {
       <Toaster position="top-left" reverseOrder={false} />
       <Container>
         <h2>Schedule Builder</h2>
-
-        {/* Conditional Rendering: Course Selection */}
         {selectionStage === "course" && (
           <Form.Group controlId="courseSelect">
             <Form.Label>Select Course</Form.Label>
-            <Form.Control as="select" onChange={handleCourseSelection} value={selectedCourse ? selectedCourse.id : ""}>
+            <Form.Control
+              as="select"
+              onChange={handleCourseSelection}
+              value={selectedCourse ? selectedCourse.id : ""}
+            >
               <option value="">Select a course</option>
               {availableCourses.map((course) => (
                 <option key={course.id} value={course.id}>
@@ -391,13 +404,17 @@ export function ScheduleBuilder() {
           </Form.Group>
         )}
 
-        {/* Conditional Rendering: Lecture Section Selection */}
-        {selectionStage === "lecture" && lectureSections.length > 0 && (
+        {/* Look for uniqueLectureSections */}
+        {selectionStage === "lecture" && uniqueLectureSections.length > 0 && (
           <Form.Group controlId="lectureSectionSelect">
             <Form.Label>Select Lecture Section</Form.Label>
-            <Form.Control as="select" onChange={handleLectureSelection} value={selectedLectureSection ? selectedLectureSection.id : ""}>
+            <Form.Control
+              as="select"
+              onChange={handleLectureSelection}
+              value={selectedLectureSection ? selectedLectureSection.id : ""}
+            >
               <option value="">Select a lecture section</option>
-              {lectureSections.map((lecture) => (
+              {uniqueLectureSections.map((lecture) => (
                 <option key={lecture.id} value={lecture.id}>
                   {lecture.section_code} - {lecture.start_time} to {lecture.end_time}
                 </option>
@@ -446,6 +463,7 @@ export function ScheduleBuilder() {
                     variant="danger"
                     size="sm"
                     className="float-right"
+                    style={{ marginLeft: '1rem' }}
                     onClick={() => handleRemoveCourse(item, index)}
                   >
                     Remove

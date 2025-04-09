@@ -54,6 +54,8 @@ class LogoutView(APIView):
             response = Response(status=status.HTTP_205_RESET_CONTENT)
 
             if 'user_session' in request.COOKIES:
+                print("We found a cookie!")
+                print(f"We are about to delete this cookie: {request.COOKIES['user_session']}")
                 response.delete_cookie('user_session')
 
             return response
@@ -311,7 +313,7 @@ class ApproveCookieView(APIView):
 
     def get(self, request):
 
-        print(request.COOKIES)
+        print(f"The user just launched the website with these cookies: {request.COOKIES}")
         if 'user_session' in request.COOKIES:
             return Response({"status: Cookie found"}, status=status.HTTP_200_OK)
 
@@ -329,7 +331,9 @@ class SetCookieView(APIView):
         #     'username': request.data['username'],
         #     'Courses': request.data['Courses']
         # }
+        user_data = json.loads(request.body)
 
+        print(f"Data being put in the cookie: {json.dumps(request.data)}")
         response = Response({"status: Cookie successfully created"}, status=status.HTTP_201_CREATED)
         response.set_cookie(
             key='user_session',
@@ -355,6 +359,8 @@ class CookieGetUserInfoView(APIView):
             return Response({'error': 'Cookie not found'}, status=status.HTTP_404_NOT_FOUND)
 
         user_info = json.loads(user_cookie)
+        if user_info['access_token'] == "" or user_info['refresh_token'] == "" or user_info['username'] == "":
+            return Response({'error': 'Cookie not found'}, status=status.HTTP_404_NOT_FOUND)
         return Response(user_info, status=status.HTTP_200_OK)
 
 

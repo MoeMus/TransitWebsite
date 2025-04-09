@@ -107,7 +107,7 @@ export function Navigation({username = ""}){
     function disableCookies(){
         setCookiesEnabled(false);
         localStorage.setItem('cookies_enabled', 'false');
-        apiClient.get('api/delete-cookie/', {
+        apiClient.get('api/cookie/delete/', {
             method: "GET",
             withCredentials: true
         });

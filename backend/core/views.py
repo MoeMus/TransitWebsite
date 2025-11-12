@@ -139,6 +139,7 @@ class AddCourseView(APIView):
         return Response({"success": "Course added successfully"}, status=status.HTTP_200_OK)
 
 
+
 class DeleteCourseView(APIView):
     permission_classes = (IsAuthenticated,)
 
@@ -286,7 +287,6 @@ class GetUserCoursesView(APIView):
         except User.DoesNotExist:
             return Response({"error": "User: " + username + " not found"}, status=status.HTTP_404_NOT_FOUND)
 
-
 class GetLectureSectionsView(APIView):
     permission_classes = (IsAuthenticated,)
 
@@ -314,3 +314,15 @@ class GetNonLectureSectionsView(APIView):
             return JsonResponse(data, safe=False)
         except LectureSection.DoesNotExist:
             return Response({"error": "Lecture section not found"}, status=status.HTTP_404_NOT_FOUND)
+
+
+#def ReturnLatestComponent(APIView):
+#    permission_classes = (IsAuthenticated,)
+#
+#   latest_component = get_latest_component(User)
+#    def post(self, request):
+#        course_name =
+#        if not Course.objects.filter(title=course_name, section_name=section_name).exists():
+#            return Response({"error": "Course not found"}, status=status.HTTP_404_NOT_FOUND)
+#        latest_lecture =
+#        latest_nonlecture =

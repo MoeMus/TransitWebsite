@@ -90,6 +90,7 @@ Follow these steps to set up the project and install the required packages for R
       ```bash
       export MYSQL_PASSWORD_TRANSIT='your_mysql_password'
       export DJANGO_SECRET_KEY='your_django_secret_key'
+      export TRANSLINK_API_KEY='your_translink_key'
       ```
 
    3. Save the file and reload it:

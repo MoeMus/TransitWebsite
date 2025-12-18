@@ -106,15 +106,16 @@ def get_user_courses(request, username):
 # Deletes all courses from a user's schedule
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def remove_courses(self, request):
+def remove_courses(request):
 
     try:
 
         with transaction.atomic():
-            user = User.objects.get(username=request.POST.data["username"])
-            user.courses.all().delete()
+            user = User.objects.get(username=request.data["username"])
+            user.lecture_sections.all().delete()
+            user.non_lecture_sections.all().delete()
             user.save()
-            return Response(status=status.HTTP_200_OK)
+            return Response({"success": "All course removed from schedule"}, status=status.HTTP_200_OK)
 
     except User.DoesNotExist:
         return Response({"error": "User does not exist"}, status=status.HTTP_404_NOT_FOUND)

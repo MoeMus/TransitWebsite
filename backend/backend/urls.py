@@ -1,14 +1,14 @@
 """
 URL configuration for server project.
 
-The `urlpatterns` list routes URLs to views. For more information please see:
+The `urlpatterns` list routes URLs to api_endpoints. For more information please see:
     https://docs.djangoproject.com/en/4.2/topics/http/urls/
 Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
+Function api_endpoints
+    1. Add an import:  from my_app import api_endpoints
+    2. Add a URL to urlpatterns:  path('', api_endpoints.home, name='home')
+Class-based api_endpoints
+    1. Add an import:  from other_app.api_endpoints import Home
     2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
 Including another URLconf
     1. Import the include() function: from django.urls import include, path
@@ -24,7 +24,7 @@ from rest_framework_simplejwt import views as jwt_views
 ## ONLY IF WE'RE USING SIMPLEJWT FOR AUTHENTICATION
 # If you're getting unresolved reference 'rest_framework_simplejwt', do the following in your terminal:
 # pip3 install --upgrade djangorestframework-simplejwt
-#from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+#from rest_framework_simplejwt.api_endpoints import TokenObtainPairView, TokenRefreshView
 ##
 
 urlpatterns = [

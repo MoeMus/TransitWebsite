@@ -35,6 +35,7 @@ class Course(models.Model):
 
 
 class LectureSection(models.Model):
+    DoesNotExist = None
     objects = models.Manager()
 
     course = models.ForeignKey(
@@ -62,6 +63,7 @@ class LectureSection(models.Model):
 
 # Represents a section of a course (Tutorial, Lab, etc.)
 class NonLectureSection(models.Model):
+    DoesNotExist = None
     objects = models.Manager()
 
     lecture_section = models.ForeignKey(

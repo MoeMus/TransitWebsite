@@ -97,7 +97,7 @@ export function Dashboard() {
   async function getUserInfo() {
     try {
       const userData = await apiClient.get(
-        `/api/user/get/?username=${username}`,
+        `/api/user/?username=${username}`,
         {
           method: "GET",
         }

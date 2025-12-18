@@ -10,7 +10,7 @@ from django.db import IntegrityError, transaction
 
 from .models import *
 
-from .serializers import CourseSerializer, UserSerializer
+from .serializers import CourseSerializer, UserSerializer, LectureSectionSerializer, NonLectureSectionSerializer
 from .utils import *
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -117,85 +117,116 @@ def test_view(request):
     return HttpResponse('Test view')
 
 
-class UserCourseView(APIView):
-    permission_classes = (IsAuthenticated,)
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_course(request, department, course_number):
+    try:
 
-    def get(self, request):
-        department = request.query_params.get("department")
-        number = request.query_params.get("course_number")
+        # Check if the course exists in our database of all courses
+        course = get_object_or_404(Course, title=department, number=course_number)
 
-        try:
+        return Response(CourseSerializer(course).data, status=status.HTTP_200_OK)
 
-            # Check if the course exists in our database of all courses
-            course = get_object_or_404(Course, title=department, number=number)
+    except Http404 as e:
 
-            return Response(CourseSerializer(course).data, status=status.HTTP_200_OK)
+        return Response({"error": "Course does not exist"}, status=status.HTTP_404_NOT_FOUND)
 
-        except Http404 as e:
 
-            return Response({"error": "Course does not exist"}, status=status.HTTP_404_NOT_FOUND)
+# Adds a course (lecture section or non lecture section) to a user's schedule
+# Expects the request body to be a JSON representation of either a lecture section or non lecture section as defined
+# in the models.py
 
-    # Adds a course to a user's schedule
-    # Expects the request body to be a JSON representation of a course as defined in the models.py
-    # Front-end must create this format
-    def post(self, request):
-        username = request.data['username']
-        course_name = request.data["course_name"]
-        section_name = request.data["section_name"]
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def add_course_to_schedule(request):
+    username = request.data['username']
+    course_name = request.data["course_name"]
+    section_name = request.data["section_name"]
 
-        try:
+    try:
 
-            # Get the course object
-            new_course = get_object_or_404(Course, title=course_name, section_name=section_name)
+        user = get_object_or_404(User, username=username)
 
-            # Get the user's courses by username
+        # Get the user's courses by username
+        existing_courses = list(user.lecture_sections.all())
+        existing_courses += list(user.non_lecture_sections.all())
 
-            user = get_object_or_404(User, username=username)
-            existing_courses = user.courses.all()
+        new_lecture_section = LectureSection.objects.filter(title=course_name, section_code=section_name).first()
 
-            # Check for time conflicts using the helper function
-            conflicts = check_time_conflicts(new_course, existing_courses)
+        if new_lecture_section:
 
-            if conflicts:
-                # If conflicts are found, return them in the response
+            lecture_conflicts = check_time_conflicts(new_lecture_section, existing_courses)
+            if lecture_conflicts:
+
                 return Response({
                     "error": "Time conflicts detected",
-                    "conflicts": conflicts
+                    "conflicts": lecture_conflicts
                 }, status=status.HTTP_409_CONFLICT)
 
-            # If no conflicts, add the course to the user's schedule
-            user.courses.add(new_course)
+            user.lecture_sections.add(new_lecture_section)
+
+        else:
+
+            # If the provided data does not belong to any lecture section, try finding a non lecture section with the
+            # corresponding data
+
+            new_non_lecture_section = NonLectureSection.objects.filter(title=course_name, section_code=section_name).first()
+
+            if new_non_lecture_section:
+                non_lecture_conflicts = check_time_conflicts(new_non_lecture_section, existing_courses)
+                if non_lecture_conflicts:
+
+                    return Response({
+                        "error": "Time conflicts detected",
+                        "conflicts": non_lecture_conflicts,
+                    }, status=status.HTTP_409_CONFLICT)
+
+                user.non_lecture_sections.add(new_non_lecture_section)
+
+        user.save()
+
+        return Response({"success": "Section added successfully"}, status=status.HTTP_200_OK)
+
+    except Http404 as e:
+
+        return Response({"error": "No user found"}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def remove_course_from_schedule(request):
+    username = request.data['username']
+    course_name = request.data["course_name"]
+    section_name = request.data["section_name"]
+
+    try:
+
+        with transaction.atomic():
+
+            user = get_object_or_404(User, username=username)
+
+            lecture_section = LectureSection.objects.filter(title=course_name, section_code=section_name).first()
+
+            if lecture_section:
+
+                non_lecture_section = user.non_lecture_sections.filter(lecture_section=lecture_section)
+
+                user.lecture_sections.remove(lecture_section)
+                user.non_lecture_sections.remove(non_lecture_section)
+
+            else:
+
+                non_lecture_section = NonLectureSection.objects.get(title=course_name, section_code=section_name)
+                user.non_lecture_sections.remove(non_lecture_section)
+
             user.save()
 
-            return Response({"success": "Course added successfully"}, status=status.HTTP_200_OK)
+            return Response({"success": "Section removed successfully"}, status=status.HTTP_200_OK)
 
-        except Http404 as e:
+    except Http404 as e:
 
-            return Response({"error": "No course or user found"}, status=status.HTTP_404_NOT_FOUND)
-
-    # Removes a course from a user's schedule
-    def delete(self, request):
-        username = request.data['username']
-        course_name = request.data['course_name']
-        section_name = request.data['section_name']
-
-        if not username or not course_name:
-            return Response({"error": "Username or course name was not given"}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-
-            with transaction.atomic():
-
-                user = get_object_or_404(User, username=username)
-                course = get_object_or_404(Course, title=course_name, section_name=section_name)
-
-                user.courses.remove(course)
-                user.save()
-
-        except Http404 as e:
-
-            return Response({"error": "course could not be removed from your schedule"},
-                            status=status.HTTP_404_NOT_FOUND)
+        return Response({"error": "course could not be removed from your schedule"},
+                        status=status.HTTP_404_NOT_FOUND)
 
 
 # Given a set of course IDs, retrieve the course info associated with each section as a list
@@ -244,19 +275,23 @@ def get_courses_from_ids(request):
                     status=status.HTTP_200_OK)
 
 
-class UserAllCoursesView(APIView):
+class UserCoursesView(APIView):
     permission_classes = (IsAuthenticated,)
 
-    def get(self, request):
-
-        username = request.query_params.get('username')
+    def get(self, request, username):
 
         try:
-
+            print("User: ", username)
             user = get_object_or_404(User, username=username)
-            courses = user.courses.all()
+            lecture_sections = user.lecture_sections.all()
+            non_lecture_sections = user.non_lecture_sections.all()
 
-            return Response(CourseSerializer(courses, many=True).data, status=status.HTTP_200_OK)
+            response_data = {
+                "lecture_sections": LectureSectionSerializer(lecture_sections, many=True).data,
+                "non_lecture_sections": NonLectureSectionSerializer(non_lecture_sections, many=True).data
+            }
+
+            return Response(response_data, status=status.HTTP_200_OK)
 
         except Http404 as e:
 

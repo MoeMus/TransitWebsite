@@ -57,7 +57,7 @@ class LectureSection(models.Model):
     delivery_method = models.CharField(max_length=50, null=True, blank=True)
 
     def __str__(self):
-        return f"{self.course.title} - {self.section_code} (Lecture)"
+        return f"{self.title} - {self.section_code} (Lecture)"
 
 
 # Represents a section of a course (Tutorial, Lab, etc.)
@@ -88,7 +88,8 @@ class NonLectureSection(models.Model):
 
 class User(AbstractUser):
     DoesNotExist = None
-    courses = models.ManyToManyField('Course', related_name='users', blank=True)
+    lecture_sections = models.ManyToManyField('LectureSection', related_name='users', blank=True)
+    non_lecture_sections = models.ManyToManyField('NonLectureSection', related_name='users', blank=True)
 
     groups = models.ManyToManyField(
         Group,

@@ -14,11 +14,11 @@ services:
 
     environment:
       DJANGO_SETTINGS_MODULE: backend.settings
-      DB_HOST: mysql
-      DB_PORT: 3306
-      DB_NAME: transit_app_database
-      DB_PASSWORD: ${TRANSIT_DB_PASSWORD}
-      DB_USER: ${TRANSIT_DB_USER}
+      TRANSIT_DB_HOST: mysql
+      TRANSIT_DB_PORT: 3306
+      TRANSIT_DB_NAME: transit_app_database
+      TRANSIT_DB_PASSWORD: ${TRANSIT_DB_PASSWORD}
+      TRANSIT_DB_USER: ${TRANSIT_DB_USER}
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
     depends_on:
       mysql:
@@ -34,11 +34,11 @@ services:
 
     environment:
       DJANGO_SETTINGS_MODULE: backend.settings
-      DB_HOST: mysql
-      DB_PORT: 3306
-      DB_NAME: transit_app_database
-      DB_PASSWORD: ${TRANSIT_DB_PASSWORD}
-      DB_USER: ${TRANSIT_DB_USER}
+      TRANSIT_DB_HOST: mysql
+      TRANSIT_DB_PORT: 3306
+      TRANSIT_DB_NAME: transit_app_database
+      TRANSIT_DB_PASSWORD: ${TRANSIT_DB_PASSWORD}
+      TRANSIT_DB_USER: ${TRANSIT_DB_USER}
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
 
     volumes:

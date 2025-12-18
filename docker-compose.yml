@@ -1,0 +1,76 @@
+# Docker containers for the Django server and MySQL database
+
+services:
+
+  django:
+
+    container_name: transit_server
+
+    build:
+      context: ./backend
+
+    volumes:
+      - server_data:/data
+
+    environment:
+      DJANGO_SETTINGS_MODULE: backend.settings
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: transit_app_database
+      DB_PASSWORD: ${TRANSIT_DB_PASSWORD}
+      DB_USER: ${TRANSIT_DB_USER}
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - 8000:8000
+
+  cron:
+
+    container_name: cron_scheduler
+    build:
+      context: ./server
+
+    environment:
+      DJANGO_SETTINGS_MODULE: backend.settings
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: transit_app_database
+      DB_PASSWORD: ${TRANSIT_DB_PASSWORD}
+      DB_USER: ${TRANSIT_DB_USER}
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+
+    volumes:
+      - server_data:/data
+    command: >
+      sh -c "python manage.py migrate django_cron && python manage.py runcrons"
+    depends_on:
+      - django
+      - mysql
+
+  mysql:
+
+    container_name: server_mysql_db
+    platform: linux/x86_64
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: transit_app_database
+      MYSQL_USER: ${TRANSIT_DB_USER}
+      MYSQL_PASSWORD: ${TRANSIT_DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${TRANSIT_DB_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: mysqladmin ping -h 127.0.0.1 -u $$MYSQL_USER --password=$$MYSQL_PASSWORD
+      start_period: 5s
+      interval: 2s
+      timeout: 5s
+      retries: 20
+    ports:
+      - 3307:3306   # Port 3307 is used to prevent conflicts with MySQL running locally
+
+volumes:
+
+  server_data:
+  db_data:

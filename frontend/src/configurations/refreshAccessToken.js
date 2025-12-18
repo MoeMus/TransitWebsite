@@ -23,7 +23,7 @@ const useCheckAccessToken = () => {
 
     const interval = setInterval(async () => {
       try {
-        const response = await apiClient.post("http://127.0.0.1:8000/token/refresh/", requestBody, {
+        const response = await apiClient.post("/token/refresh/", requestBody, {
           method: "POST",
         });
         const { access, refresh } = response.data;

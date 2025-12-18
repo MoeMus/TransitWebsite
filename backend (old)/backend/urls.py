@@ -1,5 +1,5 @@
 """
-URL configuration for server project.
+URL configuration for backend project.
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/4.2/topics/http/urls/
@@ -14,7 +14,7 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 
-This server/urls.py file routes high-level/project-level URLs to the appropriate app-level URL configurations.
+This backend/urls.py file routes high-level/project-level URLs to the appropriate app-level URL configurations.
 It includes the URLs for the admin interface and the core app.
 """
 from django.contrib import admin

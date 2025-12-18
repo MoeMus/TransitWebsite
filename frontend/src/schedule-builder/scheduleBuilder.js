@@ -145,9 +145,12 @@ export function ScheduleBuilder() {
         try {
           // Send the POST request to persist the course on the backend.
           await apiClient.post(
-            `http://127.0.0.1:8000/api/user/courses/add/`,
+            `/api/user/courses/`,
             post_payload,
-            { withCredentials: true }
+            {
+              withCredentials: true,
+              method: "POST"
+            }
           );
 
           // On success, update the local state
@@ -198,9 +201,12 @@ export function ScheduleBuilder() {
         console.log("Posting add course without non-lecture:", post_payload);
         try {
           await apiClient.post(
-            `http://127.0.0.1:8000/api/user/courses/add/`,
+            `/api/user/courses/`,
             post_payload,
-            { withCredentials: true }
+            {
+              withCredentials: true,
+              method: "POST"
+            }
           );
 
           setSelectedCourses([...selectedCourses, courseToAdd]);
@@ -252,9 +258,12 @@ export function ScheduleBuilder() {
 
       try {
         await apiClient.post(
-          `http://127.0.0.1:8000/api/user/courses/delete/`,
+          `/api/user/courses/`,
           post_request,
-          { withCredentials: true }
+          {
+            withCredentials: true,
+            method: "DELETE"
+          }
         );
         toast.success(`${courseData.department} ${courseData.course_number} removed from schedule`);
       } catch (err) {

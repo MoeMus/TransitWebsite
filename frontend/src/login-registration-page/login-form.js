@@ -52,7 +52,6 @@ export function Login() {
             setLoginError(true);
         }
 
-
     }
 
     return (

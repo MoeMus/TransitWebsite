@@ -80,8 +80,8 @@ export function Register(){
         }
     }
 
-    function submitCredentials(evt){
-        evt.preventDefault();
+    function submitCredentials(e){
+        e.preventDefault();
         const userCredentials = {username: username, email: email, password: password};
         apiClient.post('api/user/register/', userCredentials, {
                 method: 'POST',

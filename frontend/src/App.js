@@ -28,11 +28,11 @@ function App() {
                   }).then(
                       ()=>{
                           setIsAuth(true);
-                          setCookieExpired(false)
+                          setCookieExpired(false);
                       }
                   ).catch(()=>{ //A 404 is returned if the cookie expired
 
-                      setCookieExpired(true)
+                      setCookieExpired(true);
 
                   });
               }

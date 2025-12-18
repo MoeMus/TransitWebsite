@@ -18,7 +18,7 @@ export function Directions({userLocation, setTravelTime, setTravelDistance}) {
     useEffect(() => {
         if (!map || !window.google) return;
         try {
-            setTravelMode("Transit"); //Default travel mode
+            setTravelMode("Transit"); // Default travel mode
             const service = new window.google.maps.DirectionsService();
             const renderer = new window.google.maps.DirectionsRenderer({map});
 
@@ -104,6 +104,7 @@ export function Directions({userLocation, setTravelTime, setTravelDistance}) {
                             <Dropdown.Item eventKey="Bicycling"> Bicycling </Dropdown.Item>
                             <Dropdown.Item eventKey="Walking"> Walking </Dropdown.Item>
                         </Dropdown.Menu>
+
                     </Dropdown>
 
                 </div>
@@ -128,9 +129,7 @@ export function Directions({userLocation, setTravelTime, setTravelDistance}) {
 
                                     :
 
-                                    <Link variant="plain" onClick={() => {
-                                        setRouteIndex(index);
-                                    }}>
+                                    <Link variant="plain" onClick={() => { setRouteIndex(index); }}>
 
                                         {route.summary || `Route ${index + 1}`}
 

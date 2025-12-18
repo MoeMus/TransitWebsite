@@ -96,12 +96,8 @@ export function Dashboard() {
 
     async function retrieveUserDataManually() {
         try {
-            const response = await apiClient.get(
-                `/api/user/get/?username=${username}`,
-                {
-                    method: "GET",
-                }
-            );
+            const response = await apiClient.get(`/api/user/get/?username=${username}`,
+                { method: "GET",} );
             let userData = response.data
             userData['access_token'] = sessionStorage.getItem('access_token');
             userData['refresh_token'] = sessionStorage.getItem('refresh_token');

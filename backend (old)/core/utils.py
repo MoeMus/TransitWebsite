@@ -1,5 +1,7 @@
 import datetime
 from datetime import time
+from django.utils import timezone
+from .models import LectureSection
 
 DATE = datetime.datetime.now()
 
@@ -80,3 +82,12 @@ def is_conflicting(new_schedule, existing_schedule):
         return (new_schedule.start_time <= existing_schedule.end_time and
                 existing_schedule.start_time <= new_schedule.end_time)
     return False
+
+#def get_latest_component(user):
+#    now = timezone.now()
+#    upcoming_section = None
+#
+#    lecture_sections = user.
+
+
+

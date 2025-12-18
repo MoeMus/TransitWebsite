@@ -8,22 +8,23 @@ from django.urls import path
 from . import views
 from .views import *
 
-# New view which fetches course data
+from .api_endpoints import user_views, course_views, cookie_views
+
 urlpatterns = [
     path('test/', test_view, name='test-view'),
-    path('logout/', views.LogoutView.as_view(), name='logout'),
-    path('user/get/', views.UserView.as_view(), name='get-user'),
-    path('user/register/', views.RegisterView.as_view(), name='register'),
-    path('user/delete/', views.DeleteUserView.as_view(), name='delete-user'),
-    path('user/courses/delete/all/', views.DeleteAllCoursesView.as_view(), name='delete-all-courses'),
-    path('user/courses/add/', views.AddCourseView.as_view(), name='add-course'),
-    path('user/courses/delete/', views.DeleteCourseView.as_view(), name='delete-a-course'),
-    path('user/courses/get/', views.GetCourseView.as_view(), name='get-course'),
-    path('user/courses/', GetUserCoursesView.as_view(), name='user-courses'),
-    # path('user/courses/get/all', GetUserCoursesView.as_view(), name='get-user-courses'),
-    path('courses/', fetch_all_courses, name='fetch-all-courses'),
-    path('courses/lectures/', GetAvailableLecturesView.as_view(), name='get-available-lectures'),
-    path('courses/<int:course_id>/lectures/', views.GetLectureSectionsView.as_view(), name='get-lecture-sections'),
-    path('lectures/<int:lecture_section_id>/non-lectures/', views.GetNonLectureSectionsView.as_view(),
+    path('logout/', logout, name='logout'),
+    path('user/', user_views.UserView.as_view(), name='user'),
+    path('user/<str:username>/courses/', user_views.get_user_courses, name='all-user-courses'),
+    path('user/courses/add/', user_views.add_course_to_schedule, name='add-course'),
+    path('user/courses/remove/', user_views.remove_course_from_schedule, name='remove-course'),
+    path('user/courses/remove/all/', user_views.remove_courses, name='remove-all-courses'),
+    path('courses/get/all/', course_views.fetch_all_courses, name='fetch-all-courses'),
+    path('courses/get/', course_views.get_course, name='fetch-course'),
+    path('courses/<int:course_id>/lectures/', course_views.get_lecture_sections, name='get-lecture-sections'),
+    path('courses/lectures/<int:lecture_section_id>/non-lectures/', course_views.get_non_lecture_sections,
          name='get-non-lecture-sections'),
+    path('cookie/approve/', cookie_views.approve_cookie, name='approve-cookie'),
+    path('cookie/set/', cookie_views.set_cookie, name='set-cookie'),
+    path('cookie/get/info/', cookie_views.get_user_info_from_cookie, name='get-cookie-info'),
+    path('cookie/delete/', cookie_views.delete_cookie, name='delete-cookie'),
 ]

@@ -12,7 +12,7 @@ const refreshAccessToken = async () => {
   }
 
   try {
-    const response = await fetch('http://localhost:8000/token/refresh/', {
+    const response = await apiClient('/token/refresh/', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -56,8 +56,15 @@ export function ScheduleBuilder() {
 
   // Fetch all available courses
   const fetchAvailableCourses = async () => {
+    const accessToken = sessionStorage.getItem('access_token');
     try {
-      const response = await fetch('http://localhost:8000/api/courses/');
+      const response = await apiClient('/api/courses/get/all/', {
+        method: "GET",
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        }
+      });
       const data = await response.json();  // Convert the response to JSON
       setAvailableCourses(data);  // Set the parsed data to state
     } catch (err) {
@@ -72,7 +79,7 @@ export function ScheduleBuilder() {
 
     const fetchAvailableLectures = async () => {
       try {
-        const response = await fetch(`http://localhost:8000/api/courses/lectures/`);
+        const response = await apiClient(`/api/courses/lectures/`);
         const data = await response.json();
         if (data.length > 0) {
           setAvailableCourses(data);
@@ -105,7 +112,7 @@ export function ScheduleBuilder() {
     }
 
     try {
-      const response = await fetch(`http://localhost:8000/api/user/courses/?username=${username}`, {
+      const response = await apiClient(`/api/user/${username}/courses/`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -145,9 +152,12 @@ export function ScheduleBuilder() {
         try {
           // Send the POST request to persist the course on the backend.
           await apiClient.post(
-            `http://127.0.0.1:8000/api/user/courses/add/`,
+            `/api/user/courses/add/`,
             post_payload,
-            { withCredentials: true }
+            {
+              withCredentials: true,
+              method: "POST"
+            }
           );
 
           // On success, update the local state
@@ -198,9 +208,12 @@ export function ScheduleBuilder() {
         console.log("Posting add course without non-lecture:", post_payload);
         try {
           await apiClient.post(
-            `http://127.0.0.1:8000/api/user/courses/add/`,
+            `/api/user/courses/`,
             post_payload,
-            { withCredentials: true }
+            {
+              withCredentials: true,
+              method: "POST"
+            }
           );
 
           setSelectedCourses([...selectedCourses, courseToAdd]);
@@ -252,18 +265,21 @@ export function ScheduleBuilder() {
 
       try {
         await apiClient.post(
-          `http://127.0.0.1:8000/api/user/courses/delete/`,
+          `/api/user/courses/remove/`,
           post_request,
-          { withCredentials: true }
+          {
+            withCredentials: true,
+            method: "POST"
+          }
         );
-        toast.success(`${courseData.department} ${courseData.course_number} removed from schedule`);
+        toast.success(`${courseData.title} ${courseData.section_name} removed from schedule`);
       } catch (err) {
         console.error("Error in remove API:", err);
         toast.error(err.response?.data?.error || "Error removing course");
       }
 
       try {
-        const response = await fetch("http://localhost:8000/api/courses/");
+        const response = await apiClient("/api/courses/get/all/");
         const data = await response.json();
         setAvailableCourses(data);
       } catch (err) {
@@ -289,7 +305,7 @@ export function ScheduleBuilder() {
     }
 
     try {
-      const response = await fetch(`http://localhost:8000/api/courses/${courseId}/lectures/`, {
+      const response = await apiClient(`/api/courses/${courseId}/lectures/`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${accessToken}`, // Add the Bearer token
@@ -324,7 +340,7 @@ export function ScheduleBuilder() {
     }
 
     try {
-      const response = await fetch(`http://localhost:8000/api/lectures/${lectureId}/non-lectures/`, {
+      const response = await apiClient(`/api/lectures/${lectureId}/non-lectures/`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${accessToken}`, // Add Bearer token for authentication

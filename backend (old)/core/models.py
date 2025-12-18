@@ -1,5 +1,3 @@
-import uuid
-
 from django.db import models
 from django.contrib.auth.models import AbstractUser, Group, Permission
 
@@ -23,9 +21,17 @@ class Course(models.Model):
         LECTURE = "LEC", "Lecture"
 
     # info
-    title = models.CharField(max_length=100, default='Untitled', db_index=True)
+    title = models.CharField(max_length=100, default='Untitled')
     department = models.CharField(max_length=100, default='No department')
-    course_number = models.CharField(max_length=10, default='000') # 125, 225, etc.
+    class_number = models.CharField(max_length=20, default='000')
+    course_number = models.CharField(max_length=10, default=0)
+    section_name = models.CharField(max_length=100, default='D100')  # E.g. D100, E200, etc.
+    description = models.TextField(null=True, blank=True)
+    term = models.CharField(max_length=50, null=True, blank=True)
+    delivery_method = models.CharField(max_length=50, null=True, blank=True)
+
+    #  instructor
+    #professor = models.CharField(max_length=100, null=True, blank=True)  # Professor field is optional, usually updated
 
     # The __str method below makes the Django Course model readable for when you do print(course)
     def __str__(self):
@@ -35,51 +41,47 @@ class Course(models.Model):
 
 
 class LectureSection(models.Model):
-    DoesNotExist = None
     objects = models.Manager()
-
-    course = models.ForeignKey(
-        Course,
-        on_delete=models.CASCADE,
-        related_name="lecture_sections",
-        null=True,
-    )
-
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
     section_code = models.CharField(max_length=10)
+    start_time = models.CharField(max_length=50, null=True, blank=True)
     start_date = models.DateField(null=True, blank=True)
+    end_time = models.CharField(max_length=50, null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)
-    schedule = models.JSONField(null=True, blank=True)
+    is_exam = models.BooleanField(default=False)
+    days = models.CharField(max_length=50, null=True, blank=True)
     campus = models.CharField(max_length=50, null=True, blank=True)
     class_type = models.CharField(max_length=10, null=True, blank=True)
     professor = models.CharField(max_length=100, null=True, blank=True)
     associated_class = models.CharField(max_length=50, default=0)
     title = models.CharField(max_length=100, default='Untitled')
     number = models.CharField(max_length=100, default='000')
-    delivery_method = models.CharField(max_length=50, null=True, blank=True)
 
     def __str__(self):
-        return f"{self.title} - {self.section_code} (Lecture)"
+        return f"{self.course.title} - {self.section_code} (Lecture)"
 
 
 # Represents a section of a course (Tutorial, Lab, etc.)
 class NonLectureSection(models.Model):
-    DoesNotExist = None
     objects = models.Manager()
-
     lecture_section = models.ForeignKey(
         LectureSection,
         on_delete=models.CASCADE,
         related_name='non_lecture_sections',  # Explicit reverse relation
         null=True,
-        default=None,
+        default=None
     )
+    dummy_test_field = models.BooleanField(default=False)
     section_code = models.CharField(max_length=10)
     class_type = models.CharField(max_length=10)  # e.g., "e" or "n"
     associated_class = models.CharField(max_length=10, default=0)
     title = models.CharField(max_length=100, default="Untitled")
+    start_time = models.CharField(max_length=100, null=True, blank=True)
     start_date = models.DateField(null=True, blank=True)
+    end_time = models.CharField(max_length=100, null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)
-    schedule = models.JSONField(null=True, blank=True)
+    is_exam = models.BooleanField(default=False)
+    days = models.CharField(max_length=100, null=True, blank=True)
     campus = models.CharField(max_length=100, null=True, blank=True)
     professor = models.CharField(max_length=100, null=True, blank=True)
     number = models.CharField(max_length=100, default='000')
@@ -90,8 +92,7 @@ class NonLectureSection(models.Model):
 
 class User(AbstractUser):
     DoesNotExist = None
-    lecture_sections = models.ManyToManyField('LectureSection', related_name='users', blank=True)
-    non_lecture_sections = models.ManyToManyField('NonLectureSection', related_name='users', blank=True)
+    Courses = models.ManyToManyField('Course', related_name='users', blank=True)
 
     groups = models.ManyToManyField(
         Group,

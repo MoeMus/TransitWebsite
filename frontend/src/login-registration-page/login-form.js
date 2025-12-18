@@ -28,7 +28,7 @@ export function Login() {
 
         try {
             //Send credentials to retrieve access and login tokens at /token/
-            const response = await apiClient.post('http://127.0.0.1:8000/token/', userCredentials, {
+            const response = await apiClient.post('/token/', userCredentials, {
                 withCredentials: true
             });
 
@@ -37,7 +37,7 @@ export function Login() {
                 throw new Error("");
             }
 
-            //Clear local storage in the browser and update the access and refresh tokens there
+            // Clear local storage in the browser and update the access and refresh tokens there
             const {data} = response;
             sessionStorage.clear();
             sessionStorage.setItem('user', username);

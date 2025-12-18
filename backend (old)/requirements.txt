@@ -1,0 +1,7 @@
+Django
+djangorestframework
+mysqlclient
+requests
+djangorestframework-simplejwt
+django-cors-headers
+python-dateutil==2.9.0.post0

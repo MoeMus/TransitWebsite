@@ -95,7 +95,7 @@ export function Navigation({username = ""}){
 
         const request = {access_token: sessionStorage.getItem('access_token'), refresh_token: sessionStorage.getItem('refresh_token')}
 
-        apiClient.post("http://127.0.0.1:8000/api/logout/", request,{
+        apiClient.post("/api/logout/", request,{
             method: "POST",
             withCredentials: true
         }).then(()=>{
@@ -111,8 +111,8 @@ export function Navigation({username = ""}){
     function deleteAccount(){
 
         const request = {username: sessionStorage.getItem('user')}
-        apiClient.post("http://127.0.0.1:8000/api/user/delete/", request, {
-            method: "POST",
+        apiClient.post("/api/user/", request, {
+            method: "DELETE",
             withCredentials: true
         }).then(()=>{
             sessionStorage.clear()

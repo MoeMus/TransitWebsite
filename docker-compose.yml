@@ -30,7 +30,7 @@ services:
 
     container_name: cron_scheduler
     build:
-      context: ./server
+      context: ./backend
 
     environment:
       DJANGO_SETTINGS_MODULE: backend.settings

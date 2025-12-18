@@ -281,7 +281,7 @@ class UserCoursesView(APIView):
     def get(self, request, username):
 
         try:
-            print("User: ", username)
+
             user = get_object_or_404(User, username=username)
             lecture_sections = user.lecture_sections.all()
             non_lecture_sections = user.non_lecture_sections.all()

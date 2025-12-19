@@ -150,8 +150,6 @@ def add_course_to_schedule(request):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        print("User's courses: ", user_courses)
-
         new_lecture_section = LectureSection.objects.filter(department=department, number=course_number,
                                                             section_code=section_code).first()
 

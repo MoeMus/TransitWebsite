@@ -113,6 +113,4 @@ def check_time_conflicts(new_course, user_courses):
 
                     conflicts.add(course["section"].id)
 
-    print("Conflict detected")
-
     return list(conflicts)

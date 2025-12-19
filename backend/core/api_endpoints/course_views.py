@@ -82,16 +82,16 @@ def fetch_all_courses(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_lecture_sections(request, course_id: int):
-
     try:
 
         course = get_object_or_404(Course, id=course_id)
-        print("Course ", course)
 
         lecture_sections = course.lecture_sections.all()  # Fetch related lecture sections
-        data = [{"id": ls.id, "section_code": ls.section_code, "professor": ls.professor, "schedule": ls.schedule,
-                 "start_date": ls.start_date, "end_date": ls.end_date}
-                for ls in lecture_sections]
+        data = [{"id": ls.id, "department": ls.department, "number": ls.number, "title": ls.title,
+                 "section_code": ls.section_code, "professor": ls.professor, "schedule": ls.schedule,
+                 "start_date": ls.start_date, "end_date": ls.end_date, "campus": ls.campus}
+                for ls in lecture_sections
+                ]
 
         return JsonResponse(data, safe=False, status=status.HTTP_200_OK)
 
@@ -103,15 +103,16 @@ def get_lecture_sections(request, course_id: int):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_non_lecture_sections(request, lecture_section_id):
-
     try:
 
         lecture_section = get_object_or_404(LectureSection, id=lecture_section_id)
         non_lecture_sections = lecture_section.non_lecture_sections.all()  # Use the new related_name
         data = [
-            {"id": nls.id, "section_code": nls.section_code, "professor": nls.professor, "schedule": nls.schedule,
-             "start_date": nls.start_date, "end_date": nls.end_date}
-            for nls in non_lecture_sections]
+            {"id": nls.id, "department": nls.department, "title": nls.title, "section_code": nls.section_code,
+             "professor": nls.professor, "schedule": nls.schedule,
+             "start_date": nls.start_date, "end_date": nls.end_date, "campus": nls.campus}
+            for nls in non_lecture_sections
+        ]
         return JsonResponse(data, safe=False, status=status.HTTP_200_OK)
 
     except Http404 as e:

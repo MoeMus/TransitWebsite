@@ -54,6 +54,7 @@ class LectureSection(models.Model):
     professor = models.CharField(max_length=100, null=True, blank=True)
     associated_class = models.CharField(max_length=50, default=0)
     title = models.CharField(max_length=100, default='Untitled')
+    department = models.CharField(max_length=100, default='No department')
     number = models.CharField(max_length=100, default='000')
     delivery_method = models.CharField(max_length=50, null=True, blank=True)
 
@@ -82,6 +83,7 @@ class NonLectureSection(models.Model):
     schedule = models.JSONField(null=True, blank=True)
     campus = models.CharField(max_length=100, null=True, blank=True)
     professor = models.CharField(max_length=100, null=True, blank=True)
+    department = models.CharField(max_length=100, default='No department')
     number = models.CharField(max_length=100, default='000')
 
     def __str__(self):

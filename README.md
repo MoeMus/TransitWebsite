@@ -62,23 +62,18 @@ Follow these steps to set up the project and install the required packages for R
    ```bash
    pip install -r requirements.txt
 
-4. **Make sure you're using the port you want to use in `backend/settings.py`**  
-   **Environment variables for MySQL and Django will be set in the next step**
+4. **Make sure you're using the port you want to use in `backend/settings.py`** 
 
-   ```python
-   DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.mysql",
-        "NAME": 'python_database',
-        'USER': 'root',
-        'PASSWORD': pw,
-        'HOST': 'localhost',
-        'PORT': '3306',
-    }
-   }  
+   **Create a `.env` file in the root directory with these environment variables to establish
+   the database connection**
+   ```bash
+   TRANSIT_DB_PASSWORD=
+   TRANSIT_DB_NAME=
+   TRANSIT_DB_USER=
+   TRANSIT_DB_HOST=
+   TRANSIT_DB_PORT=
 
-
-5. **Set Environment Variables**  
+5. **Set Environment Variables For MySQL and Django**  
    ![Linux](https://img.icons8.com/color/48/000000/linux.png) ![Mac](https://img.icons8.com/ios-filled/50/000000/mac-os.png) **Linux/MacOS:**
 
    1. Open the text editor:
@@ -115,6 +110,10 @@ Follow these steps to set up the project and install the required packages for R
 7. **Run the server**
    ```bash
    python manage.py runserver
+
+8. **Alternatively, you can use Docker to run the backend**
+   ```bash
+   docker compose up
 
 ### Frontend Setup
 1. Navigate to the directory for frontend

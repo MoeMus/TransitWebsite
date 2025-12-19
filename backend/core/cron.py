@@ -27,6 +27,9 @@ class SyncCoursesCronJob(CronJobBase):
 
         for department in departments:
             try:
+
+                department = department.upper()
+
                 logger.info(f"Fetching courses for department: {department}")
 
                 courses_url = f"https://www.sfu.ca/bin/wcm/course-outlines?{current_year}/{current_term}/{department}"
@@ -102,6 +105,7 @@ class SyncCoursesCronJob(CronJobBase):
                                     "professor": first_instructor.get("name", "Unknown"),
                                     "associated_class": associated_class,
                                     "title": section_title or "Untitled",
+                                    "department": department,
                                     "number": info.get("number", "000"),
                                     "delivery_method": section_details.get("deliveryMethod", "")
                                 },
@@ -135,6 +139,7 @@ class SyncCoursesCronJob(CronJobBase):
                                             "professor": instructor,
                                             "title": section_title,
                                             "associated_class": associated_class,
+                                            "department": department,
                                             "number": info.get("number")
                                         }
                                     )

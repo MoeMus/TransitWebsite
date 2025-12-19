@@ -138,15 +138,25 @@ def add_course_to_schedule(request):
         user = get_object_or_404(User, username=username)
 
         # Get the user's courses by username
-        existing_courses = list(user.lecture_sections.all())
-        existing_courses += list(user.non_lecture_sections.all())
+        user_courses = list(user.lecture_sections.all())
+        user_courses += list(user.non_lecture_sections.all())
+
+        existing_courses = [course for course in user_courses if course.department == department and
+                            course.number == course_number and course.section_code == section_code]
+
+        if existing_courses:
+
+            return Response(
+                {"error": "This section is already in your schedule"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         new_lecture_section = LectureSection.objects.filter(department=department, number=course_number,
                                                             section_code=section_code).first()
 
         if new_lecture_section:
 
-            lecture_conflicts = check_time_conflicts(new_lecture_section, existing_courses)
+            lecture_conflicts = check_time_conflicts(new_lecture_section, user_courses)
             if lecture_conflicts:
 
                 return Response({
@@ -165,7 +175,7 @@ def add_course_to_schedule(request):
 
             if new_non_lecture_section:
 
-                non_lecture_conflicts = check_time_conflicts(new_non_lecture_section, existing_courses)
+                non_lecture_conflicts = check_time_conflicts(new_non_lecture_section, user_courses)
                 if non_lecture_conflicts:
 
                     return Response({

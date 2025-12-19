@@ -37,8 +37,19 @@ export default function CourseCalendar({courses}){
                 let new_section = {};
 
                 new_section.title = title;
-                new_section.startRecur = schedule_block["startDate"];
-                new_section.endRecur = schedule_block["endDate"];
+
+                new_section.rrule = {
+                    freq: 'weekly',
+                    interval: 5,
+                    byweekday: [],
+                    dtstart: schedule_block["startTime"],
+                    until: schedule_block["endDate"]
+                }
+
+                const start_date = new Date(schedule_block["startDate"]).toISOString().split("T")[0];
+                const end_date = new Date(schedule_block["endDate"]).toISOString().split("T")[0];
+                new_section.startRecur = start_date;
+                new_section.endRecur = end_date;
                 new_section.startTime = schedule_block["startTime"];
                 new_section.endTime = schedule_block["endTime"];
                 new_section.daysOfWeek = []

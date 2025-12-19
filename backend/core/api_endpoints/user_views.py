@@ -112,8 +112,8 @@ def remove_courses(request):
 
         with transaction.atomic():
             user = User.objects.get(username=request.data["username"])
-            user.lecture_sections.all().delete()
-            user.non_lecture_sections.all().delete()
+            user.lecture_sections.clear()
+            user.non_lecture_sections.clear()
             user.save()
             return Response({"success": "All courses removed from schedule"}, status=status.HTTP_200_OK)
 
@@ -149,6 +149,8 @@ def add_course_to_schedule(request):
                 {"error": "This section is already in your schedule"},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
+        print("User's courses: ", user_courses)
 
         new_lecture_section = LectureSection.objects.filter(department=department, number=course_number,
                                                             section_code=section_code).first()

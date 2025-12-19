@@ -37,7 +37,7 @@ export function RegistrationPage (){
                 <Flex justifyContent="center">
                     <Card.Root width="320px" marginRight="50px" marginY="50px">
                         <Card.Body gap="2">
-                            <Card.Title mt="2" fontSize="30px"> A Transit Website Designed for SFU Students </Card.Title>
+                            <Card.Title mt="2" fontSize="30px" height="100px"> A Transit Website Designed for SFU Students </Card.Title>
                             <Card.Description>
                                 TransitTail integrates your course schedule with transit and driving information
                                 that allows for instant access to the best travel
@@ -51,11 +51,11 @@ export function RegistrationPage (){
 
                     <Card.Root width="320px" marginY="50px">
                         <Card.Body gap="2">
-                            <Card.Title mt="2" fontSize="30px"> Easy to Set Up </Card.Title>
+                            <Card.Title mt="2" fontSize="30px" height="100px"> Easy to Use </Card.Title>
                             <Card.Description>
                                 To start, create an account and it will prompt you to enter the courses you are
                                 taking this semester, then you will be able to choose how you want to get there on
-                                the dashboard and see the travel time
+                                the dashboard and see the travel time.
                             </Card.Description>
                         </Card.Body>
                     </Card.Root>

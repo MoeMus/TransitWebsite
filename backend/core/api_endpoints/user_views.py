@@ -112,8 +112,8 @@ def remove_courses(request):
 
         with transaction.atomic():
             user = User.objects.get(username=request.data["username"])
-            user.lecture_sections.all().delete()
-            user.non_lecture_sections.all().delete()
+            user.lecture_sections.clear()
+            user.non_lecture_sections.clear()
             user.save()
             return Response({"success": "All courses removed from schedule"}, status=status.HTTP_200_OK)
 

@@ -17,13 +17,13 @@ const refreshAccessToken = async () => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
+      data: {
         refresh: refreshToken,
-      }),
+      },
     });
 
-    if (response.ok) {
-      const data = await response.json();
+    if (response.status === 200) {
+      const data = await response.data;
       sessionStorage.setItem('access_token', data.access);
       return true;
     } else {
@@ -65,8 +65,8 @@ export function ScheduleBuilder() {
           'Content-Type': 'application/json',
         }
       });
-      const data = await response.json();  // Convert the response to JSON
-      setAvailableCourses(data);  // Set the parsed data to state
+      const data = await response.data;  // Convert the response to JSON
+      setAvailableCourses(Array.isArray(data) ? data : []);  // Set the parsed data to state
     } catch (err) {
       toast.error("Failed to load courses", {
         duration: 2000,
@@ -80,8 +80,8 @@ export function ScheduleBuilder() {
     const fetchAvailableLectures = async () => {
       try {
         const response = await apiClient(`/api/courses/lectures/`);
-        const data = await response.json();
-        if (data.length > 0) {
+        const data = await response.data;
+        if (Array.isArray(data) && data.length > 0) {
           setAvailableCourses(data);
           setSelectionStage("lecture");
         } else {
@@ -120,9 +120,9 @@ export function ScheduleBuilder() {
         },
       });
 
-      if (response.ok) {
-        const userCourses = await response.json();
-        setSelectedCourses(userCourses);
+      if (response.status === 200) {
+        const userCourses = await response.data;
+        setSelectedCourses(Array.isArray(userCourses) ? userCourses : []);
       } else {
         toast.error("Failed to load your courses.");
       }
@@ -280,8 +280,8 @@ export function ScheduleBuilder() {
 
       try {
         const response = await apiClient("/api/courses/get/all/");
-        const data = await response.json();
-        setAvailableCourses(data);
+        const data = await response.data;
+        setAvailableCourses(Array.isArray(data) ? data : []);
       } catch (err) {
         toast.error("Failed to load available courses");
         setError(err);
@@ -313,8 +313,8 @@ export function ScheduleBuilder() {
         },
       });
 
-      const data = await response.json();
-      if (data.length > 0) {
+      const data = await response.data;
+      if (Array.isArray(data) && data.length > 0) {
         setLectureSections(data);
         setSelectionStage("lecture");
       } else {
@@ -348,8 +348,8 @@ export function ScheduleBuilder() {
         },
       });
 
-      const data = await response.json();
-      if (data.length > 0) {
+      const data = await response.data;
+      if (Array.isArray(data) && data.length > 0) {
         setNonLectureSections(data);
         setSelectionStage("non-lecture");
       } else {
@@ -411,7 +411,7 @@ export function ScheduleBuilder() {
               value={selectedCourse ? selectedCourse.id : ""}
             >
               <option value="">Select a course</option>
-              {availableCourses.map((course) => (
+              {Array.isArray(availableCourses) && availableCourses.map((course) => (
                 <option key={course.id} value={course.id}>
                   {course.department} {course.course_number}: {course.title}
                 </option>
@@ -430,7 +430,7 @@ export function ScheduleBuilder() {
               value={selectedLectureSection ? selectedLectureSection.id : ""}
             >
               <option value="">Select a lecture section</option>
-              {uniqueLectureSections.map((lecture) => (
+              {Array.isArray(uniqueLectureSections) && uniqueLectureSections.map((lecture) => (
                 <option key={lecture.id} value={lecture.id}>
                   {lecture.section_code} - {lecture.start_time} to {lecture.end_time}
                 </option>
@@ -445,7 +445,7 @@ export function ScheduleBuilder() {
             <Form.Label>Select Non-Lecture Section</Form.Label>
             <Form.Control as="select" onChange={handleNonLectureSelection} value={selectedNonLectureSection ? selectedNonLectureSection.id : ""}>
               <option value="">Select a non-lecture section</option>
-              {nonLectureSections.map((nonLecture) => (
+              {Array.isArray(nonLectureSections) && nonLectureSections.map((nonLecture) => (
                 <option key={nonLecture.id} value={nonLecture.id}>
                   {nonLecture.section_code} - {nonLecture.start_time} to {nonLecture.end_time}
                 </option>
@@ -465,7 +465,7 @@ export function ScheduleBuilder() {
 
         <h3>Your Schedule</h3>
         <ListGroup>
-          {selectedCourses.map((item, index) => {
+          {Array.isArray(selectedCourses) && selectedCourses.map((item, index) => {
               // If item.course exists, use it; otherwise, assume item is the course data directly.
               const courseData = item.course || item;
               const lectureData = item.lecture || {};

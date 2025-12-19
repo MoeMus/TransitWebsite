@@ -6,6 +6,7 @@ from rest_framework.decorators import permission_classes, api_view
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
 
 from core.models import User, LectureSection, NonLectureSection
 from core.serializers import UserSerializer, LectureSectionSerializer, NonLectureSectionSerializer
@@ -44,17 +45,15 @@ class UserView(APIView):
             return Response({"error": "User with that username or email already exists"},
                             status=status.HTTP_400_BAD_REQUEST)
 
-    @permission_classes([IsAuthenticated])
+    @transaction.atomic
     def delete(self, request):
+        user = request.user
 
-        username = request.query_params.get('username', None)
-        try:
-            user = User.objects.get(username=username)
-            user.delete()
-            return Response(status=status.HTTP_200_OK)
+        for token in OutstandingToken.objects.filter(user=user):
+            BlacklistedToken.objects.get_or_create(token=token)
 
-        except User.DoesNotExist:
-            return Response({"error": "Account not found"}, status=status.HTTP_404_NOT_FOUND)
+        user.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @permission_classes([IsAuthenticated])
     def put(self, request):

@@ -1,6 +1,5 @@
 import '../styles/dashboardStyles.css';
 import React, {useEffect, useState} from "react";
-import apiClient from "../configurations/configAxios";
 import {toast, Toaster} from "react-hot-toast";
 import {AdvancedMarker, APIProvider, Map, Pin,} from "@vis.gl/react-google-maps";
 import Container from "react-bootstrap/Container";
@@ -8,7 +7,7 @@ import Form from "react-bootstrap/Form";
 //import Button from "react-bootstrap/Button";
 import ServiceAlerts from "../translink-alerts/ServiceAlerts";
 import {Box, Button, Flex, Spinner} from "@chakra-ui/react";
-
+import {getUserInfoFromBackend, setLocation} from "./utils"
 import CourseCalendar from "../calendar/CourseCalendar";
 import {Directions} from "./directions";
 
@@ -40,16 +39,6 @@ export function Dashboard() {
       setMap(mapInstance);
     };
 
-    //TODO: These variables and any code which uses them currently do not work
-    // const currentRoute = useLocation();
-    // const fromPage = currentRoute.state?.from || "/";
-    //
-    // const loginSuccess = () => {
-    //   toast.success(`Welcome back, ${username}`, {
-    //     duration: 2000,
-    //   });
-    // };
-
     function locationError(error) {
         if (error.code === error.PERMISSION_DENIED) {
             setTrackingEnabled(false);
@@ -69,25 +58,8 @@ export function Dashboard() {
     async function getUserInfo() {
         try {
 
-            const userData = await apiClient.get(
-            `/api/user/?username=${username}`,
-            {
-                method: "GET",
-            });
-
-            //console.log(JSON.stringify(userData.data, null, 2));
-
-            const lecture_sections = userData.data.lecture_sections;
-            const non_lecture_sections = userData.data.non_lecture_sections;
-
-            const user_courses = [...lecture_sections, ...non_lecture_sections];
-
-            delete userData.data.lecture_sections;
-            delete userData.data.non_lecture_sections;
-
-            userData.data.courses = user_courses;
-
-            setUserInfo(userData.data);
+            const userData = await getUserInfoFromBackend(username);
+            setUserInfo(userData);
 
         } catch (err) {
             const errorMessage = err.response.data.error;
@@ -100,10 +72,7 @@ export function Dashboard() {
     }
 
 
-
-  //Retrieve user data when dashboard is loaded
-    useEffect(() => {
-        getUserInfo();
+    function checkLocationTracking() {
         if (!manualLocationEnabled && navigator.geolocation) {
             watchID = navigator.geolocation.watchPosition(
                 (position) => {
@@ -111,14 +80,13 @@ export function Dashboard() {
                         lat: position.coords.latitude,
                         lng: position.coords.longitude,
                     });
-              },
-              locationError,
-              { enableHighAccuracy: true }
-
+                },
+                locationError,
+                {enableHighAccuracy: true}
             );
             setTrackingEnabled(true);
 
-        } else if (manualLocationEnabled){
+        } else if (manualLocationEnabled) {
             toast("Location set", {
                 duration: 2000
             });
@@ -128,15 +96,26 @@ export function Dashboard() {
             toast.error(
                 "Location tracking on this website is not supported by your browser",
                 {
-                  duration: 2000,
-                  id: "tracking-not-supported",
+                    duration: 2000,
+                    id: "tracking-not-supported",
                 }
             );
 
             setTrackingEnabled(false);
 
         }
+    }
+
+    //Retrieve user data when dashboard is loaded
+    useEffect(() => {
+
+        (async function(){
+            await getUserInfo();
+        })();
+        checkLocationTracking();
+
         return () => navigator.geolocation.clearWatch(watchID);
+
     }, []);
 
     useEffect(() => {
@@ -149,25 +128,11 @@ export function Dashboard() {
         }
     }, [map]);
 
-    //TODO: This useEffect does not work, will fix later
-    // useEffect(() => {
-    //   if (
-    //     fromPage === "/registration" &&
-    //     currentRoute.pathname === "/dashboard"
-    //   ) {
-    //     loginSuccess();
-    //   }
-    //
-    // }, [currentRoute, fromPage, loginSuccess]);
-
     const manualLocationChange = (event)=>{
-        event.preventDefault();
-        const geocoder = new window.google.maps.Geocoder();
-        const address = document.querySelector(".location").value;
 
-        if(address){
+        try {
 
-            geocoder.geocode({address: address}, (results, status)=>{
+            const callback = (results, status)=> {
 
                 if(status === window.google.maps.GeocoderStatus.OK){
 
@@ -186,11 +151,13 @@ export function Dashboard() {
 
                 }
 
-            });
+            }
 
-        } else {
+            setLocation(event, callback);
 
-            toast.error("Please enter a location", {
+        } catch (err) {
+
+            toast.error(err.message, {
                 duration: 2000
             });
 

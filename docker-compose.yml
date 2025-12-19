@@ -20,6 +20,7 @@ services:
       TRANSIT_DB_PASSWORD: ${TRANSIT_DB_PASSWORD}
       TRANSIT_DB_USER: ${TRANSIT_DB_USER}
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+      TRANSLINK_API_KEY: ${TRANSLINK_API_KEY}
     depends_on:
       mysql:
         condition: service_healthy
@@ -40,6 +41,7 @@ services:
       TRANSIT_DB_PASSWORD: ${TRANSIT_DB_PASSWORD}
       TRANSIT_DB_USER: ${TRANSIT_DB_USER}
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+      TRANSLINK_API_KEY: ${TRANSLINK_API_KEY}
 
     volumes:
       - server_data:/data

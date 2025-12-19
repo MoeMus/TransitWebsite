@@ -129,8 +129,9 @@ def remove_courses(request):
 @permission_classes([IsAuthenticated])
 def add_course_to_schedule(request):
     username = request.data['username']
-    course_name = request.data["course_name"]
-    section_name = request.data["section_name"]
+    department = request.data["department"]
+    course_number = request.data["course_number"]
+    section_code = request.data["section_code"]
 
     try:
 
@@ -140,7 +141,8 @@ def add_course_to_schedule(request):
         existing_courses = list(user.lecture_sections.all())
         existing_courses += list(user.non_lecture_sections.all())
 
-        new_lecture_section = LectureSection.objects.filter(title=course_name, section_code=section_name).first()
+        new_lecture_section = LectureSection.objects.filter(department=department, number=course_number,
+                                                            section_code=section_code).first()
 
         if new_lecture_section:
 
@@ -158,10 +160,11 @@ def add_course_to_schedule(request):
 
             # If the provided data does not belong to any lecture section, try finding a non lecture section with the
             # corresponding data
-
-            new_non_lecture_section = NonLectureSection.objects.filter(title=course_name, section_code=section_name).first()
+            new_non_lecture_section = NonLectureSection.objects.filter(department=department, number=course_number,
+                                                                       section_code=section_code).first()
 
             if new_non_lecture_section:
+
                 non_lecture_conflicts = check_time_conflicts(new_non_lecture_section, existing_courses)
                 if non_lecture_conflicts:
 
@@ -185,8 +188,9 @@ def add_course_to_schedule(request):
 @permission_classes([IsAuthenticated])
 def remove_course_from_schedule(request):
     username = request.data['username']
-    course_name = request.data["course_name"]
-    section_name = request.data["section_name"]
+    department = request.data["department"]
+    course_number = request.data["course_number"]
+    section_code = request.data["section_code"]
 
     try:
 
@@ -194,7 +198,8 @@ def remove_course_from_schedule(request):
 
             user = get_object_or_404(User, username=username)
 
-            lecture_section = LectureSection.objects.filter(title=course_name, section_code=section_name).first()
+            lecture_section = LectureSection.objects.filter(department=department, number=course_number,
+                                                            section_code=section_code).first()
 
             if lecture_section:
 
@@ -205,7 +210,9 @@ def remove_course_from_schedule(request):
 
             else:
 
-                non_lecture_section = NonLectureSection.objects.get(title=course_name, section_code=section_name)
+                non_lecture_section = NonLectureSection.objects.filter(department=department, number=course_number,
+                                                                    section_code=section_code).first()
+
                 user.non_lecture_sections.remove(non_lecture_section)
 
             user.save()

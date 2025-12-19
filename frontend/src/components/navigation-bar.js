@@ -22,6 +22,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "./ui/dialog"
+import {deleteAccount, logout} from "./utils";
 
 
 
@@ -42,89 +43,39 @@ export function Navigation({username = ""}){
         }
     }, []);
 
-    function confirmLogout(){
-         toast(
-             (t)=> (
-                 <div style={{display: "flex", justifyContent: "center", flexDirection: "column"}}>
-                     <div>
-                         <p> You are about to sign out, are you sure? </p>
-                     </div>
+    async function handleLogout() {
 
-                     <div style={{display: "flex", justifyContent: "center", flexDirection: "row"}}>
-                         <div>
-                             <Button variant="solid" size="xs" onClick={logout}> Yes </Button>
-                         </div>
-                         <div>
-                             <Button variant="subtle"  size="xs" onClick={() => toast.dismiss(t.id)}> No </Button>
-                         </div>
-                     </div>
-                 </div>
-             ), {
-                 position: "top-center",
-                 duration: 360000000
-             })
-    }
-
-    function confirmDelete() {
-        toast(
-            (t) => (
-
-                <div style={{display: "flex", justifyContent: "center", flexDirection: "column"}}>
-                    <div>
-                        <p style={{textAlign: "center"}}> You are about to delete your account, are you sure? This
-                            action cannot be undone</p>
-                     </div>
-                     <div style={{display: "flex", justifyContent: "center", flexDirection: "row"}}>
-                         <div>
-                             <Button variant="solid" size="xs" onClick={deleteAccount}> Yes </Button>
-                         </div>
-                         <div>
-                             <Button variant="subtle" size="xs" onClick={() => toast.dismiss(t.id)}> No </Button>
-                         </div>
-                     </div>
-
-                 </div>
-             ), {
-                position: "top-center",
-                duration: 360000000
-            });
-
-    }
-
-    function logout() {
-
-        const request = {access_token: sessionStorage.getItem('access_token'), refresh_token: sessionStorage.getItem('refresh_token')}
-
-        apiClient.post("/api/logout/", request,{
-            method: "POST",
-            withCredentials: true
-        }).then(()=>{
+        try {
+            await logout();
             sessionStorage.clear();
             dispatch(updateAccessToken());
             navigate('/');
             window.location.reload();
-        })
+        } catch (err) {
+            toast.error(err.message, {
+                duration: 3000,
+                position: "top-left"
+            });
+        }
 
     }
 
 
-    function deleteAccount(){
+    async function handleDeleteAccount(){
 
-        const request = {username: sessionStorage.getItem('user')}
-        apiClient.post("/api/user/", request, {
-            method: "DELETE",
-            withCredentials: true
-        }).then(()=>{
+        try {
+            await deleteAccount();
             sessionStorage.clear()
             dispatch(updateAccessToken());
             navigate('/');
             window.location.reload();
-        }).catch(err=>{
-            toast.error("There was an error deleting your account", {
+        } catch (err) {
+            toast.error(err.message, {
                 duration: 3000,
                 position: "top-left"
             });
-        });
+        }
+
     }
 
     return(
@@ -143,8 +94,8 @@ export function Navigation({username = ""}){
 
                 <Nav>
                     {isAuth ? <NavDropdown title={username} menuVariant="light" align="end" style={{marginRight: "20px"}}>
-                        <NavDropdown.Item> <Dialog dialog_func={deleteAccount} confirmation_msg={account_deletion_msg} action="Delete Account"/> </NavDropdown.Item>
-                        <NavDropdown.Item> <Dialog dialog_func={logout} confirmation_msg={logout_msg} action="Sign Out"/> </NavDropdown.Item>
+                        <NavDropdown.Item> <Dialog dialog_func={handleDeleteAccount} confirmation_msg={account_deletion_msg} action="Delete Account"/> </NavDropdown.Item>
+                        <NavDropdown.Item> <Dialog dialog_func={handleLogout} confirmation_msg={logout_msg} action="Sign Out"/> </NavDropdown.Item>
 
                         {/*<NavDropdown.Item className="delete-button" onClick={confirmDelete}> Delete account </NavDropdown.Item>*/}
                         {/*<NavDropdown.Item> <Nav.Link onClick={confirmLogout}> Logout </Nav.Link> </NavDropdown.Item>*/}

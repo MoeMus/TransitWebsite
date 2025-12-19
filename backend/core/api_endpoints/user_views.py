@@ -115,7 +115,7 @@ def remove_courses(request):
             user.lecture_sections.all().delete()
             user.non_lecture_sections.all().delete()
             user.save()
-            return Response({"success": "All course removed from schedule"}, status=status.HTTP_200_OK)
+            return Response({"success": "All courses removed from schedule"}, status=status.HTTP_200_OK)
 
     except User.DoesNotExist:
         return Response({"error": "User does not exist"}, status=status.HTTP_404_NOT_FOUND)
@@ -124,7 +124,6 @@ def remove_courses(request):
 # Adds a course (lecture section or non lecture section) to a user's schedule
 # Expects the request body to be a JSON representation of either a lecture section or non lecture section as defined
 # in the models.py
-
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def add_course_to_schedule(request):
@@ -159,9 +158,11 @@ def add_course_to_schedule(request):
             lecture_conflicts = check_time_conflicts(new_lecture_section, user_courses)
             if lecture_conflicts:
 
+                conflict_sections = LectureSection.objects.filter(id__in=lecture_conflicts)
+
                 return Response({
                     "error": "Time conflicts detected",
-                    "conflicts": lecture_conflicts
+                    "conflicts": LectureSectionSerializer(conflict_sections, many=True).data
                 }, status=status.HTTP_409_CONFLICT)
 
             user.lecture_sections.add(new_lecture_section)
@@ -178,9 +179,11 @@ def add_course_to_schedule(request):
                 non_lecture_conflicts = check_time_conflicts(new_non_lecture_section, user_courses)
                 if non_lecture_conflicts:
 
+                    conflict_sections = NonLectureSection.objects.filter(id__in=non_lecture_conflicts)
+
                     return Response({
                         "error": "Time conflicts detected",
-                        "conflicts": non_lecture_conflicts,
+                        "conflicts": NonLectureSectionSerializer(conflict_sections, many=True).data,
                     }, status=status.HTTP_409_CONFLICT)
 
                 user.non_lecture_sections.add(new_non_lecture_section)

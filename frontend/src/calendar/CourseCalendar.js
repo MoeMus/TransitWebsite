@@ -30,9 +30,6 @@ export default function CourseCalendar({courses}){
             const title = section["department"] + " " + section["number"] + " "
                 + sectionCode;
 
-            const start_date = section["start_date"];
-            const end_date = section["end_date"];
-
             // Creates a new object for each day the section is taught in the week
             for (const schedule_block of section["schedule"]){
 
@@ -40,8 +37,8 @@ export default function CourseCalendar({courses}){
                 let new_section = {};
 
                 new_section.title = title;
-                new_section.startRecur = start_date;
-                new_section.endRecur = end_date;
+                new_section.startRecur = schedule_block["startDate"];
+                new_section.endRecur = schedule_block["endDate"];
                 new_section.startTime = schedule_block["startTime"];
                 new_section.endTime = schedule_block["endTime"];
                 new_section.daysOfWeek = []
@@ -73,7 +70,7 @@ export default function CourseCalendar({courses}){
             <FullCalendar
                 plugins={[dayGridPlugin]}
                 initialView={"dayGridMonth"}
-                weekends={false}
+                weekends={true}
                 timeZone={"Canada/Vancouver"}
                 aspectRatio={2}
                 events={parseCourses(courses)}

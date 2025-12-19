@@ -1,9 +1,12 @@
 import datetime
-from datetime import time
+from datetime import datetime
 
-DATE = datetime.datetime.now()
+from datetime import date
 
-#Temporary solution for calculating semester
+# Get today's date
+DATE = date.today()
+
+# Temporary solution for calculating semester
 FALL_SEMESTER_MONTHS = ["09", "10", "11", "12"]
 SPRING_SEMESTER_MONTHS = ["01", "02", "03", "04"]
 SUMMER_SEMESTER_MONTHS = ["05", "06", "07", "08"]
@@ -39,7 +42,7 @@ FALL_SEM_MONTHS = {9, 10, 11, 12}
 
 
 def get_current_term():
-    month_date = datetime.datetime.now()
+    month_date = date.today()
     month = month_date.month
 
     if month in SPRING_SEM_MONTHS:
@@ -50,33 +53,64 @@ def get_current_term():
         return "fall"
 
 
+# Returns a hash map that maps days to sections + the exact time block that occur on that day
+def build_day_to_event_map(user_courses):
+    day_to_event = {}
+
+    for section in user_courses:
+
+        schedule = section.schedule
+
+        for block in schedule:
+
+            days = [day.strip() for day in block["days"].split(", ")]
+
+            # Store both the section and the time block during that day
+            map_entry = {
+                "section": section,
+                "time_block": block
+            }
+
+            for day in days:
+
+                if day not in day_to_event:
+                    day_to_event[day] = []
+
+                day_to_event[day].append(map_entry)
+
+    return day_to_event
+
+
+def to_time(t: str):
+    return datetime.strptime(t, "%H:%M").time()
+
+
+def check_course_conflicts(block1, block2):
+
+    start_time1 = to_time(block1["startTime"])
+    start_time2 = to_time(block2["startTime"])
+
+    end_time1 = to_time(block1["endTime"])
+    end_time2 = to_time(block2["endTime"])
+
+    return start_time1 < end_time2 and start_time2 < end_time1
+
+
 # Checks a new course's time conflicts with the current user's courses.
 # Uses helper function is_conflicting to check if a schedule conflicts
 def check_time_conflicts(new_course, user_courses):
-    conflicts = []
+    conflicts = set()
+    day_to_event_map = build_day_to_event_map(user_courses)
 
-    # Iterate through schedules of the new course
-    for new_schedule in new_course.lecturesection_set.all():
+    for block in new_course.schedule:
+        days = [day.strip() for day in block["days"].split(",")]
 
-        # Compare with user's current courses' schedules
-        for existing_course in user_courses:
-            for existing_schedule in existing_course.lecturesection_set.all():
+        for day in days:
 
-                # Check for time conflicts using the helper function
-                if is_conflicting(new_schedule, existing_schedule):
-                    conflicts.append({
-                        "existing_course": existing_course.title,
-                        "new_course": new_course.title,
-                        "existing_schedule": existing_schedule.section_code,
-                        "new_schedule": new_schedule.section_code
-                    })
+            for course in day_to_event_map.get(day, []):
 
-    return conflicts
+                if check_course_conflicts(block, course["time_block"]):
 
+                    conflicts.add(course["section"].id)
 
-# Helper function for check_time_conflicts
-def is_conflicting(new_schedule, existing_schedule):
-    if new_schedule.days == existing_schedule.days:
-        return (new_schedule.start_time <= existing_schedule.end_time and
-                existing_schedule.start_time <= new_schedule.end_time)
-    return False
+    return list(conflicts)

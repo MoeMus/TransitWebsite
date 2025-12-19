@@ -1,5 +1,5 @@
 import protobuf from "protobufjs"
-import {useState} from "react";
+import {useState, useEffect} from "react";
 import { Button } from "../components/ui/button"
 import {
   DrawerActionTrigger,
@@ -15,13 +15,16 @@ import {
 } from "../components/ui/drawer"
 import {Text} from "@chakra-ui/react";
 
-const TRANSLINK_SERVICE_ALERT_URL = `https://corsproxy.io/?url=https://gtfsapi.translink.ca/v3/gtfsalerts?apikey=${process.env["REACT_APP_TRANSLINK_API_KEY"]}`;
-const TRANSLINK_TRIP_UPDATES_URL = `https://corsproxy.io/?url=https://gtfsapi.translink.ca/v3/gtfsrealtime?apikey=${process.env["REACT_APP_TRANSLINK_API_KEY"]}`;
+const API_KEY = process.env["REACT_APP_TRANSLINK_API_KEY"];
+const TRANSLINK_SERVICE_ALERT_URL = `https://corsproxy.io/?url=https://gtfsapi.translink.ca/v3/gtfsalerts?apikey=${API_KEY}`;
+const TRANSLINK_TRIP_UPDATES_URL = `https://corsproxy.io/?url=https://gtfsapi.translink.ca/v3/gtfsrealtime?apikey=${API_KEY}`;
+
 export default function ServiceAlerts(){
 
     const [alerts, setAlerts] = useState([]);
 
     async function getTripUpdates(){
+       if (!API_KEY) return;
        try{
 
             const response = await fetch(TRANSLINK_TRIP_UPDATES_URL);
@@ -40,6 +43,10 @@ export default function ServiceAlerts(){
 
     async function getServiceAlerts(){
 
+        if (!API_KEY) {
+            console.error("TransLink API Key is missing. Check your .env file.");
+            return;
+        }
         try{
 
             const response = await fetch(TRANSLINK_SERVICE_ALERT_URL);
@@ -63,8 +70,13 @@ export default function ServiceAlerts(){
 
     const interval = 60000; //1 minute
 
-    getServiceAlerts();
-    setInterval(getServiceAlerts, interval);
+    useEffect(() => {
+        getServiceAlerts();
+        const timer = setInterval(getServiceAlerts, interval);
+        
+        // Cleanup interval on component unmount
+        return () => clearInterval(timer);
+    }, []);
 
     return (
 

@@ -14,12 +14,13 @@ services:
 
     environment:
       DJANGO_SETTINGS_MODULE: backend.settings
-      DB_HOST: mysql
-      DB_PORT: 3306
-      DB_NAME: ${TRANSIT_DB_NAME}
-      DB_PASSWORD: ${TRANSIT_DB_PASSWORD}
-      DB_USER: ${TRANSIT_DB_USER}
+      TRANSIT_DB_HOST: mysql
+      TRANSIT_DB_PORT: 3306
+      TRANSIT_DB_NAME: ${TRANSIT_DB_NAME}
+      TRANSIT_DB_PASSWORD: ${TRANSIT_DB_PASSWORD}
+      TRANSIT_DB_USER: ${TRANSIT_DB_USER}
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+      TRANSLINK_API_KEY: ${TRANSLINK_API_KEY}
     depends_on:
       mysql:
         condition: service_healthy
@@ -34,12 +35,13 @@ services:
 
     environment:
       DJANGO_SETTINGS_MODULE: backend.settings
-      DB_HOST: mysql
-      DB_PORT: 3306
-      DB_NAME: ${TRANSIT_DB_NAME}
-      DB_PASSWORD: ${TRANSIT_DB_PASSWORD}
-      DB_USER: ${TRANSIT_DB_USER}
+      TRANSIT_DB_HOST: mysql
+      TRANSIT_DB_PORT: 3306
+      TRANSIT_DB_NAME: ${TRANSIT_DB_NAME}
+      TRANSIT_DB_PASSWORD: ${TRANSIT_DB_PASSWORD}
+      TRANSIT_DB_USER: ${TRANSIT_DB_USER}
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+      TRANSLINK_API_KEY: ${TRANSLINK_API_KEY}
 
     volumes:
       - server_data:/data

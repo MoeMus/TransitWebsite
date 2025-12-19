@@ -25,6 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 # This uses an environment variable. Learn how to set it up using the README installation.
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
+TRANSLINK_API_KEY = os.getenv('TRANSLINK_API_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True

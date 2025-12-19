@@ -22,9 +22,6 @@ export default function CourseCalendar({courses}){
 
         for (const section of courses) {
 
-            const id = section["department"] + " " + section["number"] + " "
-                + section["section_code"];
-
             const sectionCode = section.schedule?.[0]?.sectionCode ?? "";
 
             const title = section["department"] + " " + section["number"] + " "
@@ -37,14 +34,6 @@ export default function CourseCalendar({courses}){
                 let new_section = {};
 
                 new_section.title = title;
-
-                new_section.rrule = {
-                    freq: 'weekly',
-                    interval: 5,
-                    byweekday: [],
-                    dtstart: schedule_block["startTime"],
-                    until: schedule_block["endDate"]
-                }
 
                 const start_date = new Date(schedule_block["startDate"]).toISOString().split("T")[0];
                 const end_date = new Date(schedule_block["endDate"]).toISOString().split("T")[0];
@@ -60,7 +49,7 @@ export default function CourseCalendar({courses}){
 
                     const num = days_of_week.get(day);
                     if (num !== undefined) {
-                        new_section.id = id + " " + day;
+                        new_section.id = crypto.randomUUID();
                         new_section.daysOfWeek.push(num);
                     }
 

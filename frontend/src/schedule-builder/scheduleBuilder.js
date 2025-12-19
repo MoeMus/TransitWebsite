@@ -208,7 +208,7 @@ export function ScheduleBuilder() {
         console.log("Posting add course without non-lecture:", post_payload);
         try {
           await apiClient.post(
-            `/api/user/courses/`,
+            `/api/user/courses/add/`,
             post_payload,
             {
               withCredentials: true,

@@ -19,14 +19,9 @@ class UserView(APIView):
     @permission_classes([IsAuthenticated])
     def get(self, request):
 
-        username = request.query_params.get('username')
+        serializer = UserSerializer(request.user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
-        try:
-            current_user = User.objects.get(username=username)
-            serializer = UserSerializer(current_user)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        except User.DoesNotExist:
-            return Response({"error": "User: " + username + " not found"}, status=status.HTTP_404_NOT_FOUND)
 
     def post(self, request):
 

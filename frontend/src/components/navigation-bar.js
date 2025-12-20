@@ -60,7 +60,6 @@ export function Navigation({username = ""}){
 
     }
 
-
     async function handleDeleteAccount(){
 
         try {

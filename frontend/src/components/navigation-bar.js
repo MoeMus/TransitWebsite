@@ -22,7 +22,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "./ui/dialog"
-import {deleteAccount, logout} from "./utils";
+import {deleteAccount} from "./utils";
 
 
 
@@ -43,24 +43,27 @@ export function Navigation({username = ""}){
         }
     }, []);
 
-    async function handleLogout() {
+    const handleLogout = async (event) => {
 
-        try {
-            await logout();
-            sessionStorage.clear();
+        event.preventDefault();
+
+        apiClient.post("/api/logout/",{
+            method: "POST",
+            withCredentials: true
+        }).then(()=>{
+            sessionStorage.clear()
             dispatch(updateAccessToken());
             navigate('/');
             window.location.reload();
-        } catch (err) {
-            toast.error(err.message, {
-                duration: 3000,
-                position: "top-left"
-            });
-        }
+        }).catch(err=>{
+            throw Error("There was an error logging out");
+        })
 
     }
 
-    async function handleDeleteAccount(){
+    const handleDeleteAccount = async (event) => {
+
+        event.preventDefault();
 
         try {
             await deleteAccount();

@@ -121,8 +121,13 @@ export function ScheduleBuilder() {
       });
 
       if (response.status === 200) {
-        const userCourses = await response.data;
-        setSelectedCourses(Array.isArray(userCourses) ? userCourses : []);
+        const data = await response.data;
+        // Flatten the lecture and non-lecture sections into a single array for the UI
+        const combined = [
+          ...(data.lecture_sections || []),
+          ...(data.non_lecture_sections || [])
+        ];
+        setSelectedCourses(combined);
       } else {
         toast.error("Failed to load your courses.");
       }
@@ -144,8 +149,9 @@ export function ScheduleBuilder() {
         // Build the payload to send to the backend.
         const post_payload = {
           username: username,
-          courseName: selectedCourse.title,       // Must match backend expectations
-          sectionName: selectedCourse.section_name, // Must match backend expectations
+          department: selectedCourse.department,
+          course_number: selectedCourse.course_number,
+          section_code: selectedNonLectureSection.section_code,
         };
 
         console.log("Posting add course:", post_payload);
@@ -201,8 +207,9 @@ export function ScheduleBuilder() {
 
         const post_payload = {
           username: username,
-          courseName: selectedCourse.title,
-          sectionName: selectedCourse.section_name,
+          department: selectedCourse.department,
+          course_number: selectedCourse.course_number,
+          section_code: selectedLectureSection.section_code,
         };
 
         console.log("Posting add course without non-lecture:", post_payload);
@@ -257,8 +264,9 @@ export function ScheduleBuilder() {
       // Build the payload for the backend deletion.
       let post_request = {
         username: username,
-        course_name: courseData.title,
-        section_name: courseData.section_name,
+        department: courseData.department,
+        course_number: courseData.number || courseData.course_number,
+        section_code: courseData.section_code,
       };
 
       console.log("Removing course with payload:", post_request);
@@ -340,7 +348,7 @@ export function ScheduleBuilder() {
     }
 
     try {
-      const response = await apiClient(`/api/lectures/${lectureId}/non-lectures/`, {
+      const response = await apiClient(`/api/courses/lectures/${lectureId}/non-lectures/`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${accessToken}`, // Add Bearer token for authentication

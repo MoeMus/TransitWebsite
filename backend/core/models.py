@@ -46,7 +46,9 @@ class LectureSection(models.Model):
     )
 
     section_code = models.CharField(max_length=10)
+    start_time = models.TimeField(null=True, blank=True)
     start_date = models.DateField(null=True, blank=True)
+    end_time = models.TimeField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)
     schedule = models.JSONField(null=True, blank=True)
     campus = models.CharField(max_length=50, null=True, blank=True)
@@ -78,7 +80,9 @@ class NonLectureSection(models.Model):
     class_type = models.CharField(max_length=10)  # e.g., "e" or "n"
     associated_class = models.CharField(max_length=10, default=0)
     title = models.CharField(max_length=100, default="Untitled")
+    start_time = models.TimeField(null=True, blank=True)
     start_date = models.DateField(null=True, blank=True)
+    end_time = models.TimeField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)
     schedule = models.JSONField(null=True, blank=True)
     campus = models.CharField(max_length=100, null=True, blank=True)

@@ -6,7 +6,6 @@ from rest_framework.decorators import permission_classes, api_view
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
 
 from core.models import User, LectureSection, NonLectureSection
 from core.serializers import UserSerializer, LectureSectionSerializer, NonLectureSectionSerializer
@@ -45,15 +44,17 @@ class UserView(APIView):
             return Response({"error": "User with that username or email already exists"},
                             status=status.HTTP_400_BAD_REQUEST)
 
-    @transaction.atomic
+    @permission_classes([IsAuthenticated])
     def delete(self, request):
-        user = request.user
 
-        for token in OutstandingToken.objects.filter(user=user):
-            BlacklistedToken.objects.get_or_create(token=token)
+        username = request.query_params.get('username', None)
+        try:
+            user = User.objects.get(username=username)
+            user.delete()
+            return Response(status=status.HTTP_200_OK)
 
-        user.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        except User.DoesNotExist:
+            return Response({"error": "Account not found"}, status=status.HTTP_404_NOT_FOUND)
 
     @permission_classes([IsAuthenticated])
     def put(self, request):
@@ -218,14 +219,16 @@ def remove_course_from_schedule(request):
                 non_lecture_section = user.non_lecture_sections.filter(lecture_section=lecture_section).first()
 
                 user.lecture_sections.remove(lecture_section)
-                user.non_lecture_sections.remove(non_lecture_section)
+                if non_lecture_section:
+                    user.non_lecture_sections.remove(non_lecture_section)
 
             else:
 
                 non_lecture_section = NonLectureSection.objects.filter(department=department, number=course_number,
                                                                     section_code=section_code).first()
 
-                user.non_lecture_sections.remove(non_lecture_section)
+                if non_lecture_section:
+                    user.non_lecture_sections.remove(non_lecture_section)
 
             user.save()
 

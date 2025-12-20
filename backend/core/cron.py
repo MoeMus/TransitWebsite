@@ -7,7 +7,7 @@ import logging
 from django.utils.dateparse import parse_time
 from dateutil import parser
 
-#Course.objects.all().delete()  # TODO: For debugging only
+# Course.objects.all().delete()  # TODO: For debugging only
 
 logger = logging.getLogger(__name__)
 

@@ -33,6 +33,10 @@ class Course(models.Model):
         #return f"{self.department} {self.class_number}" old (before Aug 30)
         return f"{self.department} {self.course_number} - {self.title}"
 
+    def save(self, *args, **kwargs):
+        self.department = self.department.upper()
+        super().save(*args, **kwargs)
+
 
 class LectureSection(models.Model):
     DoesNotExist = None
@@ -63,6 +67,10 @@ class LectureSection(models.Model):
     def __str__(self):
         return f"{self.title} - {self.section_code} (Lecture)"
 
+    def save(self, *args, **kwargs):
+        self.department = self.department.upper()
+        super().save(*args, **kwargs)
+
 
 # Represents a section of a course (Tutorial, Lab, etc.)
 class NonLectureSection(models.Model):
@@ -92,6 +100,10 @@ class NonLectureSection(models.Model):
 
     def __str__(self):
         return f"{self.title} - {self.section_code} ({self.class_type})"
+
+    def save(self, *args, **kwargs):
+        self.department = self.department.upper()
+        super().save(*args, **kwargs)
 
 
 class User(AbstractUser):

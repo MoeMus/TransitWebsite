@@ -60,9 +60,22 @@ export function ScheduleBuilder() {
   const username  = sessionStorage.getItem("user");
 
   useEffect(() => {
-    fetchAvailableCourses();
-    fetchUserCourses(); // Fetch user courses on mount
+
+    (async function(){
+      await fetchAvailableCourses();
+      await fetchUserCourses(); // Fetch user courses on mount
+    })()
+
   }, []);
+
+  function displayCourseConflicts(course_conflicts) {
+    let conflicts = [];
+    course_conflicts.map((item, index) => {
+      conflicts.push(`${item.department} ${item.number}`);
+    })
+
+    toast.error(`${selectedCourse.department} ${selectedCourse.course_number} conflicts with ${conflicts.join(" | ")}`);
+  }
 
   // Fetch all available courses
   const fetchAvailableCourses = async () => {
@@ -134,17 +147,36 @@ export function ScheduleBuilder() {
         const data = await response.data;
         // Flatten the lecture and non-lecture sections into a single array for the UI
         const combined = [
-          ...(data.lecture_sections || []).map(lec => ({
+          // ...(data.lecture_sections || []).map(lec => ({
+          //   course: lec.course,
+          //   lecture: lec,
+          //   nonLecture: null
+          // })),
+          // ...(data.non_lecture_sections || []).map(nls => ({
+          //   course: nls.lecture_section?.course,
+          //   lecture: nls.lecture_section,
+          //   nonLecture: nls
+          // }))
+        ];
+
+        for (const lec of data.lecture_sections){
+          let non_lec = null;
+
+          for (const nls of data.non_lecture_sections) {
+            if (JSON.stringify(nls.lecture_section) === JSON.stringify(lec)){
+              non_lec = nls;
+            }
+          }
+
+          combined.push({
             course: lec.course,
             lecture: lec,
-            nonLecture: null
-          })),
-          ...(data.non_lecture_sections || []).map(nls => ({
-            course: nls.lecture_section?.course,
-            lecture: nls.lecture_section,
-            nonLecture: nls
-          }))
-        ];
+            nonLecture: non_lec
+          });
+
+        }
+
+        console.log("User's courses: ", JSON.stringify(combined, null, 4));
         setSelectedCourses(combined);
       } else {
         toast.error("Failed to load your courses.");
@@ -165,19 +197,35 @@ export function ScheduleBuilder() {
         };
 
         // Build the payload to send to the backend.
-        const post_payload = {
+        const lecture = {
+          username: username,
+          department: selectedCourse.department,
+          course_number: selectedCourse.course_number,
+          section_code: selectedLectureSection.section_code,
+        };
+
+        const non_lecture = {
           username: username,
           department: selectedCourse.department,
           course_number: selectedCourse.course_number,
           section_code: selectedNonLectureSection.section_code,
         };
 
-        console.log("Posting add course:", post_payload);
+        console.log("Posting add course:", lecture);
         try {
           // Send the POST request to persist the course on the backend.
           await apiClient.post(
             `/api/user/courses/add/`,
-            post_payload,
+            lecture,
+            {
+              withCredentials: true,
+              method: "POST"
+            }
+          );
+
+          await apiClient.post(
+            `/api/user/courses/add/`,
+            non_lecture,
             {
               withCredentials: true,
               method: "POST"
@@ -187,7 +235,6 @@ export function ScheduleBuilder() {
           // On success, update the local state
           setSelectedCourses([...selectedCourses, courseToAdd]);
           toast.success(`${selectedCourse.title} added to schedule`);
-
           // Reset the selection process
           setSelectedCourse(null);
           setSelectedLectureSection(null);
@@ -195,7 +242,7 @@ export function ScheduleBuilder() {
           setSelectionStage("course");
         } catch (error) {
           if (error.response && error.response.status === 409) {
-            toast.error("Time conflicts detected. Course not added.");
+            displayCourseConflicts(error.response.data.conflicts);
           } else {
             toast.error(error.response?.data?.error || "Error adding course to schedule");
           }
@@ -214,7 +261,7 @@ export function ScheduleBuilder() {
 
 
 
-  // Handle adding a course without non-lecture sections
+// Handle adding a course without non-lecture sections
   const handleAddCourseWithoutNonLecture = async () => {
       if (selectedCourse && selectedLectureSection) {
         const courseToAdd = {
@@ -251,7 +298,8 @@ export function ScheduleBuilder() {
           setSelectionStage("course");
         } catch (error) {
           if (error.response && error.response.status === 409) {
-            toast.error("Time conflicts detected. Course not added.");
+            displayCourseConflicts(error.response.data.conflicts);
+
           } else {
             toast.error(error.response?.data?.error || "Error adding course to schedule");
           }
@@ -274,11 +322,11 @@ export function ScheduleBuilder() {
   const handleRemoveCourse = async (course, indexToRemove) => {
       // Remove the specific course entry using its index.
       const updatedCourses = selectedCourses.filter((_, idx) => idx !== indexToRemove);
-      setSelectedCourses(updatedCourses);
+      setSelectedCourses([...updatedCourses]);
 
       // Extract data from normalized entry
       const courseData = course.course;
-      const sectionData = course.nonLecture || course.lecture;
+      const sectionData = course.lecture || course.nonLecture;
 
       // Build payload for backend deletion.
       let post_request = {

@@ -20,7 +20,7 @@ export function Dashboard() {
     const [trackingEnabled, setTrackingEnabled] = useState(false);
     const [map, setMap] = useState(null);
     const [manualLocationEnabled, setManualLocationEnabled] = useState(false);
-    const [travelMode, setTravelMode] = useState("");
+    // const [travelMode, setTravelMode] = useState("");
     const [travelTime, setTravelTime] = useState("");
     const [travelDistance, setTravelDistance] = useState("");
     // const [userCourses, setUserCourses] = useState([]);

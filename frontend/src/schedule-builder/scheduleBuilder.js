@@ -637,7 +637,7 @@ export function ScheduleBuilder() {
         </Card>
 
         <div className="d-flex align-items-center gap-3 mb-3">
-          <h4 className="fw-bold mb-0">Your Current Schedule</h4>
+          <h4 className="fw-bold mb-0 ms-2">Your Current Schedule</h4>
           <div className="d-flex gap-2 flex-grow-1">
             <Button 
               variant={viewMode === "list" ? "primary" : "outline-primary"} 
@@ -662,7 +662,7 @@ export function ScheduleBuilder() {
               size="md"
               onClick={handleRemoveAllCourses}
               style={{ width: 'max-content' }}
-              className="d-flex align-items-center gap-2 ms-auto"
+              className="d-flex align-items-center gap-2 ms-auto me-2"
             >
               <BsTrash /> Clear Schedule
             </Button>

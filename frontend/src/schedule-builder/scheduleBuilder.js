@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { Container, Form, Button, ListGroup, Card, Badge, Row, Col } from "react-bootstrap";
 import apiClient from "../configurations/configAxios";
 import { toast, Toaster } from "react-hot-toast";
+import {Spinner} from "@chakra-ui/react";
 
 const refreshAccessToken = async () => {
   const refreshToken = sessionStorage.getItem('refresh_token');
@@ -68,6 +69,7 @@ export function ScheduleBuilder() {
 
   }, []);
 
+  // Displays a toast notification showing all courses that conflict with the selected course
   function displayCourseConflicts(course_conflicts) {
     let conflicts = [];
     course_conflicts.map((item, index) => {
@@ -146,38 +148,52 @@ export function ScheduleBuilder() {
       if (response.status === 200) {
         const data = await response.data;
         // Flatten the lecture and non-lecture sections into a single array for the UI
-        const combined = [
-          // ...(data.lecture_sections || []).map(lec => ({
-          //   course: lec.course,
-          //   lecture: lec,
-          //   nonLecture: null
-          // })),
-          // ...(data.non_lecture_sections || []).map(nls => ({
-          //   course: nls.lecture_section?.course,
-          //   lecture: nls.lecture_section,
-          //   nonLecture: nls
-          // }))
-        ];
+        // const combined = [
+        //   // ...(data.lecture_sections || []).map(lec => ({
+        //   //   course: lec.course,
+        //   //   lecture: lec,
+        //   //   nonLecture: null
+        //   // })),
+        //   // ...(data.non_lecture_sections || []).map(nls => ({
+        //   //   course: nls.lecture_section?.course,
+        //   //   lecture: nls.lecture_section,
+        //   //   nonLecture: nls
+        //   // }))
+        // ];
 
-        for (const lec of data.lecture_sections){
-          let non_lec = null;
+        // setSelectedCourses(combined);
 
-          for (const nls of data.non_lecture_sections) {
-            if (JSON.stringify(nls.lecture_section) === JSON.stringify(lec)){
-              non_lec = nls;
-            }
-          }
+        const combined = new Map();
 
-          combined.push({
+        // Flatten the lecture and non-lecture sections into a single array for the UI
+
+        // Add lecture sections to the array
+        (data.lecture_sections || []).map(lec => {
+          combined.set(lec.id, {
             course: lec.course,
             lecture: lec,
-            nonLecture: non_lec
-          });
+            nonLecture: null
+          })
+        });
 
-        }
+        // Add non lecture sections to the array
+        (data.non_lecture_sections || []).map(nls => {
 
-        console.log("User's courses: ", JSON.stringify(combined, null, 4));
-        setSelectedCourses(combined);
+          // If the corresponding lecture section already exists, just add to the existing entry
+          if (combined.has(nls.lecture_section.id)){
+            combined.get(nls.lecture_section.id).nonLecture = nls;
+          } else {
+            combined.set(nls.lecture_section.id, {
+              course: nls.lecture_section?.course,
+              lecture: nls.lecture_section,
+              nonLecture: nls
+          })
+          }
+        });
+
+
+        setSelectedCourses([...combined.values()]);
+
       } else {
         toast.error("Failed to load your courses.");
       }
@@ -474,7 +490,7 @@ export function ScheduleBuilder() {
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <Spinner size="sm" />;
   }
 
   if (error) {
@@ -483,7 +499,7 @@ export function ScheduleBuilder() {
 
   return (
     <>
-      <Toaster position="top-left" reverseOrder={false} />
+      <Toaster position="top-center" reverseOrder={false} />
       <Container className="py-5">
         <Row className="mb-4">
           <Col>

@@ -156,7 +156,8 @@ def add_course_to_schedule(request):
 
         if new_non_lecture_section:
 
-            conflicts = check_time_conflicts(new_lecture_section, user_courses)
+            conflicts = check_time_conflicts(new_non_lecture_section, user_courses)
+
             if conflicts:
 
                 return Response({

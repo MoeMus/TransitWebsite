@@ -76,7 +76,7 @@ export function ScheduleBuilder() {
   function displayCourseConflicts(course_conflicts) {
     let conflicts = [];
     course_conflicts.map((item, index) => {
-      conflicts.push(`${item.department} ${item.number}`);
+      conflicts.push(`${item.department} ${item.number} ${item.section_code}`);
     })
 
     toast.error(`${selectedCourse.department} ${selectedCourse.course_number} conflicts with ${conflicts.join(" | ")}`);

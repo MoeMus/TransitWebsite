@@ -3,6 +3,8 @@ import { Container, Form, Button, ListGroup, Card, Badge, Row, Col } from "react
 import apiClient from "../configurations/configAxios";
 import { toast, Toaster } from "react-hot-toast";
 import {Spinner} from "@chakra-ui/react";
+import CourseCalendar from "../calendar/CourseCalendar";
+import { BsListUl, BsCalendar3 } from "react-icons/bs";
 
 const refreshAccessToken = async () => {
   const refreshToken = sessionStorage.getItem('refresh_token');
@@ -57,6 +59,7 @@ export function ScheduleBuilder() {
   const [selectedCourses, setSelectedCourses] = useState([]);
   const [selectionStage, setSelectionStage] = useState("course"); // "course", "lecture", or "non-lecture"
   const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState("list");
   const [error, setError] = useState("");
   const username  = sessionStorage.getItem("user");
 
@@ -604,13 +607,33 @@ export function ScheduleBuilder() {
           </Card.Body>
         </Card>
 
-        <Row className="mb-3">
-          <Col>
-            <h4 className="fw-bold">Your Current Schedule</h4>
-          </Col>
-        </Row>
+        <div className="d-flex align-items-center gap-3 mb-3">
+          <h4 className="fw-bold mb-0">Your Current Schedule</h4>
+          <div className="d-flex gap-2">
+            <Button 
+              variant={viewMode === "list" ? "primary" : "outline-primary"} 
+              size="md"
+              onClick={() => setViewMode("list")}
+              style={{ width: 'max-content' }}
+              className="d-flex align-items-center gap-2"
+            >
+              <BsListUl /> List View
+            </Button>
+            <Button 
+              variant={viewMode === "calendar" ? "primary" : "outline-primary"} 
+              size="md"
+              style={{ width: 'max-content' }}
+              onClick={() => setViewMode("calendar")}
+              className="d-flex align-items-center gap-2"
+            >
+              <BsCalendar3 /> Calendar View
+            </Button>
+          </div>
+        </div>
 
-        <ListGroup className="shadow-sm rounded-3 overflow-hidden">
+        <div style={{ minHeight: "600px" }}>
+        {viewMode === "list" ? (
+          <ListGroup className="shadow-sm rounded-3 overflow-hidden">
           {Array.isArray(selectedCourses) && selectedCourses.length > 0 ? (
             selectedCourses.map((item, index) => {
               // If item.course exists, use it; otherwise, assume item is the course data directly.
@@ -657,6 +680,10 @@ export function ScheduleBuilder() {
             </ListGroup.Item>
           )}
         </ListGroup>
+        ) : (
+          <CourseCalendar courses={selectedCourses.flatMap(item => [item.lecture, item.nonLecture].filter(Boolean))} />
+        )}
+        </div>
       </Container>
     </>
   );

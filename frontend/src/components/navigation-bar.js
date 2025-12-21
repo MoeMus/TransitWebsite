@@ -56,8 +56,11 @@ export function Navigation({username = ""}){
             navigate('/');
             window.location.reload();
         }).catch(err=>{
-            throw Error("There was an error logging out");
-        })
+            toast.error("There as an error logging out", {
+                duration: 3000,
+                position: "top-left"
+            });
+        });
 
     }
 

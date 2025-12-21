@@ -20,8 +20,10 @@ class UserView(APIView):
     def get(self, request):
 
         serializer = UserSerializer(request.user)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        if serializer.is_valid():
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def post(self, request):
 
@@ -40,15 +42,14 @@ class UserView(APIView):
             return Response({"error": "User with that username or email already exists"},
                             status=status.HTTP_400_BAD_REQUEST)
 
-    @transaction.atomic
+    @permission_classes([IsAuthenticated])
     def delete(self, request):
-        user = request.user
 
-        for token in OutstandingToken.objects.filter(user=user):
+        for token in OutstandingToken.objects.filter(user=request.user):
             BlacklistedToken.objects.get_or_create(token=token)
 
-        user.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        request.user.delete()
+        return Response(status=status.HTTP_200_OK)
 
     @permission_classes([IsAuthenticated])
     def put(self, request):
@@ -57,17 +58,14 @@ class UserView(APIView):
 
             with transaction.atomic():
 
-                user = User.objects.get(username=request.data['username'])
-
-                if user.DoesNotExist:
-
-                    return Response({"error": "Account not found"}, status=status.HTTP_404_NOT_FOUND)
-
+                user = request.user
                 serializer = UserSerializer(user, data=request.data)
 
                 if serializer.is_valid():
-
                     serializer.save()
+                    return Response(serializer.data, status=status.HTTP_200_OK)
+                else:
+                    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         except IntegrityError:
 
@@ -77,11 +75,9 @@ class UserView(APIView):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def get_user_courses(request, username):
-
+def get_user_courses(request):
     try:
-
-        user = get_object_or_404(User, username=username)
+        user = request.user
         lecture_sections = user.lecture_sections.all()
         non_lecture_sections = user.non_lecture_sections.all()
 
@@ -101,18 +97,18 @@ def get_user_courses(request, username):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def remove_courses(request):
-
     try:
 
         with transaction.atomic():
-            user = User.objects.get(username=request.data["username"])
+            user = request.user
             user.lecture_sections.clear()
             user.non_lecture_sections.clear()
             user.save()
             return Response({"success": "All courses removed from schedule"}, status=status.HTTP_200_OK)
 
-    except User.DoesNotExist:
-        return Response({"error": "User does not exist"}, status=status.HTTP_404_NOT_FOUND)
+    except IntegrityError:
+
+        return Response({"error": "Could not remove your courses"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 # Adds a course (lecture section or non lecture section) to a user's schedule
@@ -121,112 +117,95 @@ def remove_courses(request):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def add_course_to_schedule(request):
-    username = request.data['username']
     department = request.data["department"]
     course_number = request.data["course_number"]
     section_code = request.data["section_code"]
 
-    try:
+    user = request.user
 
-        user = get_object_or_404(User, username=username)
+    # Get the user's courses by username
+    user_courses = list(user.lecture_sections.all())
+    user_courses += list(user.non_lecture_sections.all())
 
-        # Get the user's courses by username
-        user_courses = list(user.lecture_sections.all())
-        user_courses += list(user.non_lecture_sections.all())
+    existing_courses = [course for course in user_courses if course.department == department and
+                        course.number == course_number and course.section_code == section_code]
 
-        existing_courses = [course for course in user_courses if course.department == department and
-                            course.number == course_number and course.section_code == section_code]
+    if existing_courses:
+        return Response(
+            {"error": "This section is already in your schedule"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
-        if existing_courses:
+    new_lecture_section = LectureSection.objects.filter(department=department, number=course_number,
+                                                        section_code=section_code).first()
 
-            return Response(
-                {"error": "This section is already in your schedule"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+    if new_lecture_section:
 
-        new_lecture_section = LectureSection.objects.filter(department=department, number=course_number,
-                                                            section_code=section_code).first()
+        lecture_conflicts = check_time_conflicts(new_lecture_section, user_courses)
+        if lecture_conflicts:
+            conflict_sections = LectureSection.objects.filter(id__in=lecture_conflicts)
 
-        if new_lecture_section:
+            return Response({
+                "error": "Time conflicts detected",
+                "conflicts": LectureSectionSerializer(conflict_sections, many=True).data
+            }, status=status.HTTP_409_CONFLICT)
 
-            lecture_conflicts = check_time_conflicts(new_lecture_section, user_courses)
-            if lecture_conflicts:
+        user.lecture_sections.add(new_lecture_section)
 
-                conflict_sections = LectureSection.objects.filter(id__in=lecture_conflicts)
+    else:
+
+        # If the provided data does not belong to any lecture section, try finding a non lecture section with the
+        # corresponding data
+        new_non_lecture_section = NonLectureSection.objects.filter(department=department, number=course_number,
+                                                                   section_code=section_code).first()
+
+        if new_non_lecture_section:
+
+            non_lecture_conflicts = check_time_conflicts(new_non_lecture_section, user_courses)
+            if non_lecture_conflicts:
+                conflict_sections = NonLectureSection.objects.filter(id__in=non_lecture_conflicts)
 
                 return Response({
                     "error": "Time conflicts detected",
-                    "conflicts": LectureSectionSerializer(conflict_sections, many=True).data
+                    "conflicts": NonLectureSectionSerializer(conflict_sections, many=True).data,
                 }, status=status.HTTP_409_CONFLICT)
 
-            user.lecture_sections.add(new_lecture_section)
+            user.non_lecture_sections.add(new_non_lecture_section)
 
-        else:
+    user.save()
 
-            # If the provided data does not belong to any lecture section, try finding a non lecture section with the
-            # corresponding data
-            new_non_lecture_section = NonLectureSection.objects.filter(department=department, number=course_number,
-                                                                       section_code=section_code).first()
-
-            if new_non_lecture_section:
-
-                non_lecture_conflicts = check_time_conflicts(new_non_lecture_section, user_courses)
-                if non_lecture_conflicts:
-
-                    conflict_sections = NonLectureSection.objects.filter(id__in=non_lecture_conflicts)
-
-                    return Response({
-                        "error": "Time conflicts detected",
-                        "conflicts": NonLectureSectionSerializer(conflict_sections, many=True).data,
-                    }, status=status.HTTP_409_CONFLICT)
-
-                user.non_lecture_sections.add(new_non_lecture_section)
-
-        user.save()
-
-        return Response({"success": "Section added successfully"}, status=status.HTTP_200_OK)
-
-    except Http404 as e:
-
-        return Response({"error": "No user found"}, status=status.HTTP_404_NOT_FOUND)
+    return Response({"success": "Section added successfully"}, status=status.HTTP_200_OK)
 
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def remove_course_from_schedule(request):
-    username = request.data['username']
     department = request.data["department"]
     course_number = request.data["course_number"]
     section_code = request.data["section_code"]
 
-    try:
+    with transaction.atomic():
+        user = request.user
 
-        with transaction.atomic():
+        lecture_section = LectureSection.objects.filter(department=department, number=course_number,
+                                                        section_code=section_code).first()
 
-            user = get_object_or_404(User, username=username)
+        if lecture_section:
 
-            lecture_section = LectureSection.objects.filter(department=department, number=course_number,
-                                                            section_code=section_code).first()
+            non_lecture_section = user.non_lecture_sections.filter(lecture_section=lecture_section).first()
 
-            if lecture_section:
-
-                non_lecture_section = user.non_lecture_sections.filter(lecture_section=lecture_section).first()
-
-                user.lecture_sections.remove(lecture_section)
+            user.lecture_sections.remove(lecture_section)
+            if non_lecture_section:
                 user.non_lecture_sections.remove(non_lecture_section)
 
-            else:
+        else:
 
-                non_lecture_section = NonLectureSection.objects.filter(department=department, number=course_number,
-                                                                    section_code=section_code).first()
+            non_lecture_section = NonLectureSection.objects.filter(department=department, number=course_number,
+                                                                   section_code=section_code).first()
 
+            if non_lecture_section:
                 user.non_lecture_sections.remove(non_lecture_section)
 
-            user.save()
+        user.save()
 
-            return Response({"success": "Section removed successfully"}, status=status.HTTP_200_OK)
-
-    except Http404 as e:
-
-        return Response({"error": "course could not be removed from your schedule"},
-                        status=status.HTTP_404_NOT_FOUND)
+        return Response({"success": "Section removed successfully"}, status=status.HTTP_200_OK)

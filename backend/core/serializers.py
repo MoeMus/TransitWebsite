@@ -13,6 +13,7 @@ class CourseSerializer(serializers.ModelSerializer):
 
 
 class LectureSectionSerializer(serializers.ModelSerializer):
+    course = CourseSerializer(read_only=True)
 
     class Meta:
         model = LectureSection
@@ -20,6 +21,7 @@ class LectureSectionSerializer(serializers.ModelSerializer):
 
 
 class NonLectureSectionSerializer(serializers.ModelSerializer):
+    lecture_section = LectureSectionSerializer(read_only=True)
 
     class Meta:
         model = NonLectureSection

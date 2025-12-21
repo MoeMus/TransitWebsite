@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Container, Form, Button, ListGroup } from "react-bootstrap";
+import { Container, Form, Button, ListGroup, Card, Badge, Row, Col } from "react-bootstrap";
 import apiClient from "../configurations/configAxios";
 import { toast, Toaster } from "react-hot-toast";
 
 const refreshAccessToken = async () => {
   const refreshToken = sessionStorage.getItem('refresh_token');
 
+  // Refresh token is expired, send user to the login page
   if (!refreshToken) {
-    toast.error("No refresh token found");
+    sessionStorage.clear();
+    window.location.href = "/";
     return false;
   }
 
@@ -16,6 +18,7 @@ const refreshAccessToken = async () => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': '', // don't send an expired Bearer token to refresh endpoint
       },
       data: {
         refresh: refreshToken,
@@ -25,13 +28,20 @@ const refreshAccessToken = async () => {
     if (response.status === 200) {
       const data = await response.data;
       sessionStorage.setItem('access_token', data.access);
+ 
+      if (data.refresh) {
+        sessionStorage.setItem('refresh_token', data.refresh);
+      }
       return true;
     } else {
-      toast.error("Failed to refresh access token");
+      sessionStorage.clear();
+      window.location.href = "/";
       return false;
     }
   } catch (error) {
-    toast.error("Error refreshing access token");
+    console.error("Refresh token expired or invalid:", error);
+    sessionStorage.clear();
+    window.location.href = "/";
     return false;
   }
 };
@@ -124,8 +134,16 @@ export function ScheduleBuilder() {
         const data = await response.data;
         // Flatten the lecture and non-lecture sections into a single array for the UI
         const combined = [
-          ...(data.lecture_sections || []),
-          ...(data.non_lecture_sections || [])
+          ...(data.lecture_sections || []).map(lec => ({
+            course: lec.course,
+            lecture: lec,
+            nonLecture: null
+          })),
+          ...(data.non_lecture_sections || []).map(nls => ({
+            course: nls.lecture_section?.course,
+            lecture: nls.lecture_section,
+            nonLecture: nls
+          }))
         ];
         setSelectedCourses(combined);
       } else {
@@ -258,15 +276,16 @@ export function ScheduleBuilder() {
       const updatedCourses = selectedCourses.filter((_, idx) => idx !== indexToRemove);
       setSelectedCourses(updatedCourses);
 
-      // Extract the actual course data from the entry (in case it is nested).
-      const courseData = course.course || course;
+      // Extract data from normalized entry
+      const courseData = course.course;
+      const sectionData = course.nonLecture || course.lecture;
 
-      // Build the payload for the backend deletion.
+      // Build payload for backend deletion.
       let post_request = {
         username: username,
         department: courseData.department,
-        course_number: courseData.number || courseData.course_number,
-        section_code: courseData.section_code,
+        course_number: courseData.course_number,
+        section_code: sectionData.section_code,
       };
 
       console.log("Removing course with payload:", post_request);
@@ -280,7 +299,7 @@ export function ScheduleBuilder() {
             method: "POST"
           }
         );
-        toast.success(`${courseData.title} ${courseData.section_name} removed from schedule`);
+        toast.success(`${courseData.title} ${sectionData.section_code} removed from schedule`);
       } catch (err) {
         console.error("Error in remove API:", err);
         toast.error(err.response?.data?.error || "Error removing course");
@@ -316,7 +335,7 @@ export function ScheduleBuilder() {
       const response = await apiClient(`/api/courses/${courseId}/lectures/`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${accessToken}`, // Add the Bearer token
+          'Authorization': `Bearer ${accessToken}`, // Add Bearer token
           'Content-Type': 'application/json',
         },
       });
@@ -361,7 +380,7 @@ export function ScheduleBuilder() {
         setNonLectureSections(data);
         setSelectionStage("non-lecture");
       } else {
-        // No non-lecture sections; proceed to add the course directly
+        // No non-lecture sections so go to add the course directly
         handleAddCourseWithoutNonLecture();
       }
     } catch (err) {
@@ -397,6 +416,15 @@ export function ScheduleBuilder() {
     setSelectedNonLectureSection(nonLecture);
   };
 
+  const handleCancelSelection = () => {
+    setSelectedCourse(null);
+    setSelectedLectureSection(null);
+    setSelectedNonLectureSection(null);
+    setLectureSections([]);
+    setNonLectureSections([]);
+    setSelectionStage("course");
+  };
+
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -408,93 +436,164 @@ export function ScheduleBuilder() {
   return (
     <>
       <Toaster position="top-left" reverseOrder={false} />
-      <Container>
-        <h2>Schedule Builder</h2>
-        {selectionStage === "course" && (
-          <Form.Group controlId="courseSelect">
-            <Form.Label>Select Course</Form.Label>
-            <Form.Control
-              as="select"
-              onChange={handleCourseSelection}
-              value={selectedCourse ? selectedCourse.id : ""}
+      <Container className="py-5">
+        <Row className="mb-4">
+          <Col>
+            <h2 className="fw-bold text-primary">Schedule Builder</h2>
+            <p className="text-muted">Plan your semester by selecting courses and sections below.</p>
+          </Col>
+        </Row>
+
+        <Card className="shadow-sm border-0 mb-5">
+          <Card.Body className="p-4">
+            <Row className="align-items-end">
+              <Col md={selectionStage === "course" ? 12 : 4}>
+                <Form.Group controlId="courseSelect">
+                  <Form.Label className="small fw-bold text-uppercase text-muted">1. Select Course</Form.Label>
+                  <Form.Control
+                    as="select"
+                    className="form-select-lg"
+                    onChange={handleCourseSelection}
+                    value={selectedCourse ? selectedCourse.id : ""}
+                  >
+                    <option value="">Choose a course...</option>
+                    {Array.isArray(availableCourses) && availableCourses.map((course) => (
+                      <option key={course.id} value={course.id}>
+                        {course.department} {course.course_number}: {course.title}
+                      </option>
+                    ))}
+                  </Form.Control>
+                </Form.Group>
+              </Col>
+
+              {selectionStage !== "course" && uniqueLectureSections.length > 0 && (
+                <Col md={4}>
+                  <Form.Group controlId="lectureSectionSelect">
+                    <Form.Label className="small fw-bold text-uppercase text-muted">2. Lecture Section</Form.Label>
+                    <Form.Control
+                      as="select"
+                      className="form-select-lg"
+                      onChange={handleLectureSelection}
+                      value={selectedLectureSection ? selectedLectureSection.id : ""}
+                    >
+                      <option value="">Choose a lecture...</option>
+                      {Array.isArray(uniqueLectureSections) && uniqueLectureSections.map((lecture) => (
+                        <option key={lecture.id} value={lecture.id}>
+                          {lecture.section_code} ({lecture.schedule?.[0]?.startTime || "N/A"} - {lecture.schedule?.[0]?.endTime || "N/A"})
+                        </option>
+                      ))}
+                    </Form.Control>
+                  </Form.Group>
+                </Col>
+              )}
+
+              {selectionStage === "non-lecture" && nonLectureSections.length > 0 && (
+                <Col md={4}>
+                  <Form.Group controlId="nonLectureSectionSelect">
+                    <Form.Label className="small fw-bold text-uppercase text-muted">3. Lab/Tutorial</Form.Label>
+                    <Form.Control 
+                      as="select" 
+                      className="form-select-lg"
+                      onChange={handleNonLectureSelection} 
+                      value={selectedNonLectureSection ? selectedNonLectureSection.id : ""}
+                    >
+                      <option value="">Choose a section...</option>
+                      {Array.isArray(nonLectureSections) && nonLectureSections.map((nonLecture) => (
+                        <option key={nonLecture.id} value={nonLecture.id}>
+                          {nonLecture.section_code} ({nonLecture.schedule?.[0]?.startTime || "N/A"} - {nonLecture.schedule?.[0]?.endTime || "N/A"})
+                        </option>
+                      ))}
+                    </Form.Control>
+                  </Form.Group>
+                </Col>
+              )}
+            </Row>
+
+            <Row 
+              className="mt-4" 
+              style={{ 
+                visibility: selectedCourse ? 'visible' : 'hidden' 
+              }}
             >
-              <option value="">Select a course</option>
-              {Array.isArray(availableCourses) && availableCourses.map((course) => (
-                <option key={course.id} value={course.id}>
-                  {course.department} {course.course_number}: {course.title}
-                </option>
-              ))}
-            </Form.Control>
-          </Form.Group>
-        )}
+              <Col className="d-flex gap-2">
+                {((selectionStage === "non-lecture" && selectedNonLectureSection) ||
+                  (selectionStage === "lecture" && nonLectureSections.length === 0 && selectedLectureSection)) && (
+                  <Button 
+                    variant="primary"
+                    size="lg"
+                    style={{ width: 'max-content' }}
+                    className="px-4 py-1 shadow-sm text-nowrap"
+                    onClick={selectionStage === "non-lecture" ? handleAddCourse : handleAddCourseWithoutNonLecture}
+                  >
+                    Add to Schedule
+                  </Button>
+                )}
+                <Button 
+                  variant="outline-secondary"
+                  size="lg"
+                  style={{ width: 'max-content' }}
+                  className="px-4 py-1 shadow-sm text-nowrap"
+                  onClick={handleCancelSelection}
+                >
+                  Cancel
+                </Button>
+              </Col>
+            </Row>
+          </Card.Body>
+        </Card>
 
-        {/* Look for uniqueLectureSections */}
-        {selectionStage === "lecture" && uniqueLectureSections.length > 0 && (
-          <Form.Group controlId="lectureSectionSelect">
-            <Form.Label>Select Lecture Section</Form.Label>
-            <Form.Control
-              as="select"
-              onChange={handleLectureSelection}
-              value={selectedLectureSection ? selectedLectureSection.id : ""}
-            >
-              <option value="">Select a lecture section</option>
-              {Array.isArray(uniqueLectureSections) && uniqueLectureSections.map((lecture) => (
-                <option key={lecture.id} value={lecture.id}>
-                  {lecture.section_code} - {lecture.start_time} to {lecture.end_time}
-                </option>
-              ))}
-            </Form.Control>
-          </Form.Group>
-        )}
+        <Row className="mb-3">
+          <Col>
+            <h4 className="fw-bold">Your Current Schedule</h4>
+          </Col>
+        </Row>
 
-        {/* Conditional Rendering: Non-Lecture Section Selection */}
-        {selectionStage === "non-lecture" && nonLectureSections.length > 0 && (
-          <Form.Group controlId="nonLectureSectionSelect">
-            <Form.Label>Select Non-Lecture Section</Form.Label>
-            <Form.Control as="select" onChange={handleNonLectureSelection} value={selectedNonLectureSection ? selectedNonLectureSection.id : ""}>
-              <option value="">Select a non-lecture section</option>
-              {Array.isArray(nonLectureSections) && nonLectureSections.map((nonLecture) => (
-                <option key={nonLecture.id} value={nonLecture.id}>
-                  {nonLecture.section_code} - {nonLecture.start_time} to {nonLecture.end_time}
-                </option>
-              ))}
-            </Form.Control>
-          </Form.Group>
-        )}
-
-        {/* Add Course Button */}
-        { (selectionStage === "non-lecture" && nonLectureSections.length > 0 && selectedNonLectureSection) ||
-          (selectionStage === "lecture" && nonLectureSections.length === 0 && selectedLectureSection) ? (
-            <Button variant="primary" onClick={selectionStage === "non-lecture" ? handleAddCourse : handleAddCourseWithoutNonLecture}>
-              Add Course
-            </Button>
-          ) : null
-        }
-
-        <h3>Your Schedule</h3>
-        <ListGroup>
-          {Array.isArray(selectedCourses) && selectedCourses.map((item, index) => {
+        <ListGroup className="shadow-sm rounded-3 overflow-hidden">
+          {Array.isArray(selectedCourses) && selectedCourses.length > 0 ? (
+            selectedCourses.map((item, index) => {
               // If item.course exists, use it; otherwise, assume item is the course data directly.
               const courseData = item.course || item;
               const lectureData = item.lecture || {};
               const nonLectureData = item.nonLecture || null;
 
               return (
-                <ListGroup.Item key={index}>
-                  {courseData.title} (Lecture: {lectureData.section_code ? lectureData.section_code : "N/A"},
-                  Non-Lecture: {nonLectureData ? nonLectureData.section_code : "No Non-Lecture Sections"})
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    className="float-right"
-                    style={{ marginLeft: '1rem' }}
-                    onClick={() => handleRemoveCourse(item, index)}
-                  >
-                    Remove
-                  </Button>
+                <ListGroup.Item key={index} className="p-4 border-start-0 border-end-0">
+                  <div className="d-flex justify-content-between align-items-center">
+                    <div>
+                      <div className="d-flex align-items-center mb-1">
+                        <Badge bg="secondary" className="me-2">{courseData.department} {courseData.course_number}</Badge>
+                        <h5 className="mb-0 fw-bold">{courseData.title}</h5>
+                      </div>
+                      <div className="text-muted small">
+                        <span className="me-3">
+                          <strong>Lecture:</strong> {lectureData.section_code || "N/A"} 
+                          <span className="ms-1 text-primary">({lectureData.schedule?.[0]?.startTime || "N/A"} - {lectureData.schedule?.[0]?.endTime || "N/A"})</span>
+                        </span>
+                        {nonLectureData && (
+                          <span>
+                            <strong>Non-Lecture:</strong> {nonLectureData.section_code} 
+                            <span className="ms-1 text-primary">({nonLectureData.schedule?.[0]?.startTime || "N/A"} - {nonLectureData.schedule?.[0]?.endTime || "N/A"})</span>
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <Button
+                      variant="outline-danger"
+                      size="sm"
+                      className="rounded-pill px-3"
+                      onClick={() => handleRemoveCourse(item, index)}
+                    >
+                      Remove
+                    </Button>
+                  </div>
                 </ListGroup.Item>
               );
-            })}
+            })
+          ) : (
+            <ListGroup.Item className="text-center p-5 text-muted bg-light">
+              <p className="mb-0">No courses added yet. Use the builder above to start your schedule.</p>
+            </ListGroup.Item>
+          )}
         </ListGroup>
       </Container>
     </>

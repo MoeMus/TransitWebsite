@@ -4,7 +4,7 @@ import {toast} from "react-hot-toast";
 import {Dropdown} from "react-bootstrap";
 import {Link, Text} from "@chakra-ui/react";
 
-export function Directions({userLocation, setTravelTime, setTravelDistance}) {
+export function Directions({userLocation, destination, setTravelTime, setTravelDistance}) {
     const map = useMap();
     const [directionsService, setDirectionsService] = useState(null);
     const [directionsRenderer, setDirectionsRenderer] = useState(null);
@@ -47,7 +47,7 @@ export function Directions({userLocation, setTravelTime, setTravelDistance}) {
         try {
             directionsService.route({
                     origin: userLocation,
-                    destination: "8888 University Dr W, Burnaby, BC V5A 1S6",
+                    destination: destination,
                     travelMode: window.google.maps.TravelMode[travelMode.toUpperCase()],
                     provideRouteAlternatives: true,
                 },
@@ -82,7 +82,7 @@ export function Directions({userLocation, setTravelTime, setTravelDistance}) {
         } catch (err) {
             console.log(err);
         }
-    }, [directionsService, directionsRenderer, userLocation, routeIndex, travelMode, setTravelDistance, setTravelTime]);
+    }, [directionsService, directionsRenderer, userLocation, destination, routeIndex, travelMode, setTravelDistance, setTravelTime]);
 
     function setMode(eventKey, event) {
         event.preventDefault();

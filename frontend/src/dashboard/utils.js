@@ -1,11 +1,11 @@
 import apiClient from "../configurations/configAxios";
 import {toast} from "react-hot-toast";
 
-async function getUserInfoFromBackend(username) {
+async function getUserInfoFromBackend() {
 
     try {
 
-        const response = await apiClient.get(
+        const user_data = await apiClient.get(
         `/api/user/`,
         {
             method: "GET",
@@ -13,20 +13,20 @@ async function getUserInfoFromBackend(username) {
 
         //console.log(JSON.stringify(userData.data, null, 2));
 
-        const lecture_sections = response.data.lecture_sections;
-        const non_lecture_sections = response.data.non_lecture_sections;
+        const lecture_sections = user_data.data.lecture_sections;
+        const non_lecture_sections = user_data.data.non_lecture_sections;
 
         const user_courses = [...lecture_sections, ...non_lecture_sections];
 
-        delete response.data.lecture_sections;
-        delete response.data.non_lecture_sections;
+        delete user_data.data.lecture_sections;
+        delete user_data.data.non_lecture_sections;
 
-        response.data.courses = user_courses;
+        user_data.data.courses = user_courses;
 
-        return response.data;
+        return user_data.data;
 
     } catch (err) {
-        const errorMessage = err.response.data.error;
+        const errorMessage = err.response?.data?.error || err.message || "An error occurred";
         throw Error(errorMessage);
     }
 

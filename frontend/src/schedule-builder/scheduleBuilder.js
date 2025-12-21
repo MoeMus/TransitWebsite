@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Container, Form, Button, ListGroup, Card, Badge, Row, Col } from "react-bootstrap";
 import apiClient from "../configurations/configAxios";
 import { toast, Toaster } from "react-hot-toast";
@@ -59,13 +59,8 @@ export function ScheduleBuilder() {
   const [error, setError] = useState("");
   const username  = sessionStorage.getItem("user");
 
-  useEffect(() => {
-    fetchAvailableCourses();
-    fetchUserCourses(); // Fetch user courses on mount
-  }, []);
-
   // Fetch all available courses
-  const fetchAvailableCourses = async () => {
+  const fetchAvailableCourses = useCallback(async () => {
     const accessToken = sessionStorage.getItem('access_token');
     try {
       const response = await apiClient('/api/courses/get/all/', {
@@ -85,22 +80,7 @@ export function ScheduleBuilder() {
     } finally {
       setLoading(false);
     }
-  };
-
-    const fetchAvailableLectures = async () => {
-      try {
-        const response = await apiClient(`/api/courses/lectures/`);
-        const data = await response.data;
-        if (Array.isArray(data) && data.length > 0) {
-          setAvailableCourses(data);
-          setSelectionStage("lecture");
-        } else {
-          toast.error("No lecture sections found");
-        }
-      } catch (err) {
-        toast.error("Failed to load lectures");
-      }
-    };
+  }, []);
 
   const uniqueLectureSections = useMemo(() => {
     // uses a map to deduplicate by section_code
@@ -114,7 +94,7 @@ export function ScheduleBuilder() {
   }, [lectureSections]);
 
   // Fetch the user's saved courses
-  const fetchUserCourses = async () => {
+  const fetchUserCourses = useCallback(async () => {
     const accessToken = sessionStorage.getItem('access_token');
     if (!accessToken) {
       toast.error("User is not authenticated");
@@ -153,7 +133,12 @@ export function ScheduleBuilder() {
       console.error(err);
       toast.error("Failed to load your courses.");
     }
-  };
+  }, [username]);
+
+  useEffect(() => {
+    fetchAvailableCourses();
+    fetchUserCourses(); // Fetch user courses on mount
+  }, [fetchAvailableCourses, fetchUserCourses]);
 
   // Handle adding a course with non-lecture sections
   const handleAddCourse = async () => {
@@ -370,19 +355,15 @@ export function ScheduleBuilder() {
       const response = await apiClient(`/api/courses/lectures/${lectureId}/non-lectures/`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${accessToken}`, // Add Bearer token for authentication
+          'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
       });
 
       const data = await response.data;
-      if (Array.isArray(data) && data.length > 0) {
-        setNonLectureSections(data);
-        setSelectionStage("non-lecture");
-      } else {
-        // No non-lecture sections so go to add the course directly
-        handleAddCourseWithoutNonLecture();
-      }
+      
+      // Update the list regardless of whether it is empty or populated
+      updateSectionList(data);
     } catch (err) {
       toast.error("Failed to load non-lecture sections");
     }
@@ -431,6 +412,18 @@ export function ScheduleBuilder() {
 
   if (error) {
     return <div>Error: {error.message}</div>;
+  }
+
+  function updateSectionList(data) {
+    if (Array.isArray(data) && data.length > 0) {
+      setNonLectureSections(data);
+      setSelectionStage("non-lecture");
+    } else {
+      // Don't auto submit, just clear non-lectures and sets and sets stage to lecture to show Add button
+      // This fixes the bug where it was adding previous lecture sections
+      setNonLectureSections([]);
+      setSelectionStage("lecture");
+    }
   }
 
   return (

@@ -108,7 +108,7 @@ def get_non_lecture_sections(request, lecture_section_id):
         lecture_section = get_object_or_404(LectureSection, id=lecture_section_id)
         non_lecture_sections = lecture_section.non_lecture_sections.all()  # Use the new related_name
         data = [
-            {"id": nls.id, "department": nls.department, "title": nls.title, "section_code": nls.section_code,
+            {"id": nls.id, "department": nls.department, "number": nls.number, "title": nls.title, "section_code": nls.section_code,
              "professor": nls.professor, "schedule": nls.schedule,
              "start_date": nls.start_date, "end_date": nls.end_date, "campus": nls.campus}
             for nls in non_lecture_sections

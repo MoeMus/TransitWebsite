@@ -4,7 +4,7 @@ import apiClient from "../configurations/configAxios";
 import { toast, Toaster } from "react-hot-toast";
 import {Spinner} from "@chakra-ui/react";
 import CourseCalendar from "../calendar/CourseCalendar";
-import { BsListUl, BsCalendar3 } from "react-icons/bs";
+import { BsListUl, BsCalendar3, BsTrash } from "react-icons/bs";
 
 const refreshAccessToken = async () => {
   const refreshToken = sessionStorage.getItem('refresh_token');
@@ -372,6 +372,35 @@ export function ScheduleBuilder() {
       }
     };
 
+  // Handle removing all courses from the schedule
+  const handleRemoveAllCourses = async () => {
+    if (!window.confirm("Are you sure you want to clear your entire schedule?")) return;
+
+    try {
+      await apiClient.post(
+        `/api/user/courses/remove/all/`,
+        {},
+        {
+          withCredentials: true,
+          method: "POST"
+        }
+      );
+      setSelectedCourses([]);
+      toast.success("All courses removed from schedule");
+    } catch (err) {
+      console.error("Error removing all courses:", err);
+      toast.error(err.response?.data?.error || "Error removing all courses");
+    }
+
+    try {
+      const response = await apiClient("/api/courses/get/all/");
+      const data = await response.data;
+      setAvailableCourses(Array.isArray(data) ? data : []);
+    } catch (err) {
+      toast.error("Failed to load available courses");
+    }
+  };
+
 
 
   // Fetch lecture sections for a given course
@@ -608,8 +637,8 @@ export function ScheduleBuilder() {
         </Card>
 
         <div className="d-flex align-items-center gap-3 mb-3">
-          <h4 className="fw-bold mb-0">Your Current Schedule</h4>
-          <div className="d-flex gap-2">
+          <h4 className="fw-bold mb-0 ms-2">Your Current Schedule</h4>
+          <div className="d-flex gap-2 flex-grow-1">
             <Button 
               variant={viewMode === "list" ? "primary" : "outline-primary"} 
               size="md"
@@ -627,6 +656,15 @@ export function ScheduleBuilder() {
               className="d-flex align-items-center gap-2"
             >
               <BsCalendar3 /> Calendar View
+            </Button>
+            <Button 
+              variant="outline-danger" 
+              size="md"
+              onClick={handleRemoveAllCourses}
+              style={{ width: 'max-content' }}
+              className="d-flex align-items-center gap-2 ms-auto me-2"
+            >
+              <BsTrash /> Clear Schedule
             </Button>
           </div>
         </div>

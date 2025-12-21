@@ -138,13 +138,11 @@ def add_course_to_schedule(request):
 
     if new_lecture_section:
 
-        lecture_conflicts = check_time_conflicts(new_lecture_section, user_courses)
-        if lecture_conflicts:
-            conflict_sections = LectureSection.objects.filter(id__in=lecture_conflicts)
-
+        conflicts = check_time_conflicts(new_lecture_section, user_courses)
+        if conflicts:
             return Response({
                 "error": "Time conflicts detected",
-                "conflicts": LectureSectionSerializer(conflict_sections, many=True).data
+                "conflicts": conflicts
             }, status=status.HTTP_409_CONFLICT)
 
         user.lecture_sections.add(new_lecture_section)
@@ -158,13 +156,12 @@ def add_course_to_schedule(request):
 
         if new_non_lecture_section:
 
-            non_lecture_conflicts = check_time_conflicts(new_non_lecture_section, user_courses)
-            if non_lecture_conflicts:
-                conflict_sections = NonLectureSection.objects.filter(id__in=non_lecture_conflicts)
+            conflicts = check_time_conflicts(new_lecture_section, user_courses)
+            if conflicts:
 
                 return Response({
                     "error": "Time conflicts detected",
-                    "conflicts": NonLectureSectionSerializer(conflict_sections, many=True).data,
+                    "conflicts": conflicts,
                 }, status=status.HTTP_409_CONFLICT)
 
             user.non_lecture_sections.add(new_non_lecture_section)

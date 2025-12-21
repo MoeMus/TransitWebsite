@@ -3,6 +3,8 @@ from datetime import datetime
 
 from datetime import date
 
+from django.forms import model_to_dict
+
 # Get today's date
 DATE = date.today()
 
@@ -110,7 +112,6 @@ def check_time_conflicts(new_course, user_courses):
             for course in day_to_event_map.get(day, []):
 
                 if check_course_conflicts(block, course["time_block"]):
+                    conflicts.add(course["section"])
 
-                    conflicts.add(course["section"].id)
-
-    return list(conflicts)
+    return list([model_to_dict(course) for course in conflicts])

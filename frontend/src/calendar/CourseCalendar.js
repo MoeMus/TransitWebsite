@@ -83,8 +83,6 @@ export default function CourseCalendar({courses}){
 
             </div>
 
-
-
         </>
 
     )

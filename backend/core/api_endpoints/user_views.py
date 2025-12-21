@@ -72,9 +72,9 @@ class UserView(APIView):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def get_user_courses(request):
+def get_user_courses(request, username):
     try:
-        user = request.user
+        user = User.objects.get(username=username)
         lecture_sections = user.lecture_sections.all()
         non_lecture_sections = user.non_lecture_sections.all()
 

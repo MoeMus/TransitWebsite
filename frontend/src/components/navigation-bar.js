@@ -46,8 +46,9 @@ export function Navigation({username = ""}){
     const handleLogout = async (event) => {
 
         event.preventDefault();
+        const request = {refresh_token: sessionStorage.getItem("refresh_token")};
 
-        apiClient.post("/api/logout/",{
+        apiClient.post("/api/logout/", request, {
             method: "POST",
             withCredentials: true
         }).then(()=>{

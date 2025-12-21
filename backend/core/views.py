@@ -22,10 +22,12 @@ logger = logging.getLogger(__name__)
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def logout(request):
-    user = request.user
 
-    for token in OutstandingToken.objects.filter(user=user):
-        BlacklistedToken.objects.get_or_create(token=token)
+    refresh_token = request.data["refresh_token"]
+
+    refresh = RefreshToken(refresh_token)
+
+    refresh.blacklist()
 
     response = Response(status=status.HTTP_204_NO_CONTENT)
     response.delete_cookie("user_session", path="/")

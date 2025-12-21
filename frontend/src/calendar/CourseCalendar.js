@@ -1,5 +1,6 @@
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from '@fullcalendar/daygrid'
+import timeGridPlugin from "@fullcalendar/timegrid";
 import {Box, Button, useDisclosure} from "@chakra-ui/react";
 import React from "react";
 export default function CourseCalendar({courses}){
@@ -67,15 +68,22 @@ export default function CourseCalendar({courses}){
     return (
         <>
 
-            <FullCalendar
-                plugins={[dayGridPlugin]}
-                initialView={"dayGridMonth"}
-                weekends={true}
-                timeZone={"Canada/Vancouver"}
-                aspectRatio={2}
-                events={parseCourses(courses)}
-            >
-            </FullCalendar>
+            <div style={{marginBottom: "30px"}}>
+
+                <FullCalendar
+                    plugins={[timeGridPlugin]
+                    }
+                    initialView={"timeGridWeek"}
+                    weekends={true}
+                    timeZone={"Canada/Vancouver"}
+                    aspectRatio={2}
+                    events={parseCourses(courses)}
+                >
+                </FullCalendar>
+
+            </div>
+
+
 
         </>
 

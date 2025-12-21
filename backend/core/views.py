@@ -2,6 +2,7 @@ import logging
 from django.http import HttpResponse
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .utils import *
@@ -21,20 +22,16 @@ logger = logging.getLogger(__name__)
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def logout(request):
-    try:
-        refresh_token = request.data["refresh_token"]
-        refresh_token = RefreshToken(refresh_token)
-        refresh_token.blacklist()
 
-        response = Response(status=status.HTTP_205_RESET_CONTENT)
+    refresh_token = request.data["refresh_token"]
 
-        if 'user_session' in request.COOKIES:
-            response.delete_cookie('user_session')
+    refresh = RefreshToken(refresh_token)
 
-        return response
+    refresh.blacklist()
 
-    except Exception as e:
-        return Response({"error": "Logout failed"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    response = Response(status=status.HTTP_204_NO_CONTENT)
+    response.delete_cookie("user_session", path="/")
+    return response
 
 
 def test_view(request):

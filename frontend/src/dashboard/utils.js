@@ -5,25 +5,25 @@ async function getUserInfoFromBackend(username) {
 
     try {
 
-        const user_data = await apiClient.get(
-        `/api/user/?username=${username}`,
+        const response = await apiClient.get(
+        `/api/user/`,
         {
             method: "GET",
         });
 
         //console.log(JSON.stringify(userData.data, null, 2));
 
-        const lecture_sections = user_data.data.lecture_sections;
-        const non_lecture_sections = user_data.data.non_lecture_sections;
+        const lecture_sections = response.data.lecture_sections;
+        const non_lecture_sections = response.data.non_lecture_sections;
 
         const user_courses = [...lecture_sections, ...non_lecture_sections];
 
-        delete user_data.data.lecture_sections;
-        delete user_data.data.non_lecture_sections;
+        delete response.data.lecture_sections;
+        delete response.data.non_lecture_sections;
 
-        user_data.data.courses = user_courses;
+        response.data.courses = user_courses;
 
-        return user_data.data;
+        return response.data;
 
     } catch (err) {
         const errorMessage = err.response.data.error;

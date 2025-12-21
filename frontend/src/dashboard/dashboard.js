@@ -5,11 +5,18 @@ import {AdvancedMarker, APIProvider, Map, Pin,} from "@vis.gl/react-google-maps"
 import Container from "react-bootstrap/Container";
 import Form from "react-bootstrap/Form";
 //import Button from "react-bootstrap/Button";
+import Dropdown from "react-bootstrap/Dropdown";
 import ServiceAlerts from "../translink-alerts/ServiceAlerts";
 import {Box, Button, Flex, Spinner} from "@chakra-ui/react";
 import {getUserInfoFromBackend, setLocation} from "./utils"
 import CourseCalendar from "../calendar/CourseCalendar";
 import {Directions} from "./directions";
+
+const CAMPUSES = [
+    { key: "burnaby", name: "SFU Burnaby", address: "8888 University Dr W, Burnaby, BC V5A 1S6" },
+    { key: "surrey", name: "SFU Surrey", address: "13450 102 Ave, Surrey, BC V3T 0A3" },
+    { key: "vancouver", name: "SFU Vancouver", address: "515 W Hastings St, Vancouver, BC V6B 5K3" }
+];
 
 export function Dashboard() {
     const [loading, setLoading] = useState(true);
@@ -25,6 +32,7 @@ export function Dashboard() {
     const [travelDistance, setTravelDistance] = useState("");
     // const [userCourses, setUserCourses] = useState([]);
     const [viewCalendar, setViewCalendar] = useState(false);
+    const [selectedCampus, setSelectedCampus] = useState(CAMPUSES[0]);
 
     let watchID = 0;
 
@@ -58,12 +66,11 @@ export function Dashboard() {
     async function getUserInfo() {
         try {
 
-            const userData = await getUserInfoFromBackend(username);
+            const userData = await getUserInfoFromBackend();
             setUserInfo(userData);
 
         } catch (err) {
-            const errorMessage = err.response.data.error;
-            toast.error(errorMessage, {
+            toast.error(err.message || "Failed to load user info", {
                 duration: 2000,
             });
         } finally {
@@ -193,7 +200,19 @@ export function Dashboard() {
 
                                     <div>
 
-                                        <h2 style={{textAlign: "center"}}> Estimated travel time to _____: </h2>
+                                        <h2 style={{textAlign: "center", display: "flex", justifyContent: "center", alignItems: "center", gap: "10px"}}>
+                                            Estimated travel time to
+                                            <Dropdown onSelect={(k) => setSelectedCampus(CAMPUSES.find(c => c.key === k))}>
+                                                <Dropdown.Toggle variant="success" id="dropdown-campus" className="text-nowrap flex-shrink-0 d-inline-flex align-items-center" style={{ width: 'max-content' }}>
+                                                    {selectedCampus.name}
+                                                </Dropdown.Toggle>
+                                                <Dropdown.Menu>
+                                                    {CAMPUSES.map(c => (
+                                                        <Dropdown.Item key={c.key} eventKey={c.key}>{c.name}</Dropdown.Item>
+                                                    ))}
+                                                </Dropdown.Menu>
+                                            </Dropdown>:
+                                        </h2>
 
                                         <h2 style={{color: "green", textAlign: "center"}}> {travelTime} </h2>
 
@@ -220,7 +239,7 @@ export function Dashboard() {
                                         </Map>
                                     </div>
                                     <div className="directionsBox">
-                                        <Directions userLocation={userLocation} setTravelTime={setTravelTime}
+                                        <Directions userLocation={userLocation} destination={selectedCampus.address} setTravelTime={setTravelTime}
                                                     setTravelDistance={setTravelDistance}/>
                                     </div>
                                 </div>
@@ -274,5 +293,3 @@ export function Dashboard() {
         </>
   );
 }
-
-

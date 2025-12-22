@@ -276,7 +276,7 @@ export function Dashboard() {
 
                     </Container>
 
-                    <Container>
+                    <Container style={{marginTop: "40px"}}>
 
                         <Flex justifyContent="center">
                             <ServiceAlerts/>

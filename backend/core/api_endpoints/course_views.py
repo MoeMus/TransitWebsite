@@ -32,13 +32,11 @@ def get_course(request, department, course_number):
 def get_courses_from_ids(request):
     course_id_params = request.query_params.get('course_ids', '')
 
+    course_ids = []
+
     if course_id_params:
 
         course_ids = [course_id for course_id in course_id_params.split(',')]
-
-    else:
-
-        course_ids = []
 
     courses = Course.objects.filter(id__in=course_ids).values()
     if not courses:

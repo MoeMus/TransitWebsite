@@ -11,7 +11,7 @@ import {Box, Button, Flex, Spinner} from "@chakra-ui/react";
 import {getUserInfoFromBackend, setLocation} from "./utils"
 import CourseCalendar from "../calendar/CourseCalendar";
 import {Directions} from "./directions";
-
+import Dialog from "../components/dialog";
 const CAMPUSES = [
     { key: "burnaby", name: "SFU Burnaby", address: "8888 University Dr W, Burnaby, BC V5A 1S6" },
     { key: "surrey", name: "SFU Surrey", address: "13450 102 Ave, Surrey, BC V3T 0A3" },
@@ -21,7 +21,6 @@ const CAMPUSES = [
 export function Dashboard() {
     const [loading, setLoading] = useState(true);
     const [userInfo, setUserInfo] = useState({});
-    const [error, setError] = useState("");
     const username = sessionStorage.getItem("user");
     const [userLocation, setUserLocation] = useState({ lat: 0, lng: 0 });
     const [trackingEnabled, setTrackingEnabled] = useState(false);
@@ -51,16 +50,12 @@ export function Dashboard() {
         if (error.code === error.PERMISSION_DENIED) {
             setTrackingEnabled(false);
             toast("Location tracking disabled", {
-                duration: 2000,
                 id: "userLocation-denied",
             });
 
             //TODO: Change how map is shown on dashboard
         }
-        toast.error("Could not retrieve your location", {
-            duration: 2000,
-            id: "userLocation-not-found",
-        });
+        toast.error("Could not retrieve your location");
     }
 
     const getUserInfo = useCallback( async () => {
@@ -70,9 +65,7 @@ export function Dashboard() {
             setUserInfo(userData);
 
         } catch (err) {
-            toast.error(err.message || "Failed to load user info", {
-                duration: 2000,
-            });
+            toast.error(err.message || "Failed to load user info");
         } finally {
             setLoading(false);
         }
@@ -94,16 +87,13 @@ export function Dashboard() {
             setTrackingEnabled(true);
 
         } else if (manualLocationEnabled) {
-            toast("Location set", {
-                duration: 2000
-            });
+            toast("Location set");
         } else {
 
             // display an error if not supported
             toast.error(
                 "Location tracking on this website is not supported by your browser",
                 {
-                    duration: 2000,
                     id: "tracking-not-supported",
                 }
             );
@@ -158,9 +148,7 @@ export function Dashboard() {
 
                 } else {
 
-                    toast.error("The provided location could not be processed", {
-                        duration: 2000
-                    });
+                    toast.error("The provided location could not be processed");
 
                 }
 
@@ -170,9 +158,7 @@ export function Dashboard() {
 
         } catch (err) {
 
-            toast.error(err.message, {
-                duration: 2000
-            });
+            toast.error(err.message);
 
         }
 
@@ -182,18 +168,11 @@ export function Dashboard() {
         return  <Spinner size="sm" />;
     }
 
-    if (error) {
-        return (
-            <>
-                <Toaster position="top-left" reverseOrder={false} />
-            </>
-        );
-    }
-
     return (
         <>
             <Box>
-                <Toaster position="top-left" reverseOrder={false} />
+
+                <Toaster position="top-center" duration={5000} reverseOrder={false} />
                 <Container fluid={"md"} >
 
                     <Container style={{height: "1000px", width: "1200px", display: "flex", flexDirection: "column"}}>

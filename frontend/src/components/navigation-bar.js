@@ -1,29 +1,17 @@
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
-import React, { useState, useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import 'bootstrap/dist/css/bootstrap.css';
 import {useNavigate} from "react-router-dom";
 import apiClient from "../configurations/configAxios";
 import {useDispatch} from "react-redux";
 import updateAccessToken from "../storeConfig/updateAccessToken";
 import {NavDropdown} from "react-bootstrap";
-import toast, {Toaster} from "react-hot-toast";
+import toast from "react-hot-toast";
 //import Button from "react-bootstrap/Button";
-
-import {Link, Button} from "@chakra-ui/react"
-import {
-    DialogActionTrigger,
-    DialogBody,
-    DialogCloseTrigger,
-    DialogContent,
-    DialogFooter,
-    DialogHeader,
-    DialogRoot,
-    DialogTitle,
-    DialogTrigger,
-} from "./ui/dialog"
 import {deleteAccount} from "./utils";
-
+import Dialog from "./dialog";
+import {Button} from "@chakra-ui/react";
 
 
 export function Navigation({username = ""}){
@@ -100,8 +88,16 @@ export function Navigation({username = ""}){
 
                 <Nav>
                     {isAuth ? <NavDropdown title={username} menuVariant="light" align="end" style={{marginRight: "20px"}}>
-                        <NavDropdown.Item> <Dialog dialog_func={handleDeleteAccount} confirmation_msg={account_deletion_msg} action="Delete Account"/> </NavDropdown.Item>
-                        <NavDropdown.Item> <Dialog dialog_func={handleLogout} confirmation_msg={logout_msg} action="Sign Out"/> </NavDropdown.Item>
+                        <NavDropdown.Item> <Dialog dialog_func={handleDeleteAccount} confirmation_msg={account_deletion_msg} button_component={
+                            <Button variant="outline" size="sm">
+                                Delete Account
+                            </Button>
+                        } action="Delete Account"/> </NavDropdown.Item>
+                        <NavDropdown.Item> <Dialog dialog_func={handleLogout} confirmation_msg={logout_msg} button_component={
+                            <Button variant="outline" size="sm">
+                                Sign out
+                            </Button>
+                        } action={"Sign out"}/> </NavDropdown.Item>
 
                         {/*<NavDropdown.Item className="delete-button" onClick={confirmDelete}> Delete account </NavDropdown.Item>*/}
                         {/*<NavDropdown.Item> <Nav.Link onClick={confirmLogout}> Logout </Nav.Link> </NavDropdown.Item>*/}
@@ -117,33 +113,3 @@ export function Navigation({username = ""}){
     );
 }
 
-const Dialog = ({ dialog_func, confirmation_msg, action }) => {
-
-        return (
-    <DialogRoot role="alertdialog">
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          {action}
-        </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Confirm {action}</DialogTitle>
-        </DialogHeader>
-        <DialogBody>
-          <p>
-            {confirmation_msg}
-          </p>
-        </DialogBody>
-        <DialogFooter>
-          <DialogActionTrigger asChild>
-            <Button variant="subtle">No</Button>
-          </DialogActionTrigger>
-          <Button variant="solid" onClick={dialog_func}>Yes</Button>
-        </DialogFooter>
-        <DialogCloseTrigger />
-      </DialogContent>
-    </DialogRoot>
-  )
-
-}

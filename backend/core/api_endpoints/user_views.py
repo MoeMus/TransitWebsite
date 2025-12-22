@@ -42,6 +42,7 @@ class UserView(APIView):
     @permission_classes([IsAuthenticated])
     def delete(self, request):
 
+        # Remove any outstanding tokens currently used
         for token in OutstandingToken.objects.filter(user=request.user):
             BlacklistedToken.objects.get_or_create(token=token)
 

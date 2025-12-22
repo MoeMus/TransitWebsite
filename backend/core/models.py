@@ -6,7 +6,7 @@ from django.contrib.auth.models import AbstractUser, Group, Permission
 model = models.Model
 
 
-#Class representing a course a student is taking
+# Class representing a course a student is taking
 class Course(models.Model):
     objects = models.Manager()  # Explicitly adding objects manager
 
@@ -25,12 +25,11 @@ class Course(models.Model):
     # info
     title = models.CharField(max_length=100, default='Untitled', db_index=True)
     department = models.CharField(max_length=100, default='No department')
-    course_number = models.CharField(max_length=10, default='000') # 125, 225, etc.
+    course_number = models.CharField(max_length=10, default='000')  # 125, 225, etc.
 
     # The __str method below makes the Django Course model readable for when you do print(course)
     def __str__(self):
-        #return f"{self.department} {self.course_number} - {self.title} ({self.section_name})"
-        #return f"{self.department} {self.class_number}" old (before Aug 30)
+
         return f"{self.department} {self.course_number} - {self.title}"
 
     def save(self, *args, **kwargs):

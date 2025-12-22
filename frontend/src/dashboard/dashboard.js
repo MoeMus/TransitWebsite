@@ -1,5 +1,5 @@
 import '../styles/dashboardStyles.css';
-import React, {useEffect, useState} from "react";
+import React, {useCallback, useEffect, useState} from "react";
 import {toast, Toaster} from "react-hot-toast";
 import {AdvancedMarker, APIProvider, Map, Pin,} from "@vis.gl/react-google-maps";
 import Container from "react-bootstrap/Container";
@@ -11,7 +11,7 @@ import {Box, Button, Flex, Spinner} from "@chakra-ui/react";
 import {getUserInfoFromBackend, setLocation} from "./utils"
 import CourseCalendar from "../calendar/CourseCalendar";
 import {Directions} from "./directions";
-
+import Dialog from "../components/dialog";
 const CAMPUSES = [
     { key: "burnaby", name: "SFU Burnaby", address: "8888 University Dr W, Burnaby, BC V5A 1S6" },
     { key: "surrey", name: "SFU Surrey", address: "13450 102 Ave, Surrey, BC V3T 0A3" },
@@ -21,7 +21,6 @@ const CAMPUSES = [
 export function Dashboard() {
     const [loading, setLoading] = useState(true);
     const [userInfo, setUserInfo] = useState({});
-    const [error, setError] = useState("");
     const username = sessionStorage.getItem("user");
     const [userLocation, setUserLocation] = useState({ lat: 0, lng: 0 });
     const [trackingEnabled, setTrackingEnabled] = useState(false);
@@ -51,32 +50,26 @@ export function Dashboard() {
         if (error.code === error.PERMISSION_DENIED) {
             setTrackingEnabled(false);
             toast("Location tracking disabled", {
-                duration: 2000,
                 id: "userLocation-denied",
             });
 
             //TODO: Change how map is shown on dashboard
         }
-        toast.error("Could not retrieve your location", {
-            duration: 2000,
-            id: "userLocation-not-found",
-        });
+        toast.error("Could not retrieve your location");
     }
 
-    async function getUserInfo() {
+    const getUserInfo = useCallback( async () => {
         try {
 
             const userData = await getUserInfoFromBackend();
             setUserInfo(userData);
 
         } catch (err) {
-            toast.error(err.message || "Failed to load user info", {
-                duration: 2000,
-            });
+            toast.error(err.message || "Failed to load user info");
         } finally {
             setLoading(false);
         }
-    }
+    }, [username]);
 
 
     function checkLocationTracking() {
@@ -94,16 +87,13 @@ export function Dashboard() {
             setTrackingEnabled(true);
 
         } else if (manualLocationEnabled) {
-            toast("Location set", {
-                duration: 2000
-            });
+            toast("Location set");
         } else {
 
             // display an error if not supported
             toast.error(
                 "Location tracking on this website is not supported by your browser",
                 {
-                    duration: 2000,
                     id: "tracking-not-supported",
                 }
             );
@@ -117,13 +107,19 @@ export function Dashboard() {
     useEffect(() => {
 
         (async function(){
-            await getUserInfo();
+            await getUserInfo()
         })();
+
         checkLocationTracking();
 
         return () => navigator.geolocation.clearWatch(watchID);
 
     }, []);
+
+    // Run when page is loaded from back/forward arrows on browser
+    useEffect(() => {
+        getUserInfo();
+    }, [getUserInfo]);
 
     useEffect(() => {
         if (map) {
@@ -152,9 +148,7 @@ export function Dashboard() {
 
                 } else {
 
-                    toast.error("The provided location could not be processed", {
-                        duration: 2000
-                    });
+                    toast.error("The provided location could not be processed");
 
                 }
 
@@ -164,9 +158,7 @@ export function Dashboard() {
 
         } catch (err) {
 
-            toast.error(err.message, {
-                duration: 2000
-            });
+            toast.error(err.message);
 
         }
 
@@ -176,18 +168,11 @@ export function Dashboard() {
         return  <Spinner size="sm" />;
     }
 
-    if (error) {
-        return (
-            <>
-                <Toaster position="top-left" reverseOrder={false} />
-            </>
-        );
-    }
-
     return (
         <>
             <Box>
-                <Toaster position="top-left" reverseOrder={false} />
+
+                <Toaster position="top-center" duration={5000} reverseOrder={false} />
                 <Container fluid={"md"} >
 
                     <Container style={{height: "1000px", width: "1200px", display: "flex", flexDirection: "column"}}>
@@ -219,8 +204,13 @@ export function Dashboard() {
                                         <h3 style={{textAlign: "center"}}> Leave by ____ to arrive _____ minutes before ____ </h3>
 
                                     </div>
+                                    :
+                                    <div>
 
-                                : null}
+                                        <p> <Spinner size="sm" /> Retrieving Directions </p>
+
+                                    </div>
+                                }
 
                             </div>
 
@@ -256,11 +246,21 @@ export function Dashboard() {
 
                                     <Form.Label> Enter your location manually (Use if location tracking is not accurate)</Form.Label>
                                     <Form.Control className="location"></Form.Control>
-                                    <Form.Text className="text-muted">
-                                        Enter in the format <strong>"&lt;street number&gt; &lt;street name&gt; &lt;city&gt; &lt;state&gt; &lt;postal
-                                        code&gt;"</strong> ex: 1600 Amphitheatre Parkway, Mountain View, CA 94043. Addresses can also be
-                                        place names, ex: "Statue of Liberty, New York, NY".
-                                    </Form.Text>
+                                    <Form.Group style={{marginBottom: "4px"}}>
+                                        <Form.Text className="text-muted">
+                                            Provide any of the following: <strong>"&lt;street number&gt; &lt;street name&gt; &lt;city&gt; &lt;state&gt; &lt;postal
+                                            code&gt;"</strong>
+                                        </Form.Text>
+                                    </Form.Group>
+                                    <Form.Group>
+                                        <Form.Text>
+                                            Example: <strong> 1600 Amphitheatre Parkway, Mountain View, CA 94043. Addresses can also be
+                                            place names, ex: "Statue of Liberty, New York, NY"</strong>
+                                        </Form.Text>
+
+                                    </Form.Group>
+
+
                                     <Form.Group>
                                         <Form.Text style={{color: "red"}}>This will disable location tracking</Form.Text>
                                     </Form.Group>
@@ -276,7 +276,7 @@ export function Dashboard() {
 
                     </Container>
 
-                    <Container>
+                    <Container style={{marginTop: "40px"}}>
 
                         <Flex justifyContent="center">
                             <ServiceAlerts/>

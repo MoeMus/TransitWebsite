@@ -42,6 +42,7 @@ class UserView(APIView):
     @permission_classes([IsAuthenticated])
     def delete(self, request):
 
+        # Remove any outstanding tokens currently used
         for token in OutstandingToken.objects.filter(user=request.user):
             BlacklistedToken.objects.get_or_create(token=token)
 
@@ -116,58 +117,70 @@ def remove_courses(request):
 def add_course_to_schedule(request):
     department = request.data["department"]
     course_number = request.data["course_number"]
-    section_code = request.data["section_code"]
-
+    lecture_section_code = request.data["lecture_section_code"]
+    non_lecture_section_code = request.data.get("non_lecture_section_code", None)
     user = request.user
 
     # Get the user's courses by username
     user_courses = list(user.lecture_sections.all())
     user_courses += list(user.non_lecture_sections.all())
 
-    existing_courses = [course for course in user_courses if course.department == department and
-                        course.number == course_number and course.section_code == section_code]
+    error_response = None
 
-    if existing_courses:
-        return Response(
-            {"error": "This section is already in your schedule"},
-            status=status.HTTP_400_BAD_REQUEST
-        )
+    # Gracefully catch any errors that could occur
+    try:
 
-    new_lecture_section = LectureSection.objects.filter(department=department, number=course_number,
-                                                        section_code=section_code).first()
+        with transaction.atomic():
 
-    if new_lecture_section:
+            existing_courses = [course for course in user_courses if course.department == department and
+                                course.number == course_number and
+                                (course.section_code == lecture_section_code or
+                                course.section_code == non_lecture_section_code or "")
+                                ]
 
-        conflicts = check_time_conflicts(new_lecture_section, user_courses)
-        if conflicts:
-            return Response({
-                "error": "Time conflicts detected",
-                "conflicts": conflicts
-            }, status=status.HTTP_409_CONFLICT)
+            if existing_courses:
+                return Response(
+                    {"error": f"{existing_courses[0].department} {existing_courses[0].number} "
+                              f"{existing_courses[0].section_code} is already in your schedule"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
-        user.lecture_sections.add(new_lecture_section)
+            new_lecture_section = LectureSection.objects.filter(department=department, number=course_number,
+                                                                section_code=lecture_section_code).first()
 
-    else:
+            if new_lecture_section:
 
-        # If the provided data does not belong to any lecture section, try finding a non lecture section with the
-        # corresponding data
-        new_non_lecture_section = NonLectureSection.objects.filter(department=department, number=course_number,
-                                                                   section_code=section_code).first()
+                conflicts = check_time_conflicts(new_lecture_section, user_courses)
 
-        if new_non_lecture_section:
+                non_lecture_section = None
 
-            conflicts = check_time_conflicts(new_non_lecture_section, user_courses)
+                if non_lecture_section_code:
 
-            if conflicts:
+                    non_lecture_section = NonLectureSection.objects.filter(department=department, number=course_number,
+                                                                           section_code=non_lecture_section_code).first()
 
-                return Response({
-                    "error": "Time conflicts detected",
-                    "conflicts": conflicts,
-                }, status=status.HTTP_409_CONFLICT)
+                    conflicts += check_time_conflicts(non_lecture_section, user_courses)
 
-            user.non_lecture_sections.add(new_non_lecture_section)
+                if conflicts:
 
-    user.save()
+                    error_response = Response({
+                        "error": "Time conflicts detected",
+                        "conflicts": conflicts
+                    }, status=status.HTTP_409_CONFLICT)
+
+                    raise Exception
+
+                user.lecture_sections.add(new_lecture_section)
+                if non_lecture_section:
+                    user.non_lecture_sections.add(non_lecture_section)
+
+            user.save()
+
+    except Exception as e:
+
+        if error_response is not None:
+            return error_response
+        return Response({"error": "Could not add course to your schedule"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     return Response({"success": "Section added successfully"}, status=status.HTTP_200_OK)
 

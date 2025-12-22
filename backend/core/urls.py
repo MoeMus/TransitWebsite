@@ -5,7 +5,6 @@ course management, and fetching course data from the SFU REST API.
 
 from django.urls import path
 
-from . import views
 from .views import *
 
 from .api_endpoints import user_views, course_views, cookie_views

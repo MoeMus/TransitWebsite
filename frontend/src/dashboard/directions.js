@@ -93,7 +93,9 @@ export function Directions({userLocation, destination, setTravelTime, setTravelD
         <>
 
             <div className="locationBox">
+
                 <div>
+
                     <Dropdown onSelect={setMode}>
                         <Dropdown.Toggle variant="success" style={{width: "200px", marginBottom: "5px"}}> Select Travel
                             Mode </Dropdown.Toggle>

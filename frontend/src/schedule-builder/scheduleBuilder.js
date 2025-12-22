@@ -5,6 +5,7 @@ import { toast, Toaster } from "react-hot-toast";
 import {Spinner} from "@chakra-ui/react";
 import CourseCalendar from "../calendar/CourseCalendar";
 import { BsListUl, BsCalendar3, BsTrash } from "react-icons/bs";
+import Dialog from "../components/dialog";
 
 const refreshAccessToken = async () => {
   const refreshToken = sessionStorage.getItem('refresh_token');
@@ -75,7 +76,7 @@ export function ScheduleBuilder() {
   // Displays a toast notification showing all courses that conflict with the selected course
   function displayCourseConflicts(course_conflicts) {
     let conflicts = [];
-    course_conflicts.map((item, index) => {
+    course_conflicts.map((item) => {
       conflicts.push(`${item.department} ${item.number} ${item.section_code}`);
     })
 
@@ -134,22 +135,8 @@ export function ScheduleBuilder() {
       });
 
       if (response.status === 200) {
-        const data = await response.data;
-        // Flatten the lecture and non-lecture sections into a single array for the UI
-        // const combined = [
-        //   // ...(data.lecture_sections || []).map(lec => ({
-        //   //   course: lec.course,
-        //   //   lecture: lec,
-        //   //   nonLecture: null
-        //   // })),
-        //   // ...(data.non_lecture_sections || []).map(nls => ({
-        //   //   course: nls.lecture_section?.course,
-        //   //   lecture: nls.lecture_section,
-        //   //   nonLecture: nls
-        //   // }))
-        // ];
 
-        // setSelectedCourses(combined);
+        const data = await response.data;
 
         const combined = new Map();
 
@@ -198,43 +185,27 @@ export function ScheduleBuilder() {
 
   // Handle adding a course with non-lecture sections
   const handleAddCourse = async () => {
-      if (selectedCourse && selectedLectureSection && selectedNonLectureSection) {
+      if (selectedCourse && selectedLectureSection) {
         const courseToAdd = {
           course: selectedCourse,
           lecture: selectedLectureSection,
-          nonLecture: selectedNonLectureSection,
+          nonLecture: selectedNonLectureSection || null,
         };
 
         // Build the payload to send to the backend.
-        const lecture = {
-          username: username,
+        const request = {
           department: selectedCourse.department,
           course_number: selectedCourse.course_number,
-          section_code: selectedLectureSection.section_code,
+          lecture_section_code: selectedLectureSection.section_code,
+          non_lecture_section_code: selectedNonLectureSection?.section_code || null
         };
 
-        const non_lecture = {
-          username: username,
-          department: selectedCourse.department,
-          course_number: selectedCourse.course_number,
-          section_code: selectedNonLectureSection.section_code,
-        };
-
-        console.log("Posting add course:", lecture);
+        console.log("Posting add course:", request);
         try {
           // Send the POST request to persist the course on the backend.
           await apiClient.post(
             `/api/user/courses/add/`,
-            lecture,
-            {
-              withCredentials: true,
-              method: "POST"
-            }
-          );
-
-          await apiClient.post(
-            `/api/user/courses/add/`,
-            non_lecture,
+            request,
             {
               withCredentials: true,
               method: "POST"
@@ -265,63 +236,6 @@ export function ScheduleBuilder() {
         }
       } else {
         toast.error("Please complete all selections");
-      }
-    };
-
-
-
-// Handle adding a course without non-lecture sections
-  const handleAddCourseWithoutNonLecture = async () => {
-      if (selectedCourse && selectedLectureSection) {
-        const courseToAdd = {
-          course: selectedCourse,
-          lecture: selectedLectureSection,
-          nonLecture: null,
-        };
-
-        const post_payload = {
-          username: username,
-          department: selectedCourse.department,
-          course_number: selectedCourse.course_number,
-          section_code: selectedLectureSection.section_code,
-        };
-
-        console.log("Posting add course without non-lecture:", post_payload);
-        try {
-          await apiClient.post(
-            `/api/user/courses/add/`,
-            post_payload,
-            {
-              withCredentials: true,
-              method: "POST"
-            }
-          );
-
-          setSelectedCourses([...selectedCourses, courseToAdd]);
-          toast.success(`${selectedCourse.title} added to schedule`);
-
-          // Reset the selection process so the user can add another course.
-          setSelectedCourse(null);
-          setSelectedLectureSection(null);
-          setSelectedNonLectureSection(null);
-          setSelectionStage("course");
-        } catch (error) {
-          if (error.response && error.response.status === 409) {
-            displayCourseConflicts(error.response.data.conflicts);
-
-          } else {
-            toast.error(error.response?.data?.error || "Error adding course to schedule");
-          }
-          console.error("Error in handleAddCourseWithoutNonLecture:", error);
-
-          // Reset state so that user is returned to schedule builder (can try again)
-          setSelectedCourse(null);
-          setSelectedLectureSection(null);
-          setSelectedNonLectureSection(null);
-          setSelectionStage("course");
-        }
-      } else {
-        //toast.error("Please complete all selections");
       }
     };
 
@@ -374,7 +288,7 @@ export function ScheduleBuilder() {
 
   // Handle removing all courses from the schedule
   const handleRemoveAllCourses = async () => {
-    if (!window.confirm("Are you sure you want to clear your entire schedule?")) return;
+    // if (!window.confirm("Are you sure you want to clear your entire schedule?")) return;
 
     try {
       await apiClient.post(
@@ -529,7 +443,7 @@ export function ScheduleBuilder() {
 
   return (
     <>
-      <Toaster position="top-center" reverseOrder={false} />
+      <Toaster position="top-center" duration={5000} reverseOrder={false} />
       <Container className="py-5">
         <Row className="mb-4">
           <Col>
@@ -617,7 +531,7 @@ export function ScheduleBuilder() {
                     size="lg"
                     style={{ width: 'max-content' }}
                     className="px-4 py-1 shadow-sm text-nowrap"
-                    onClick={selectionStage === "non-lecture" ? handleAddCourse : handleAddCourseWithoutNonLecture}
+                    onClick={handleAddCourse}
                   >
                     Add to Schedule
                   </Button>
@@ -637,7 +551,7 @@ export function ScheduleBuilder() {
         </Card>
 
         <div className="d-flex align-items-center gap-3 mb-3">
-          <h4 className="fw-bold mb-0 ms-2">Your Current Schedule</h4>
+          <h4 className="fw-bold mb-0">Your Current Schedule</h4>
           <div className="d-flex gap-2 flex-grow-1">
             <Button 
               variant={viewMode === "list" ? "primary" : "outline-primary"} 
@@ -657,15 +571,19 @@ export function ScheduleBuilder() {
             >
               <BsCalendar3 /> Calendar View
             </Button>
-            <Button 
-              variant="outline-danger" 
+
+
+            <Dialog dialog_func={handleRemoveAllCourses} confirmation_msg={"Are you sure you want to clear your entire schedule?"} button_component={
+              <Button
+              variant="outline-danger"
               size="md"
-              onClick={handleRemoveAllCourses}
               style={{ width: 'max-content' }}
-              className="d-flex align-items-center gap-2 ms-auto me-2"
-            >
+              className="d-flex align-items-center gap-2 ms-auto"
+              >
               <BsTrash /> Clear Schedule
-            </Button>
+              </Button>
+            } action="Removing All Courses"/>
+
           </div>
         </div>
 
@@ -700,14 +618,15 @@ export function ScheduleBuilder() {
                         )}
                       </div>
                     </div>
-                    <Button
-                      variant="outline-danger"
-                      size="sm"
-                      className="rounded-pill px-3"
-                      onClick={() => handleRemoveCourse(item, index)}
-                    >
-                      Remove
-                    </Button>
+                    <Dialog dialog_func={() => handleRemoveCourse(item, index)} confirmation_msg={"Are you sure you want to remove this course?"} button_component={
+                      <Button
+                        variant="outline-danger"
+                        size="sm"
+                        className="rounded-pill px-3"
+                      >
+                        Remove
+                      </Button>
+                    } action={"Removing Course"} />
                   </div>
                 </ListGroup.Item>
               );

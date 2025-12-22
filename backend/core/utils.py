@@ -101,6 +101,10 @@ def check_course_conflicts(block1, block2):
 # Checks a new course's time conflicts with the current user's courses.
 # Uses helper function is_conflicting to check if a schedule conflicts
 def check_time_conflicts(new_course, user_courses):
+
+    if not new_course or not user_courses:
+        return []
+
     conflicts = set()
     day_to_event_map = build_day_to_event_map(user_courses)
 

@@ -1,5 +1,5 @@
 import '../styles/dashboardStyles.css';
-import React, {useEffect, useState} from "react";
+import React, {useCallback, useEffect, useState} from "react";
 import {toast, Toaster} from "react-hot-toast";
 import {AdvancedMarker, APIProvider, Map, Pin,} from "@vis.gl/react-google-maps";
 import Container from "react-bootstrap/Container";
@@ -63,7 +63,7 @@ export function Dashboard() {
         });
     }
 
-    async function getUserInfo() {
+    const getUserInfo = useCallback( async () => {
         try {
 
             const userData = await getUserInfoFromBackend();
@@ -76,7 +76,7 @@ export function Dashboard() {
         } finally {
             setLoading(false);
         }
-    }
+    }, [username]);
 
 
     function checkLocationTracking() {
@@ -117,13 +117,19 @@ export function Dashboard() {
     useEffect(() => {
 
         (async function(){
-            await getUserInfo();
+            await getUserInfo()
         })();
+
         checkLocationTracking();
 
         return () => navigator.geolocation.clearWatch(watchID);
 
     }, []);
+
+    // Run when page is loaded from back/forward arrows on browser
+    useEffect(() => {
+        getUserInfo();
+    }, [getUserInfo]);
 
     useEffect(() => {
         if (map) {

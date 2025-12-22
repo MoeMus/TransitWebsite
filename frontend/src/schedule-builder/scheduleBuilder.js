@@ -198,43 +198,27 @@ export function ScheduleBuilder() {
 
   // Handle adding a course with non-lecture sections
   const handleAddCourse = async () => {
-      if (selectedCourse && selectedLectureSection && selectedNonLectureSection) {
+      if (selectedCourse && selectedLectureSection) {
         const courseToAdd = {
           course: selectedCourse,
           lecture: selectedLectureSection,
-          nonLecture: selectedNonLectureSection,
+          nonLecture: selectedNonLectureSection || null,
         };
 
         // Build the payload to send to the backend.
-        const lecture = {
-          username: username,
+        const request = {
           department: selectedCourse.department,
           course_number: selectedCourse.course_number,
-          section_code: selectedLectureSection.section_code,
+          lecture_section_code: selectedLectureSection.section_code,
+          non_lecture_section_code: selectedNonLectureSection?.section_code || null
         };
 
-        const non_lecture = {
-          username: username,
-          department: selectedCourse.department,
-          course_number: selectedCourse.course_number,
-          section_code: selectedNonLectureSection.section_code,
-        };
-
-        console.log("Posting add course:", lecture);
+        console.log("Posting add course:", request);
         try {
           // Send the POST request to persist the course on the backend.
           await apiClient.post(
             `/api/user/courses/add/`,
-            lecture,
-            {
-              withCredentials: true,
-              method: "POST"
-            }
-          );
-
-          await apiClient.post(
-            `/api/user/courses/add/`,
-            non_lecture,
+            request,
             {
               withCredentials: true,
               method: "POST"
@@ -265,63 +249,6 @@ export function ScheduleBuilder() {
         }
       } else {
         toast.error("Please complete all selections");
-      }
-    };
-
-
-
-// Handle adding a course without non-lecture sections
-  const handleAddCourseWithoutNonLecture = async () => {
-      if (selectedCourse && selectedLectureSection) {
-        const courseToAdd = {
-          course: selectedCourse,
-          lecture: selectedLectureSection,
-          nonLecture: null,
-        };
-
-        const post_payload = {
-          username: username,
-          department: selectedCourse.department,
-          course_number: selectedCourse.course_number,
-          section_code: selectedLectureSection.section_code,
-        };
-
-        console.log("Posting add course without non-lecture:", post_payload);
-        try {
-          await apiClient.post(
-            `/api/user/courses/add/`,
-            post_payload,
-            {
-              withCredentials: true,
-              method: "POST"
-            }
-          );
-
-          setSelectedCourses([...selectedCourses, courseToAdd]);
-          toast.success(`${selectedCourse.title} added to schedule`);
-
-          // Reset the selection process so the user can add another course.
-          setSelectedCourse(null);
-          setSelectedLectureSection(null);
-          setSelectedNonLectureSection(null);
-          setSelectionStage("course");
-        } catch (error) {
-          if (error.response && error.response.status === 409) {
-            displayCourseConflicts(error.response.data.conflicts);
-
-          } else {
-            toast.error(error.response?.data?.error || "Error adding course to schedule");
-          }
-          console.error("Error in handleAddCourseWithoutNonLecture:", error);
-
-          // Reset state so that user is returned to schedule builder (can try again)
-          setSelectedCourse(null);
-          setSelectedLectureSection(null);
-          setSelectedNonLectureSection(null);
-          setSelectionStage("course");
-        }
-      } else {
-        //toast.error("Please complete all selections");
       }
     };
 
@@ -529,7 +456,7 @@ export function ScheduleBuilder() {
 
   return (
     <>
-      <Toaster position="top-center" reverseOrder={false} />
+      <Toaster position="top-center" duration={5000} reverseOrder={false} />
       <Container className="py-5">
         <Row className="mb-4">
           <Col>
@@ -617,7 +544,7 @@ export function ScheduleBuilder() {
                     size="lg"
                     style={{ width: 'max-content' }}
                     className="px-4 py-1 shadow-sm text-nowrap"
-                    onClick={selectionStage === "non-lecture" ? handleAddCourse : handleAddCourseWithoutNonLecture}
+                    onClick={handleAddCourse}
                   >
                     Add to Schedule
                   </Button>

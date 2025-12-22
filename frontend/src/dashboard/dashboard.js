@@ -246,11 +246,21 @@ export function Dashboard() {
 
                                     <Form.Label> Enter your location manually (Use if location tracking is not accurate)</Form.Label>
                                     <Form.Control className="location"></Form.Control>
-                                    <Form.Text className="text-muted">
-                                        Enter in the format <strong>"&lt;street number&gt; &lt;street name&gt; &lt;city&gt; &lt;state&gt; &lt;postal
-                                        code&gt;"</strong> ex: 1600 Amphitheatre Parkway, Mountain View, CA 94043. Addresses can also be
-                                        place names, ex: "Statue of Liberty, New York, NY".
-                                    </Form.Text>
+                                    <Form.Group style={{marginBottom: "4px"}}>
+                                        <Form.Text className="text-muted">
+                                            Provide any of the following: <strong>"&lt;street number&gt; &lt;street name&gt; &lt;city&gt; &lt;state&gt; &lt;postal
+                                            code&gt;"</strong>
+                                        </Form.Text>
+                                    </Form.Group>
+                                    <Form.Group>
+                                        <Form.Text>
+                                            Example: <strong> 1600 Amphitheatre Parkway, Mountain View, CA 94043. Addresses can also be
+                                            place names, ex: "Statue of Liberty, New York, NY"</strong>
+                                        </Form.Text>
+
+                                    </Form.Group>
+
+
                                     <Form.Group>
                                         <Form.Text style={{color: "red"}}>This will disable location tracking</Form.Text>
                                     </Form.Group>

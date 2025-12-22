@@ -204,8 +204,13 @@ export function Dashboard() {
                                         <h3 style={{textAlign: "center"}}> Leave by ____ to arrive _____ minutes before ____ </h3>
 
                                     </div>
+                                    :
+                                    <div>
 
-                                : null}
+                                        <p> <Spinner size="sm" /> Retrieving Directions </p>
+
+                                    </div>
+                                }
 
                             </div>
 

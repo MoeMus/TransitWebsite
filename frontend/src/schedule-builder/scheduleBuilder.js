@@ -618,15 +618,14 @@ export function ScheduleBuilder() {
                         )}
                       </div>
                     </div>
-                    <Dialog dialog_func={() => handleRemoveCourse(item, index)} confirmation_msg={"Are you sure you want to remove this course?"} button_component={
                       <Button
                         variant="outline-danger"
                         size="sm"
                         className="rounded-pill px-3"
+                        onClick={() => handleRemoveCourse(item, index)}
                       >
                         Remove
                       </Button>
-                    } action={"Removing Course"} />
                   </div>
                 </ListGroup.Item>
               );

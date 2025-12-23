@@ -551,7 +551,7 @@ export function ScheduleBuilder() {
         </Card>
 
         <div className="d-flex align-items-center gap-3 mb-3">
-          <h4 className="fw-bold mb-0">Your Current Schedule</h4>
+          <h4 className="fw-bold mb-0 ms-2">Your Current Schedule</h4>
           <div className="d-flex gap-2 flex-grow-1">
             <Button 
               variant={viewMode === "list" ? "primary" : "outline-primary"} 
@@ -578,7 +578,7 @@ export function ScheduleBuilder() {
               variant="outline-danger"
               size="md"
               style={{ width: 'max-content' }}
-              className="d-flex align-items-center gap-2 ms-auto"
+              className="d-flex align-items-center gap-2 ms-auto me-2"
               >
               <BsTrash /> Clear Schedule
               </Button>
@@ -618,15 +618,14 @@ export function ScheduleBuilder() {
                         )}
                       </div>
                     </div>
-                    <Dialog dialog_func={() => handleRemoveCourse(item, index)} confirmation_msg={"Are you sure you want to remove this course?"} button_component={
                       <Button
                         variant="outline-danger"
                         size="sm"
                         className="rounded-pill px-3"
+                        onClick={() => handleRemoveCourse(item, index)}
                       >
                         Remove
                       </Button>
-                    } action={"Removing Course"} />
                   </div>
                 </ListGroup.Item>
               );

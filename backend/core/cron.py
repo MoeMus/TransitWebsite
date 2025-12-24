@@ -86,10 +86,9 @@ class SyncCoursesCronJob(CronJobBase):
                             start_time = None
                             end_time = None
 
-                        first_instructor = section_details.get("instructor", [{}])[
-                            0]  # Get first instructor if available
+                        first_instructor = section_details.get("instructor", [{}])[0]  # Get first instructor if available
 
-                        if section.get("sectionCode") in ["LEC", "IND"] and text_value == info.get("section"):
+                        if section.get("sectionCode") in ["LEC", "IND", "OLC"] and text_value == info.get("section"):
                             # Create LectureSection
 
                             lecture_section, lec_created = LectureSection.objects.update_or_create(
@@ -112,6 +111,11 @@ class SyncCoursesCronJob(CronJobBase):
                                     "delivery_method": section_details.get("deliveryMethod", "")
                                 },
                             )
+
+                            if info.get("number") == "340":
+
+                                print("CMPT340 Added")
+
                             logger.info(f"LectureSection created: {lecture_section}")
                         else:
                             # Check if the section is non-lecture (Lab, Tutorial, etc.)

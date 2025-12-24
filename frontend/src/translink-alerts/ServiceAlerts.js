@@ -14,6 +14,7 @@ import {
   DrawerTrigger,
 } from "../components/ui/drawer"
 import {Text} from "@chakra-ui/react";
+import { BsFillTrainFrontFill } from "react-icons/bs";
 
 const API_KEY = process.env["REACT_APP_TRANSLINK_API_KEY"];
 const TRANSLINK_SERVICE_ALERT_URL = `https://corsproxy.io/?url=https://gtfsapi.translink.ca/v3/gtfsalerts?apikey=${API_KEY}`;
@@ -84,8 +85,8 @@ export default function ServiceAlerts(){
             <DrawerRoot placement="start" size ="md" >
                 <DrawerBackdrop/>
                 <DrawerTrigger asChild>
-                    <Button variant="outline" size="sm" width="230px">
-                       View TransLink Service Alerts
+                    <Button variant="outline" size="sm" width="260px">
+                       <BsFillTrainFrontFill /> View TransLink Service Alerts
                     </Button>
                 </DrawerTrigger>
                 <DrawerContent>

@@ -68,7 +68,7 @@ export default function CourseCalendar({courses}){
     return (
         <>
 
-            <div style={{marginBottom: "30px"}}>
+            <div style={{marginBottom: "60px"}}>
 
                 <FullCalendar
                     plugins={[timeGridPlugin]

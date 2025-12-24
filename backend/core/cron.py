@@ -112,10 +112,6 @@ class SyncCoursesCronJob(CronJobBase):
                                 },
                             )
 
-                            if info.get("number") == "340":
-
-                                print("CMPT340 Added")
-
                             logger.info(f"LectureSection created: {lecture_section}")
                         else:
                             # Check if the section is non-lecture (Lab, Tutorial, etc.)

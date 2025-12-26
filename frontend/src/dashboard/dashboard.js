@@ -13,7 +13,7 @@ import CourseCalendar from "../calendar/CourseCalendar";
 import {Directions} from "./directions";
 import Dialog from "../components/dialog";
 const CAMPUSES = [
-    { key: "burnaby", name: "SFU Burnaby", address: "8888 University Dr W, Burnaby, BC V5A 1S6" },
+    { key: "burnaby", name: "SFU Burnaby", address: "49.279950, -122.919906" },
     { key: "surrey", name: "SFU Surrey", address: "13450 102 Ave, Surrey, BC V3T 0A3" },
     { key: "vancouver", name: "SFU Vancouver", address: "515 W Hastings St, Vancouver, BC V6B 5K3" }
 ];

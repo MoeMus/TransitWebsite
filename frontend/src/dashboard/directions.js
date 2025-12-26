@@ -1,10 +1,10 @@
 import {useMap} from "@vis.gl/react-google-maps";
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {toast} from "react-hot-toast";
 import {Dropdown} from "react-bootstrap";
 import {Link, Text} from "@chakra-ui/react";
 
-export function Directions({userLocation, destination, setTravelTime, setTravelDistance}) {
+export function Directions({userLocation, destination, setTravelTime, setTravelDistance, arrivalTime, setDepartureTime, setError}) {
     const map = useMap();
     const [directionsService, setDirectionsService] = useState(null);
     const [directionsRenderer, setDirectionsRenderer] = useState(null);
@@ -13,6 +13,7 @@ export function Directions({userLocation, destination, setTravelTime, setTravelD
     const [routes, setRoutes] = useState([]);
     const [routeIndex, setRouteIndex] = useState(0);
     const [travelMode, setTravelMode] = useState("");
+    const responseCache = useRef({});
 
     // Initialize services
     useEffect(() => {
@@ -32,57 +33,110 @@ export function Directions({userLocation, destination, setTravelTime, setTravelD
             };
 
         } catch (err) {
+            if (setError) setError("Failed to initialize Google Maps services");
             console.log(err);
         }
 
 
-    }, [map]);
+    }, [map, setError]);
 
-    // Calculate directions once
+    // Fetch directions (Debounced & Cached)
     useEffect(() => {
-        if (!directionsService || !directionsRenderer || (userLocation.lat === 0 && userLocation.lng === 0)) return;
+        if (!directionsService || (userLocation.lat === 0 && userLocation.lng === 0)) return;
 
-        // Keep route index when recalculating
+        const fetchDirections = () => {
+            // Round coordinates to 4 decimal places (~11m) to improve cache hits and reduce GPS jitter noise
+            const roundCoord = (num) => Math.round(num * 10000) / 10000;
+            const roundedOrigin = {
+                lat: roundCoord(userLocation.lat),
+                lng: roundCoord(userLocation.lng)
+            };
 
-        try {
-            directionsService.route({
-                    origin: userLocation,
-                    destination: destination,
-                    travelMode: window.google.maps.TravelMode[travelMode.toUpperCase()],
-                    provideRouteAlternatives: true,
-                },
-                (response, status) => {
-                    if (status === window.google.maps.DirectionsStatus.OK) {
-                        directionsRenderer.setDirections(response);
-                        setDirectionsResult(response);
-                        setRoutes(response.routes);
+            const uniqueCacheKeyForCurrentRequestParameters = JSON.stringify({
+                origin: roundedOrigin,
+                destination: destination,
+                mode: travelMode,
+                arrival: arrivalTime ? arrivalTime.getTime() : null
+            });
 
-                        // Apply the stored route index after rerender
-                        directionsRenderer.setRouteIndex(routeIndex);
+            if (responseCache.current[uniqueCacheKeyForCurrentRequestParameters]) {
+                setDirectionsResult(responseCache.current[uniqueCacheKeyForCurrentRequestParameters]);
+                setRoutes(responseCache.current[uniqueCacheKeyForCurrentRequestParameters].routes);
+                return;
+            }
 
-                        // Extract and update the summary for the selected route
-                        const route = response.routes[routeIndex];
-                        if (route && route.legs && route.legs.length > 0) {
-                            const summary = route.legs
-                                .map((leg) => `Distance: ${leg.distance.text}, Duration: ${leg.duration.text}`).join(' | ');
-                            setSummary(summary);
-                            setTravelTime(route.legs.map((leg) => `${leg.duration.text}`).join(' | '));
-                            setTravelDistance(route.legs.map((leg) => `${leg.distance.text}`).join(' | '));
+            try {
+                directionsService.route({
+                        origin: roundedOrigin,
+                        destination: destination,
+                        travelMode: window.google.maps.TravelMode[travelMode.toUpperCase()],
+                        provideRouteAlternatives: true,
+                        transitOptions: arrivalTime ? {
+                            arrivalTime: arrivalTime
+                        } : undefined
+                    },
+                    (response, status) => {
+                        if (status === window.google.maps.DirectionsStatus.OK) {
+                            responseCache.current[uniqueCacheKeyForCurrentRequestParameters] = response;
+                            setDirectionsResult(response);
+                            setRoutes(response.routes);
+                            if (setError) setError("");
+                        } else if (status === window.google.maps.DirectionsStatus.OVER_QUERY_LIMIT) {
+                            const msg = "Please wait before sending another request.";
+                            toast.error(msg, {
+                                duration: 4000,
+                            });
+                            if (setError) setError(msg);
                         } else {
-                            setSummary("Error fetching directions or no routes available");
+                            const msg = "Error fetching directions: " + status;
+                            toast.error(msg, {
+                                duration: 2000,
+                            });
+                            if (setError) setError(msg);
                         }
-
-                    } else {
-                        toast.error("Error fetching directions " + status, {
-                            duration: 2000,
-                        });
                     }
-                }
-            );
-        } catch (err) {
-            console.log(err);
+                );
+            } catch (err) {
+                const msg = (err.message && err.message.includes("OVER_QUERY_LIMIT")) ? "API Quota Exceeded" : "Error fetching directions";
+                if (setError) setError(msg);
+                console.log(err);
+            }
+        };
+
+        // Debounce API calls by 500ms to prevent requests while scrolling buffer time or rapid GPS updates
+        const timeoutId = setTimeout(fetchDirections, 500);
+
+        return () => clearTimeout(timeoutId);
+    }, [directionsService, userLocation, destination, travelMode, arrivalTime, setError]);
+
+    // Update Map and State when results or route index changes
+    useEffect(() => {
+        if (!directionsRenderer || !directionsResult) return;
+
+        directionsRenderer.setDirections(directionsResult);
+
+        // Ensure routeIndex is valid for the new result set
+        const validIndex = (routeIndex < directionsResult.routes.length) ? routeIndex : 0;
+        if (validIndex !== routeIndex) setRouteIndex(validIndex);
+
+        directionsRenderer.setRouteIndex(validIndex);
+
+        const route = directionsResult.routes[validIndex];
+        if (route && route.legs && route.legs.length > 0) {
+            const summary = route.legs
+                .map((leg) => `Distance: ${leg.distance.text}, Duration: ${leg.duration.text}`).join(' | ');
+            setSummary(summary);
+            setTravelTime(route.legs.map((leg) => `${leg.duration.text}`).join(' | '));
+            setTravelDistance(route.legs.map((leg) => `${leg.distance.text}`).join(' | '));
+            if (route.legs[0].departure_time) {
+                setDepartureTime(route.legs[0].departure_time.text);
+            } else {
+                setDepartureTime("");
+            }
+        } else {
+            setSummary("Error fetching directions or no routes available");
         }
-    }, [directionsService, directionsRenderer, userLocation, destination, routeIndex, travelMode, setTravelDistance, setTravelTime]);
+    }, [directionsResult, routeIndex, directionsRenderer, setTravelTime, setTravelDistance, setDepartureTime]);
 
     function setMode(eventKey, event) {
         event.preventDefault();
@@ -149,3 +203,4 @@ export function Directions({userLocation, destination, setTravelTime, setTravelD
         </>
     );
 }
+                       

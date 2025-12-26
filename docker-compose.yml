@@ -11,6 +11,7 @@ services:
 
     volumes:
       - server_data:/data
+      - ./backend:/usr/src/backend
 
     environment:
       DJANGO_SETTINGS_MODULE: backend.settings
@@ -45,6 +46,7 @@ services:
 
     volumes:
       - server_data:/data
+      - ./backend:/usr/src/backend
     command: >
       sh -c "python manage.py migrate django_cron && python manage.py runcrons"
     depends_on:

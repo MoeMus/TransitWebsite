@@ -1,5 +1,5 @@
 import '../styles/dashboardStyles.css';
-import React, {useCallback, useEffect, useState} from "react";
+import React, {useCallback, useEffect, useMemo, useState} from "react";
 import {toast, Toaster} from "react-hot-toast";
 import {AdvancedMarker, APIProvider, Map, Pin,} from "@vis.gl/react-google-maps";
 import Container from "react-bootstrap/Container";
@@ -28,10 +28,55 @@ export function Dashboard() {
     const [manualLocationEnabled, setManualLocationEnabled] = useState(false);
     // const [travelMode, setTravelMode] = useState("");
     const [travelTime, setTravelTime] = useState("");
+    const [departureTime, setDepartureTime] = useState("");
     const [travelDistance, setTravelDistance] = useState("");
     // const [userCourses, setUserCourses] = useState([]);
     const [viewCalendar, setViewCalendar] = useState(false);
     const [selectedCampus, setSelectedCampus] = useState(CAMPUSES[0]);
+    const [bufferTime, setBufferTime] = useState(10); // Default 10 minutes buffer
+
+    const calculateNextClass = useMemo(() => {
+
+        if (!userInfo.courses || userInfo.courses.length === 0) {
+            return null;
+        }
+
+        const now = new Date();
+        const days = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+        const currentDay = days[now.getDay()];
+        const currentTimeStr = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
+
+        let upcoming = [];
+
+        userInfo.courses.forEach(course => {
+            course.schedule?.forEach(block => {
+                if (block.days.includes(currentDay) && block.startTime > currentTimeStr) {
+                    upcoming.push({
+                        ...course,
+                        nextStartTime: block.startTime,
+                        startTimeInMinutes: parseInt(block.startTime.split(':')[0]) * 60 + parseInt(block.startTime.split(':')[1])
+                    });
+                }
+            });
+        });
+
+        if (upcoming.length === 0) return null;
+
+        // Sort by start time and pick the first one
+        upcoming.sort((a, b) => a.startTimeInMinutes - b.startTimeInMinutes);
+        return upcoming[0];
+    }, [userInfo.courses]);
+
+    const calculateArrivalTime = useMemo(() => {
+        if (!calculateNextClass) {
+            return null;
+        }
+        const [hours, minutes] = calculateNextClass.nextStartTime.split(':').map(Number);
+        const date = new Date();
+        date.setHours(hours, minutes, 0, 0);
+        // Subtract buffer time to get arrival time at the destination
+        return new Date(date.getTime() - bufferTime * 60000);
+    }, [calculateNextClass, bufferTime]);
 
     let watchID = 0;
 
@@ -131,6 +176,14 @@ export function Dashboard() {
         }
     }, [map]);
 
+    // Automatically set campus based on next class
+    useEffect(() => {
+        if (calculateNextClass && calculateNextClass.campus) {
+            const campus = CAMPUSES.find(c => c.name.toLowerCase().includes(calculateNextClass.campus.toLowerCase()));
+            if (campus) setSelectedCampus(campus);
+        }
+    }, [calculateNextClass]);
+
     const manualLocationChange = (event)=>{
 
         try {
@@ -168,6 +221,25 @@ export function Dashboard() {
         return  <Spinner size="sm" />;
     }
 
+    const calculateLeaveTime = () => {
+        if (!calculateNextClass || !travelTime) return "--:--";
+
+        let totalTravelMins = 0;
+        const hourMatch = travelTime.match(/(\d+)\s*hour/);
+        const minMatch = travelTime.match(/(\d+)\s*min/);
+        
+        if (hourMatch) totalTravelMins += parseInt(hourMatch[1]) * 60;
+        if (minMatch) totalTravelMins += parseInt(minMatch[1]);
+
+        const leaveByMinutes = calculateNextClass.startTimeInMinutes - totalTravelMins - bufferTime;
+        if (leaveByMinutes < 0) return "Past";
+
+        const hours = Math.floor(leaveByMinutes / 60);
+        const mins = leaveByMinutes % 60;
+        
+        return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+    };
+
     return (
         <>
             <Box>
@@ -201,7 +273,32 @@ export function Dashboard() {
 
                                         <h2 style={{color: "green", textAlign: "center"}}> {travelTime} </h2>
 
-                                        <h3 style={{textAlign: "center"}}> Leave by ____ to arrive _____ minutes before ____ </h3>
+                                        {calculateNextClass ? (
+                                            <div style={{ textAlign: "center", marginTop: "10px" }}>
+                                                <h3>
+                                                    Next Class: <strong>{calculateNextClass.title}</strong> at {calculateNextClass.nextStartTime}
+                                                </h3>
+                                                <h3 className="mt-2">
+                                                    Leave by <span style={{ color: "red", fontWeight: "bold" }}>{departureTime || calculateLeaveTime()}</span> to arrive 
+                                                    <Form.Select 
+                                                        size="sm" 
+                                                        className="d-inline-block mx-2" 
+                                                        style={{ width: "auto" }}
+                                                        value={bufferTime}
+                                                        onChange={(e) => setBufferTime(parseInt(e.target.value))}
+                                                    >
+                                                        <option value="5">5</option>
+                                                        <option value="10">10</option>
+                                                        <option value="15">15</option>
+                                                        <option value="20">20</option>
+                                                        <option value="30">30</option>
+                                                    </Form.Select>
+                                                    minutes before class.
+                                                </h3>
+                                            </div>
+                                        ) : (
+                                            <h3 style={{ textAlign: "center" }}>No more classes today!</h3>
+                                        )}
 
                                     </div>
                                     :
@@ -222,15 +319,21 @@ export function Dashboard() {
                                              mapId={process.env.REACT_APP_GOOGLE_MAP_ID}
                                              onLoad={onMapLoad}
                                              defaultZoom={15}
-                                             defaultCenter={userLocation}>
+                                             center={userLocation}>
                                             <AdvancedMarker position={userLocation}>
                                                 <Pin background={"red"}></Pin>
                                             </AdvancedMarker>
                                         </Map>
                                     </div>
                                     <div className="directionsBox">
-                                        <Directions userLocation={userLocation} destination={selectedCampus.address} setTravelTime={setTravelTime}
-                                                    setTravelDistance={setTravelDistance}/>
+                                        <Directions 
+                                            userLocation={userLocation} 
+                                            destination={selectedCampus.address} 
+                                            setTravelTime={setTravelTime}
+                                            setTravelDistance={setTravelDistance}
+                                            arrivalTime={calculateArrivalTime}
+                                                    setDepartureTime={setDepartureTime}
+                                        />
                                     </div>
                                 </div>
 

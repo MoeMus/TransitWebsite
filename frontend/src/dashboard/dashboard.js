@@ -12,6 +12,7 @@ import {getUserInfoFromBackend, setLocation} from "./utils"
 import CourseCalendar from "../calendar/CourseCalendar";
 import {Directions} from "./directions";
 import Dialog from "../components/dialog";
+import { BsExclamationTriangleFill } from "react-icons/bs";
 const CAMPUSES = [
     { key: "burnaby", name: "SFU Burnaby", address: "49.279950, -122.919906" },
     { key: "surrey", name: "SFU Surrey", address: "13450 102 Ave, Surrey, BC V3T 0A3" },
@@ -31,6 +32,7 @@ export function Dashboard() {
     const [travelTime, setTravelTime] = useState("");
     const [departureTime, setDepartureTime] = useState("");
     const [travelDistance, setTravelDistance] = useState("");
+    const [directionsError, setDirectionsError] = useState("");
     // const [userCourses, setUserCourses] = useState([]);
     const [viewCalendar, setViewCalendar] = useState(false);
     const [selectedCampus, setSelectedCampus] = useState(CAMPUSES[0]);
@@ -254,7 +256,14 @@ export function Dashboard() {
 
                             <div className="route-summary">
 
-                                {travelDistance && travelTime ?
+                                {directionsError ?
+
+                                    <div style={{textAlign: "center", color: "red", padding: "10px", display: "flex", alignItems: "center", justifyContent: "center", gap: "10px"}}>
+                                        <BsExclamationTriangleFill size={24} />
+                                        <p style={{ margin: 0 }}> {directionsError} </p>
+                                    </div>
+
+                                    : (travelDistance && travelTime ?
 
                                     <div>
 
@@ -307,7 +316,7 @@ export function Dashboard() {
 
                                         <p> <Spinner size="sm" /> Retrieving Directions </p>
 
-                                    </div>
+                                    </div>)
                                 }
 
                             </div>
@@ -334,6 +343,7 @@ export function Dashboard() {
                                             setTravelDistance={setTravelDistance}
                                             arrivalTime={calculateArrivalTime}
                                                     setDepartureTime={setDepartureTime}
+                                            setError={setDirectionsError}
                                         />
                                     </div>
                                 </div>

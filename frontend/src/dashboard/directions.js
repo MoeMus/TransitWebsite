@@ -4,7 +4,7 @@ import {toast} from "react-hot-toast";
 import {Dropdown} from "react-bootstrap";
 import {Link, Text} from "@chakra-ui/react";
 
-export function Directions({userLocation, destination, setTravelTime, setTravelDistance, arrivalTime, setDepartureTime}) {
+export function Directions({userLocation, destination, setTravelTime, setTravelDistance, arrivalTime, setDepartureTime, setError}) {
     const map = useMap();
     const [directionsService, setDirectionsService] = useState(null);
     const [directionsRenderer, setDirectionsRenderer] = useState(null);
@@ -33,11 +33,12 @@ export function Directions({userLocation, destination, setTravelTime, setTravelD
             };
 
         } catch (err) {
+            if (setError) setError("Failed to initialize Google Maps services");
             console.log(err);
         }
 
 
-    }, [map]);
+    }, [map, setError]);
 
     // Fetch directions (Debounced & Cached)
     useEffect(() => {
@@ -79,21 +80,25 @@ export function Directions({userLocation, destination, setTravelTime, setTravelD
                             responseCache.current[uniqueCacheKeyForCurrentRequestParameters] = response;
                             setDirectionsResult(response);
                             setRoutes(response.routes);
+                            if (setError) setError("");
                         } else if (status === window.google.maps.DirectionsStatus.OVER_QUERY_LIMIT) {
-                            toast.error("Please wait before sending another request.", {
+                            const msg = "Please wait before sending another request.";
+                            toast.error(msg, {
                                 duration: 4000,
                             });
+                            if (setError) setError(msg);
                         } else {
-                            toast.error("Error fetching directions " + status, {
+                            const msg = "Error fetching directions: " + status;
+                            toast.error(msg, {
                                 duration: 2000,
                             });
+                            if (setError) setError(msg);
                         }
                     }
                 );
             } catch (err) {
-                if (err.message && err.message.includes("OVER_QUERY_LIMIT")) {
-                     toast.error("API Quota Exceeded", { duration: 4000 });
-                }
+                const msg = (err.message && err.message.includes("OVER_QUERY_LIMIT")) ? "API Quota Exceeded" : "Error fetching directions";
+                if (setError) setError(msg);
                 console.log(err);
             }
         };
@@ -102,7 +107,7 @@ export function Directions({userLocation, destination, setTravelTime, setTravelD
         const timeoutId = setTimeout(fetchDirections, 500);
 
         return () => clearTimeout(timeoutId);
-    }, [directionsService, userLocation, destination, travelMode, arrivalTime]);
+    }, [directionsService, userLocation, destination, travelMode, arrivalTime, setError]);
 
     // Update Map and State when results or route index changes
     useEffect(() => {
@@ -198,3 +203,4 @@ export function Directions({userLocation, destination, setTravelTime, setTravelD
         </>
     );
 }
+                       

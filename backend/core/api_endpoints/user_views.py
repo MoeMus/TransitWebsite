@@ -32,7 +32,7 @@ class UserView(APIView):
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
 
             else:
-                return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"error": "User with that username or email already exists"}, status=status.HTTP_400_BAD_REQUEST)
 
         except IntegrityError:
 
@@ -47,7 +47,7 @@ class UserView(APIView):
             BlacklistedToken.objects.get_or_create(token=token)
 
         request.user.delete()
-        return Response(status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_205_RESET_CONTENT)
 
     @permission_classes([IsAuthenticated])
     def put(self, request):

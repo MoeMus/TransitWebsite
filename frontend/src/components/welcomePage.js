@@ -2,14 +2,11 @@ import {Navigation} from "./navigation-bar";
 import Container from "react-bootstrap/Container";
 import Button from "react-bootstrap/Button";
 import {useNavigate} from "react-router-dom";
+import {useEffect} from "react";
+import {useSelector} from "react-redux";
 
 function WelcomePage(){
 
-    let navigate = useNavigate();
-    function handleClick(){
-
-        navigate("/schedule-builder");
-    }
     return (
         <>
 
@@ -33,15 +30,15 @@ function WelcomePage(){
                         <div>
                             <p className="welcome-message">
 
-                                Thank you for creating an account with TransitTail! Click the button to create your
-                                schedule
+                                Thank you for creating an account with TransitTail! Click the button to proceed to your
+                                dashboard and add courses for the semester
 
                             </p>
                         </div>
 
                         <div>
 
-                            <Button variant="danger" onClick={handleClick}> Make My Schedule </Button>
+                            <Button variant="danger"> Go to my dashboard </Button>
 
                         </div>
 

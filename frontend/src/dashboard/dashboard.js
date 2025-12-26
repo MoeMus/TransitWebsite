@@ -251,7 +251,7 @@ export function Dashboard() {
                 <Toaster position="top-center" duration={5000} reverseOrder={false} />
                 <Container fluid={"md"} >
 
-                    <Container style={{height: "1000px", width: "1200px", display: "flex", flexDirection: "column"}}>
+                    <Container style={{height: "1000px", width: "1200px", display: "flex", flexDirection: "column", marginBottom: "100px"}}>
 
                         <div>
 
@@ -391,7 +391,7 @@ export function Dashboard() {
 
                     </Container>
 
-                    <Container style={{marginTop: "40px"}}>
+                    <Container>
 
                         <Flex justifyContent="center">
                             <ServiceAlerts />

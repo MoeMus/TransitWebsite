@@ -249,11 +249,11 @@ export function Dashboard() {
             <Box>
 
                 <Toaster position="top-center" duration={5000} reverseOrder={false} />
-                <Container fluid={"md"} >
+                <Container fluid="lg" className="py-4">
 
-                    <Container style={{height: "1000px", width: "1200px", display: "flex", flexDirection: "column"}}>
+                    <div style={{display: "flex", flexDirection: "column"}}>
 
-                        <div>
+                        <div className="hero-map-wrapper">
 
                             <div className="route-summary">
 
@@ -268,7 +268,7 @@ export function Dashboard() {
 
                                     <div>
 
-                                        <h2 style={{textAlign: "center", display: "flex", justifyContent: "center", alignItems: "center", gap: "10px"}}>
+                                        <h5 className="text-muted text-uppercase" style={{textAlign: "center", display: "flex", justifyContent: "center", alignItems: "center", gap: "10px", letterSpacing: "1px", fontSize: "0.9rem"}}>
                                             Estimated travel time to
                                             <Dropdown onSelect={(k) => setSelectedCampus(CAMPUSES.find(c => c.key === k))}>
                                                 <Dropdown.Toggle variant="success" id="dropdown-campus" className="text-nowrap flex-shrink-0 d-inline-flex align-items-center" style={{ width: 'max-content' }}>
@@ -280,17 +280,17 @@ export function Dashboard() {
                                                     ))}
                                                 </Dropdown.Menu>
                                             </Dropdown>:
-                                        </h2>
+                                        </h5>
 
-                                        <h2 style={{color: "green", textAlign: "center"}}> {travelTime} </h2>
+                                        <h1 style={{color: "#2e7d32", textAlign: "center", fontSize: "clamp(2.5rem, 4vw, 3.5rem)", fontWeight: "800", margin: "5px 0"}}> {travelTime} </h1>
 
                                         {calculateNextClass ? (
                                             <div style={{ textAlign: "center", marginTop: "10px" }}>
-                                                <h3>
+                                                <h3 style={{fontSize: "1.5rem", fontWeight: "600", color: "#333"}}>
                                                     Next Class: <strong>{calculateNextClass.title}</strong> at {calculateNextClass.nextStartTime}
                                                 </h3>
-                                                <h3 className="mt-2">
-                                                    Leave by <span style={{ color: "red", fontWeight: "bold" }}>{departureTime || calculateLeaveTime()}</span> to arrive 
+                                                <h4 className="mt-3 text-muted" style={{fontWeight: "400"}}>
+                                                    Leave by <span style={{ color: "#d32f2f", fontWeight: "bold", fontSize: "1.4em" }}>{departureTime || calculateLeaveTime()}</span> to arrive 
                                                     <Form.Select 
                                                         size="sm" 
                                                         className="d-inline-block mx-2" 
@@ -305,7 +305,7 @@ export function Dashboard() {
                                                         <option value="30">30</option>
                                                     </Form.Select>
                                                     minutes before class.
-                                                </h3>
+                                                </h4>
                                             </div>
                                         ) : (
                                             <h3 style={{ textAlign: "center" }}>No more classes today!</h3>
@@ -355,7 +355,7 @@ export function Dashboard() {
 
                         <div style={{display: "flex", flexDirection: "row", justifyContent: "center"}}>
 
-                            <Form className="locationBox" style={{textAlign: 'center', marginBottom: "100px", width: "800px"}}>
+                            <Form className="locationBox" style={{textAlign: 'center', marginBottom: "100px", width: "100%", maxWidth: "800px"}}>
 
                                 <Form.Group className="mb-3">
 
@@ -389,16 +389,16 @@ export function Dashboard() {
 
                         </div>
 
-                    </Container>
+                    </div>
 
-                    <Container style={{marginTop: "40px"}}>
+                    <div style={{marginTop: "40px"}}>
 
                         <Flex justifyContent="center">
                             <ServiceAlerts />
                             <Button variant="outline" size="sm" marginLeft="20px" onClick={enableSchedule} width="230px"> <BsCalendar3 /> View Weekly Schedule </Button>
                         </Flex>
                         {viewCalendar ? <CourseCalendar courses={userInfo.courses}/> : null}
-                    </Container>
+                    </div>
 
                 </Container>
 

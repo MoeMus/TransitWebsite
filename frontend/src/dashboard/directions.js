@@ -79,6 +79,10 @@ export function Directions({userLocation, destination, setTravelTime, setTravelD
                             responseCache.current[uniqueCacheKeyForCurrentRequestParameters] = response;
                             setDirectionsResult(response);
                             setRoutes(response.routes);
+                        } else if (status === window.google.maps.DirectionsStatus.OVER_QUERY_LIMIT) {
+                            toast.error("Please wait before sending another request.", {
+                                duration: 4000,
+                            });
                         } else {
                             toast.error("Error fetching directions " + status, {
                                 duration: 2000,
@@ -87,6 +91,9 @@ export function Directions({userLocation, destination, setTravelTime, setTravelD
                     }
                 );
             } catch (err) {
+                if (err.message && err.message.includes("OVER_QUERY_LIMIT")) {
+                     toast.error("API Quota Exceeded", { duration: 4000 });
+                }
                 console.log(err);
             }
         };

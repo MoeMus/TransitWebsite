@@ -12,6 +12,7 @@ import {getUserInfoFromBackend, setLocation} from "./utils"
 import CourseCalendar from "../calendar/CourseCalendar";
 import {Directions} from "./directions";
 import Dialog from "../components/dialog";
+import {BsCalendar3} from "react-icons/bs";
 import { BsExclamationTriangleFill } from "react-icons/bs";
 const CAMPUSES = [
     { key: "burnaby", name: "SFU Burnaby", address: "49.279950, -122.919906" },
@@ -393,8 +394,8 @@ export function Dashboard() {
                     <Container style={{marginTop: "40px"}}>
 
                         <Flex justifyContent="center">
-                            <ServiceAlerts/>
-                            <Button variant="outline" size="sm" marginLeft="20px" onClick={enableSchedule} width="230px"> View Weekly Schedule </Button>
+                            <ServiceAlerts />
+                            <Button variant="outline" size="sm" marginLeft="20px" onClick={enableSchedule} width="230px"> <BsCalendar3 /> View Weekly Schedule </Button>
                         </Flex>
                         {viewCalendar ? <CourseCalendar courses={userInfo.courses}/> : null}
                     </Container>

@@ -1,3 +1,5 @@
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from django.db import IntegrityError, transaction
 from django.http import Http404
 from django.shortcuts import get_object_or_404
@@ -217,3 +219,46 @@ def remove_course_from_schedule(request):
         user.save()
 
         return Response({"success": "Section removed successfully"}, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_next_class(request):
+    user = request.user
+    # Enforce Vancouver timezone for accurate class scheduling
+    vancouver_tz = ZoneInfo("America/Vancouver")
+    now = datetime.now(vancouver_tz)
+
+    # Map python weekday (0=Monday) to schedule string format
+    days_map = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"]
+    current_day_str = days_map[now.weekday()]
+    current_time_str = now.strftime("%H:%M")
+
+    upcoming_classes = []
+
+    def check_sections(sections):
+        for section in sections:
+            if not section.schedule:
+                continue
+            for block in section.schedule:
+                if current_day_str in block.get("days", ""):
+                    start_time = block.get("startTime")
+                    if start_time and start_time > current_time_str:
+                        h, m = map(int, start_time.split(':'))
+                        upcoming_classes.append({
+                            "title": section.title,
+                            "nextStartTime": start_time,
+                            "startTimeInMinutes": h * 60 + m,
+                            "campus": section.campus,
+                        })
+
+    check_sections(user.lecture_sections.all())
+    check_sections(user.non_lecture_sections.all())
+
+    if not upcoming_classes:
+        return Response(None, status=status.HTTP_204_NO_CONTENT)
+
+    # Sort by start time (earliest first)
+    upcoming_classes.sort(key=lambda x: x['startTimeInMinutes'])
+
+    return Response(upcoming_classes[0], status=status.HTTP_200_OK)

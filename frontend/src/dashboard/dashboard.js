@@ -1,5 +1,5 @@
 import '../styles/dashboardStyles.css';
-import React, {useCallback, useEffect, useMemo, useState} from "react";
+import React, {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {toast, Toaster} from "react-hot-toast";
 import {AdvancedMarker, APIProvider, Map, Pin,} from "@vis.gl/react-google-maps";
 import Container from "react-bootstrap/Container";
@@ -8,7 +8,7 @@ import Form from "react-bootstrap/Form";
 import Dropdown from "react-bootstrap/Dropdown";
 import ServiceAlerts from "../translink-alerts/ServiceAlerts";
 import {Box, Button, Flex, Spinner} from "@chakra-ui/react";
-import {getUserInfoFromBackend, setLocation} from "./utils"
+import {getUserInfoFromBackend, getNextClassFromBackend, setLocation} from "./utils"
 import CourseCalendar from "../calendar/CourseCalendar";
 import {Directions} from "./directions";
 import Dialog from "../components/dialog";
@@ -38,51 +38,20 @@ export function Dashboard() {
     const [viewCalendar, setViewCalendar] = useState(false);
     const [selectedCampus, setSelectedCampus] = useState(CAMPUSES[0]);
     const [bufferTime, setBufferTime] = useState(10); // Default 10 minutes buffer
-
-    const calculateNextClass = useMemo(() => {
-
-        if (!userInfo.courses || userInfo.courses.length === 0) {
-            return null;
-        }
-
-        const now = new Date();
-        const days = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
-        const currentDay = days[now.getDay()];
-        const currentTimeStr = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
-
-        let upcoming = [];
-
-        userInfo.courses.forEach(course => {
-            course.schedule?.forEach(block => {
-                if (block.days.includes(currentDay) && block.startTime > currentTimeStr) {
-                    upcoming.push({
-                        ...course,
-                        nextStartTime: block.startTime,
-                        startTimeInMinutes: parseInt(block.startTime.split(':')[0]) * 60 + parseInt(block.startTime.split(':')[1])
-                    });
-                }
-            });
-        });
-
-        if (upcoming.length === 0) return null;
-
-        // Sort by start time and pick the first one
-        upcoming.sort((a, b) => a.startTimeInMinutes - b.startTimeInMinutes);
-        return upcoming[0];
-    }, [userInfo.courses]);
+    const [nextClass, setNextClass] = useState(null);
 
     const calculateArrivalTime = useMemo(() => {
-        if (!calculateNextClass) {
+        if (!nextClass) {
             return null;
         }
-        const [hours, minutes] = calculateNextClass.nextStartTime.split(':').map(Number);
+        const [hours, minutes] = nextClass.nextStartTime.split(':').map(Number);
         const date = new Date();
         date.setHours(hours, minutes, 0, 0);
         // Subtract buffer time to get arrival time at the destination
         return new Date(date.getTime() - bufferTime * 60000);
-    }, [calculateNextClass, bufferTime]);
+    }, [nextClass, bufferTime]);
 
-    let watchID = 0;
+    const watchIdRef = useRef(null);
 
     const enableSchedule = ()=> {
       if(viewCalendar){
@@ -113,6 +82,9 @@ export function Dashboard() {
             const userData = await getUserInfoFromBackend();
             setUserInfo(userData);
 
+            const nextClassData = await getNextClassFromBackend();
+            setNextClass(nextClassData);
+
         } catch (err) {
             toast.error(err.message || "Failed to load user info");
         } finally {
@@ -123,7 +95,7 @@ export function Dashboard() {
 
     function checkLocationTracking() {
         if (!manualLocationEnabled && navigator.geolocation) {
-            watchID = navigator.geolocation.watchPosition(
+            watchIdRef.current = navigator.geolocation.watchPosition(
                 (position) => {
                     setUserLocation({
                         lat: position.coords.latitude,
@@ -161,7 +133,7 @@ export function Dashboard() {
 
         checkLocationTracking();
 
-        return () => navigator.geolocation.clearWatch(watchID);
+        return () => { if (watchIdRef.current !== null) navigator.geolocation.clearWatch(watchIdRef.current); };
 
     }, []);
 
@@ -180,13 +152,19 @@ export function Dashboard() {
         }
     }, [map]);
 
+    useEffect(() => {
+        if (map && (userLocation.lat !== 0 || userLocation.lng !== 0)) {
+            map.panTo(userLocation);
+        }
+    }, [map, userLocation]);
+
     // Automatically set campus based on next class
     useEffect(() => {
-        if (calculateNextClass && calculateNextClass.campus) {
-            const campus = CAMPUSES.find(c => c.name.toLowerCase().includes(calculateNextClass.campus.toLowerCase()));
+        if (nextClass && nextClass.campus) {
+            const campus = CAMPUSES.find(c => c.name.toLowerCase().includes(nextClass.campus.toLowerCase()));
             if (campus) setSelectedCampus(campus);
         }
-    }, [calculateNextClass]);
+    }, [nextClass]);
 
     const manualLocationChange = (event)=>{
 
@@ -200,7 +178,7 @@ export function Dashboard() {
                     const lng = results[0].geometry.location.lng();
                     setUserLocation({lat: lat, lng: lng});
                     setManualLocationEnabled(true);
-                    navigator.geolocation.clearWatch(watchID);
+                    if (watchIdRef.current !== null) navigator.geolocation.clearWatch(watchIdRef.current);
                     setTrackingEnabled(false);
 
                 } else {
@@ -226,7 +204,7 @@ export function Dashboard() {
     }
 
     const calculateLeaveTime = () => {
-        if (!calculateNextClass || !travelTime) return "--:--";
+        if (!nextClass || !travelTime) return "--:--";
 
         let totalTravelMins = 0;
         const hourMatch = travelTime.match(/(\d+)\s*hour/);
@@ -235,7 +213,7 @@ export function Dashboard() {
         if (hourMatch) totalTravelMins += parseInt(hourMatch[1]) * 60;
         if (minMatch) totalTravelMins += parseInt(minMatch[1]);
 
-        const leaveByMinutes = calculateNextClass.startTimeInMinutes - totalTravelMins - bufferTime;
+        const leaveByMinutes = nextClass.startTimeInMinutes - totalTravelMins - bufferTime;
         if (leaveByMinutes < 0) return "Past";
 
         const hours = Math.floor(leaveByMinutes / 60);
@@ -284,10 +262,10 @@ export function Dashboard() {
 
                                         <h1 style={{color: "#2e7d32", textAlign: "center", fontSize: "clamp(2.5rem, 4vw, 3.5rem)", fontWeight: "800", margin: "5px 0"}}> {travelTime} </h1>
 
-                                        {calculateNextClass ? (
+                                        {nextClass ? (
                                             <div style={{ textAlign: "center", marginTop: "10px" }}>
                                                 <h3 style={{fontSize: "1.5rem", fontWeight: "600", color: "#333"}}>
-                                                    Next Class: <strong>{calculateNextClass.title}</strong> at {calculateNextClass.nextStartTime}
+                                                    Next Class: <strong>{nextClass.title}</strong> at {nextClass.nextStartTime}
                                                 </h3>
                                                 <h4 className="mt-3 text-muted" style={{fontWeight: "400"}}>
                                                     Leave by <span style={{ color: "#d32f2f", fontWeight: "bold", fontSize: "1.4em" }}>{departureTime || calculateLeaveTime()}</span> to arrive 
@@ -330,7 +308,7 @@ export function Dashboard() {
                                              mapId={process.env.REACT_APP_GOOGLE_MAP_ID}
                                              onLoad={onMapLoad}
                                              defaultZoom={15}
-                                             center={userLocation}>
+                                             defaultCenter={userLocation}>
                                             <AdvancedMarker position={userLocation}>
                                                 <Pin background={"red"}></Pin>
                                             </AdvancedMarker>

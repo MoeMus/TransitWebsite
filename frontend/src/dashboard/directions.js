@@ -45,8 +45,8 @@ export function Directions({userLocation, destination, setTravelTime, setTravelD
         if (!directionsService || (userLocation.lat === 0 && userLocation.lng === 0)) return;
 
         const fetchDirections = () => {
-            // Round coordinates to 4 decimal places (~11m) to improve cache hits and reduce GPS jitter noise
-            const roundCoord = (num) => Math.round(num * 10000) / 10000;
+            // Round coordinates to 3 decimal places (~110m) to improve cache hits and reduce API calls while moving
+            const roundCoord = (num) => Math.round(num * 1000) / 1000;
             const roundedOrigin = {
                 lat: roundCoord(userLocation.lat),
                 lng: roundCoord(userLocation.lng)
@@ -66,36 +66,12 @@ export function Directions({userLocation, destination, setTravelTime, setTravelD
             }
 
             try {
-                directionsService.route({
-                        origin: roundedOrigin,
-                        destination: destination,
-                        travelMode: window.google.maps.TravelMode[travelMode.toUpperCase()],
-                        provideRouteAlternatives: true,
-                        transitOptions: arrivalTime ? {
-                            arrivalTime: arrivalTime
-                        } : undefined
-                    },
-                    (response, status) => {
-                        if (status === window.google.maps.DirectionsStatus.OK) {
-                            responseCache.current[uniqueCacheKeyForCurrentRequestParameters] = response;
-                            setDirectionsResult(response);
-                            setRoutes(response.routes);
-                            if (setError) setError("");
-                        } else if (status === window.google.maps.DirectionsStatus.OVER_QUERY_LIMIT) {
-                            const msg = "Please wait before sending another request.";
-                            toast.error(msg, {
-                                duration: 4000,
-                            });
-                            if (setError) setError(msg);
-                        } else {
-                            const msg = "Error fetching directions: " + status;
-                            toast.error(msg, {
-                                duration: 2000,
-                            });
-                            if (setError) setError(msg);
-                        }
-                    }
-                );
+                // Call the Google Maps DirectionsService to request routes for the
+                // given origin, destination and travel mode. Provide alternative routes
+                // when available. On success cache the response and update local state
+                // (directionsResult, routes). On OVER_QUERY_LIMIT show a toast and set
+                // an error message. For other failures show a toast and set error.
+                fetchRouteDirections(roundedOrigin, uniqueCacheKeyForCurrentRequestParameters);
             } catch (err) {
                 const msg = (err.message && err.message.includes("OVER_QUERY_LIMIT")) ? "API Quota Exceeded" : "Error fetching directions";
                 if (setError) setError(msg);
@@ -130,6 +106,9 @@ export function Directions({userLocation, destination, setTravelTime, setTravelD
             setTravelDistance(route.legs.map((leg) => `${leg.distance.text}`).join(' | '));
             if (route.legs[0].departure_time) {
                 setDepartureTime(route.legs[0].departure_time.text);
+            } else if (route.legs[0].arrival_time && route.legs[0].duration) {
+                // departure_time is missing, so calculate departure from arrival - duration
+                calculateDepartureFromArrivalMinusDuration(route);
             } else {
                 setDepartureTime("");
             }
@@ -137,6 +116,46 @@ export function Directions({userLocation, destination, setTravelTime, setTravelD
             setSummary("Error fetching directions or no routes available");
         }
     }, [directionsResult, routeIndex, directionsRenderer, setTravelTime, setTravelDistance, setDepartureTime]);
+
+    function fetchRouteDirections(roundedOrigin, uniqueCacheKeyForCurrentRequestParameters) {
+        directionsService.route({
+            origin: roundedOrigin,
+            destination: destination,
+            travelMode: window.google.maps.TravelMode[travelMode.toUpperCase()],
+            provideRouteAlternatives: true,
+            transitOptions: arrivalTime ? {
+                arrivalTime: arrivalTime
+            } : undefined
+        },
+            (response, status) => {
+                if (status === window.google.maps.DirectionsStatus.OK) {
+                    responseCache.current[uniqueCacheKeyForCurrentRequestParameters] = response;
+                    setDirectionsResult(response);
+                    setRoutes(response.routes);
+                    if (setError) setError("");
+                } else if (status === window.google.maps.DirectionsStatus.OVER_QUERY_LIMIT) {
+                    const msg = "Please wait before sending another request.";
+                    toast.error(msg, {
+                        duration: 4000,
+                    });
+                    if (setError) setError(msg);
+                } else {
+                    const msg = "Error fetching directions: " + status;
+                    toast.error(msg, {
+                        duration: 2000,
+                    });
+                    if (setError) setError(msg);
+                }
+            }
+        );
+    }
+
+    function calculateDepartureFromArrivalMinusDuration(route) {
+        const arrivalDate = route.legs[0].arrival_time.value;
+        const durationSeconds = route.legs[0].duration.value;
+        const departureDate = new Date(arrivalDate.getTime() - durationSeconds * 1000);
+        setDepartureTime(departureDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }));
+    }
 
     function setMode(eventKey, event) {
         event.preventDefault();

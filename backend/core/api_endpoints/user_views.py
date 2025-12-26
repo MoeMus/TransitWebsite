@@ -245,9 +245,14 @@ def get_next_class(request):
                     start_time = block.get("startTime")
                     if start_time and start_time > current_time_str:
                         h, m = map(int, start_time.split(':'))
+
+                        # Format time for display without leading 0, e.g. "02:30 PM" to "2:30 PM"
+                        display_time = datetime.strptime(start_time, "%H:%M").strftime("%I:%M %p").lstrip('0')
+
                         upcoming_classes.append({
                             "title": section.title,
                             "nextStartTime": start_time,
+                            "displayTime": display_time,
                             "startTimeInMinutes": h * 60 + m,
                             "campus": section.campus,
                         })

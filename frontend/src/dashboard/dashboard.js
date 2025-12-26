@@ -216,10 +216,12 @@ export function Dashboard() {
         const leaveByMinutes = nextClass.startTimeInMinutes - totalTravelMins - bufferTime;
         if (leaveByMinutes < 0) return "Past";
 
-        const hours = Math.floor(leaveByMinutes / 60);
+        const hours24 = Math.floor(leaveByMinutes / 60);
         const mins = leaveByMinutes % 60;
+        const ampm = hours24 >= 12 ? 'PM' : 'AM';
+        const hours12 = hours24 % 12 || 12;
         
-        return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+        return `${hours12}:${mins.toString().padStart(2, '0')} ${ampm}`;
     };
 
     return (
@@ -265,7 +267,7 @@ export function Dashboard() {
                                         {nextClass ? (
                                             <div style={{ textAlign: "center", marginTop: "10px" }}>
                                                 <h3 style={{fontSize: "1.5rem", fontWeight: "600", color: "#333"}}>
-                                                    Next Class: <strong>{nextClass.title}</strong> at {nextClass.nextStartTime}
+                                                    Next Class: <strong>{nextClass.title}</strong> at {nextClass.displayTime}
                                                 </h3>
                                                 <h4 className="mt-3 text-muted" style={{fontWeight: "400"}}>
                                                     Leave by <span style={{ color: "#d32f2f", fontWeight: "bold", fontSize: "1.4em" }}>{departureTime || calculateLeaveTime()}</span> to arrive 

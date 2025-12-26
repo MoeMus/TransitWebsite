@@ -1,5 +1,5 @@
 import {useMap} from "@vis.gl/react-google-maps";
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {toast} from "react-hot-toast";
 import {Dropdown} from "react-bootstrap";
 import {Link, Text} from "@chakra-ui/react";
@@ -13,6 +13,7 @@ export function Directions({userLocation, destination, setTravelTime, setTravelD
     const [routes, setRoutes] = useState([]);
     const [routeIndex, setRouteIndex] = useState(0);
     const [travelMode, setTravelMode] = useState("");
+    const responseCache = useRef({});
 
     // Initialize services
     useEffect(() => {
@@ -42,6 +43,41 @@ export function Directions({userLocation, destination, setTravelTime, setTravelD
     useEffect(() => {
         if (!directionsService || !directionsRenderer || (userLocation.lat === 0 && userLocation.lng === 0)) return;
 
+        const uniqueCacheKeyForCurrentRequestParameters = JSON.stringify({
+            origin: userLocation,
+            destination: destination,
+            mode: travelMode,
+            arrival: arrivalTime ? arrivalTime.getTime() : null
+        });
+
+        const updateDirectionsState = (response) => {
+            directionsRenderer.setDirections(response);
+            setDirectionsResult(response);
+            setRoutes(response.routes);
+            directionsRenderer.setRouteIndex(routeIndex);
+
+            const route = response.routes[routeIndex];
+            if (route && route.legs && route.legs.length > 0) {
+                const summary = route.legs
+                    .map((leg) => `Distance: ${leg.distance.text}, Duration: ${leg.duration.text}`).join(' | ');
+                setSummary(summary);
+                setTravelTime(route.legs.map((leg) => `${leg.duration.text}`).join(' | '));
+                setTravelDistance(route.legs.map((leg) => `${leg.distance.text}`).join(' | '));
+                if (route.legs[0].departure_time) {
+                    setDepartureTime(route.legs[0].departure_time.text);
+                } else {
+                    setDepartureTime("");
+                }
+            } else {
+                setSummary("Error fetching directions or no routes available");
+            }
+        };
+
+        if (responseCache.current[uniqueCacheKeyForCurrentRequestParameters]) {
+            updateDirectionsState(responseCache.current[uniqueCacheKeyForCurrentRequestParameters]);
+            return;
+        }
+
         // Keep route index when recalculating
 
         try {
@@ -56,30 +92,8 @@ export function Directions({userLocation, destination, setTravelTime, setTravelD
                 },
                 (response, status) => {
                     if (status === window.google.maps.DirectionsStatus.OK) {
-                        directionsRenderer.setDirections(response);
-                        setDirectionsResult(response);
-                        setRoutes(response.routes);
-
-                        // Apply the stored route index after rerender
-                        directionsRenderer.setRouteIndex(routeIndex);
-
-                        // Extract and update the summary for the selected route
-                        const route = response.routes[routeIndex];
-                        if (route && route.legs && route.legs.length > 0) {
-                            const summary = route.legs
-                                .map((leg) => `Distance: ${leg.distance.text}, Duration: ${leg.duration.text}`).join(' | ');
-                            setSummary(summary);
-                            setTravelTime(route.legs.map((leg) => `${leg.duration.text}`).join(' | '));
-                            setTravelDistance(route.legs.map((leg) => `${leg.distance.text}`).join(' | '));
-                                if (route.legs[0].departure_time) {
-                                    setDepartureTime(route.legs[0].departure_time.text);
-                                } else {
-                                    setDepartureTime("");
-                                }
-                        } else {
-                            setSummary("Error fetching directions or no routes available");
-                        }
-
+                        responseCache.current[uniqueCacheKeyForCurrentRequestParameters] = response;
+                        updateDirectionsState(response);
                     } else {
                         toast.error("Error fetching directions " + status, {
                             duration: 2000,

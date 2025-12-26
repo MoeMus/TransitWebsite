@@ -17,6 +17,7 @@ const CAMPUSES = [
     { key: "surrey", name: "SFU Surrey", address: "13450 102 Ave, Surrey, BC V3T 0A3" },
     { key: "vancouver", name: "SFU Vancouver", address: "515 W Hastings St, Vancouver, BC V6B 5K3" }
 ];
+const GOOGLE_MAPS_LIBRARIES = ['places'];
 
 export function Dashboard() {
     const [loading, setLoading] = useState(true);
@@ -311,7 +312,7 @@ export function Dashboard() {
 
                             </div>
 
-                            <APIProvider apiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY} version="3.58"  libraries={['places']}>
+                            <APIProvider apiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY} version="3.58"  libraries={GOOGLE_MAPS_LIBRARIES}>
 
                                 <div className="mapContainer">
                                     <div className="mapBox">

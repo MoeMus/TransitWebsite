@@ -39,72 +39,92 @@ export function Directions({userLocation, destination, setTravelTime, setTravelD
 
     }, [map]);
 
-    // Calculate directions once
+    // Fetch directions (Debounced & Cached)
     useEffect(() => {
-        if (!directionsService || !directionsRenderer || (userLocation.lat === 0 && userLocation.lng === 0)) return;
+        if (!directionsService || (userLocation.lat === 0 && userLocation.lng === 0)) return;
 
-        const uniqueCacheKeyForCurrentRequestParameters = JSON.stringify({
-            origin: userLocation,
-            destination: destination,
-            mode: travelMode,
-            arrival: arrivalTime ? arrivalTime.getTime() : null
-        });
+        const fetchDirections = () => {
+            // Round coordinates to 4 decimal places (~11m) to improve cache hits and reduce GPS jitter noise
+            const roundCoord = (num) => Math.round(num * 10000) / 10000;
+            const roundedOrigin = {
+                lat: roundCoord(userLocation.lat),
+                lng: roundCoord(userLocation.lng)
+            };
 
-        const updateDirectionsState = (response) => {
-            directionsRenderer.setDirections(response);
-            setDirectionsResult(response);
-            setRoutes(response.routes);
-            directionsRenderer.setRouteIndex(routeIndex);
+            const uniqueCacheKeyForCurrentRequestParameters = JSON.stringify({
+                origin: roundedOrigin,
+                destination: destination,
+                mode: travelMode,
+                arrival: arrivalTime ? arrivalTime.getTime() : null
+            });
 
-            const route = response.routes[routeIndex];
-            if (route && route.legs && route.legs.length > 0) {
-                const summary = route.legs
-                    .map((leg) => `Distance: ${leg.distance.text}, Duration: ${leg.duration.text}`).join(' | ');
-                setSummary(summary);
-                setTravelTime(route.legs.map((leg) => `${leg.duration.text}`).join(' | '));
-                setTravelDistance(route.legs.map((leg) => `${leg.distance.text}`).join(' | '));
-                if (route.legs[0].departure_time) {
-                    setDepartureTime(route.legs[0].departure_time.text);
-                } else {
-                    setDepartureTime("");
-                }
-            } else {
-                setSummary("Error fetching directions or no routes available");
+            if (responseCache.current[uniqueCacheKeyForCurrentRequestParameters]) {
+                setDirectionsResult(responseCache.current[uniqueCacheKeyForCurrentRequestParameters]);
+                setRoutes(responseCache.current[uniqueCacheKeyForCurrentRequestParameters].routes);
+                return;
+            }
+
+            try {
+                directionsService.route({
+                        origin: roundedOrigin,
+                        destination: destination,
+                        travelMode: window.google.maps.TravelMode[travelMode.toUpperCase()],
+                        provideRouteAlternatives: true,
+                        transitOptions: arrivalTime ? {
+                            arrivalTime: arrivalTime
+                        } : undefined
+                    },
+                    (response, status) => {
+                        if (status === window.google.maps.DirectionsStatus.OK) {
+                            responseCache.current[uniqueCacheKeyForCurrentRequestParameters] = response;
+                            setDirectionsResult(response);
+                            setRoutes(response.routes);
+                        } else {
+                            toast.error("Error fetching directions " + status, {
+                                duration: 2000,
+                            });
+                        }
+                    }
+                );
+            } catch (err) {
+                console.log(err);
             }
         };
 
-        if (responseCache.current[uniqueCacheKeyForCurrentRequestParameters]) {
-            updateDirectionsState(responseCache.current[uniqueCacheKeyForCurrentRequestParameters]);
-            return;
-        }
+        // Debounce API calls by 500ms to prevent requests while scrolling buffer time or rapid GPS updates
+        const timeoutId = setTimeout(fetchDirections, 500);
 
-        // Keep route index when recalculating
+        return () => clearTimeout(timeoutId);
+    }, [directionsService, userLocation, destination, travelMode, arrivalTime]);
 
-        try {
-            directionsService.route({
-                    origin: userLocation,
-                    destination: destination,
-                    travelMode: window.google.maps.TravelMode[travelMode.toUpperCase()],
-                    provideRouteAlternatives: true,
-                    transitOptions: arrivalTime ? {
-                        arrivalTime: arrivalTime
-                    } : undefined
-                },
-                (response, status) => {
-                    if (status === window.google.maps.DirectionsStatus.OK) {
-                        responseCache.current[uniqueCacheKeyForCurrentRequestParameters] = response;
-                        updateDirectionsState(response);
-                    } else {
-                        toast.error("Error fetching directions " + status, {
-                            duration: 2000,
-                        });
-                    }
-                }
-            );
-        } catch (err) {
-            console.log(err);
+    // Update Map and State when results or route index changes
+    useEffect(() => {
+        if (!directionsRenderer || !directionsResult) return;
+
+        directionsRenderer.setDirections(directionsResult);
+
+        // Ensure routeIndex is valid for the new result set
+        const validIndex = (routeIndex < directionsResult.routes.length) ? routeIndex : 0;
+        if (validIndex !== routeIndex) setRouteIndex(validIndex);
+
+        directionsRenderer.setRouteIndex(validIndex);
+
+        const route = directionsResult.routes[validIndex];
+        if (route && route.legs && route.legs.length > 0) {
+            const summary = route.legs
+                .map((leg) => `Distance: ${leg.distance.text}, Duration: ${leg.duration.text}`).join(' | ');
+            setSummary(summary);
+            setTravelTime(route.legs.map((leg) => `${leg.duration.text}`).join(' | '));
+            setTravelDistance(route.legs.map((leg) => `${leg.distance.text}`).join(' | '));
+            if (route.legs[0].departure_time) {
+                setDepartureTime(route.legs[0].departure_time.text);
+            } else {
+                setDepartureTime("");
+            }
+        } else {
+            setSummary("Error fetching directions or no routes available");
         }
-    }, [directionsService, directionsRenderer, userLocation, destination, routeIndex, travelMode, setTravelDistance, setTravelTime, arrivalTime, setDepartureTime]);
+    }, [directionsResult, routeIndex, directionsRenderer, setTravelTime, setTravelDistance, setDepartureTime]);
 
     function setMode(eventKey, event) {
         event.preventDefault();

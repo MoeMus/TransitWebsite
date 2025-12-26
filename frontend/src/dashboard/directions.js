@@ -4,7 +4,7 @@ import {toast} from "react-hot-toast";
 import {Dropdown} from "react-bootstrap";
 import {Link, Text} from "@chakra-ui/react";
 
-export function Directions({userLocation, destination, setTravelTime, setTravelDistance}) {
+export function Directions({userLocation, destination, setTravelTime, setTravelDistance, arrivalTime, setDepartureTime}) {
     const map = useMap();
     const [directionsService, setDirectionsService] = useState(null);
     const [directionsRenderer, setDirectionsRenderer] = useState(null);
@@ -50,6 +50,9 @@ export function Directions({userLocation, destination, setTravelTime, setTravelD
                     destination: destination,
                     travelMode: window.google.maps.TravelMode[travelMode.toUpperCase()],
                     provideRouteAlternatives: true,
+                    transitOptions: arrivalTime ? {
+                        arrivalTime: arrivalTime
+                    } : undefined
                 },
                 (response, status) => {
                     if (status === window.google.maps.DirectionsStatus.OK) {
@@ -68,6 +71,11 @@ export function Directions({userLocation, destination, setTravelTime, setTravelD
                             setSummary(summary);
                             setTravelTime(route.legs.map((leg) => `${leg.duration.text}`).join(' | '));
                             setTravelDistance(route.legs.map((leg) => `${leg.distance.text}`).join(' | '));
+                                if (route.legs[0].departure_time) {
+                                    setDepartureTime(route.legs[0].departure_time.text);
+                                } else {
+                                    setDepartureTime("");
+                                }
                         } else {
                             setSummary("Error fetching directions or no routes available");
                         }
@@ -82,7 +90,7 @@ export function Directions({userLocation, destination, setTravelTime, setTravelD
         } catch (err) {
             console.log(err);
         }
-    }, [directionsService, directionsRenderer, userLocation, destination, routeIndex, travelMode, setTravelDistance, setTravelTime]);
+    }, [directionsService, directionsRenderer, userLocation, destination, routeIndex, travelMode, setTravelDistance, setTravelTime, arrivalTime, setDepartureTime]);
 
     function setMode(eventKey, event) {
         event.preventDefault();

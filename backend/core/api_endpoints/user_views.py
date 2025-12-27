@@ -32,7 +32,7 @@ class UserView(APIView):
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
 
             else:
-                return Response({"error": "User with that username or email already exists"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
         except IntegrityError:
 

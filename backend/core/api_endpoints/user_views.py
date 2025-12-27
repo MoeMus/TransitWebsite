@@ -47,7 +47,7 @@ class UserView(APIView):
             BlacklistedToken.objects.get_or_create(token=token)
 
         request.user.delete()
-        return Response(status=status.HTTP_205_RESET_CONTENT)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @permission_classes([IsAuthenticated])
     def put(self, request):

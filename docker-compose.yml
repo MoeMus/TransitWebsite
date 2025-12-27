@@ -10,7 +10,7 @@ services:
       context: ./backend
 
     volumes:
-      - server_data:/data
+      - transit_server_data:/data
       - ./backend:/usr/src/backend
 
     environment:
@@ -23,6 +23,8 @@ services:
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
       TRANSLINK_API_KEY: ${TRANSLINK_API_KEY}
     depends_on:
+      redis:
+        condition: service_healthy
       mysql:
         condition: service_healthy
     ports:
@@ -45,13 +47,64 @@ services:
       TRANSLINK_API_KEY: ${TRANSLINK_API_KEY}
 
     volumes:
-      - server_data:/data
+      - transit_server_data:/data
       - ./backend:/usr/src/backend
     command: >
       sh -c "python manage.py migrate django_cron && python manage.py runcrons"
     depends_on:
       - django
       - mysql
+
+  redis:
+
+    image: redis:alpine
+
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+  celery: # Celery Worker Node
+
+    build:
+      context: ./backend
+
+      environment:
+        - DEBUG=1
+        - SECRET_KEY=${CELERY_SECRET_KEY}
+        - DJANGO_ALLOWED_HOSTS=${TRANSIT_ALLOWED_HOSTS}
+
+      command: celery -A core worker -l info
+      volumes:
+        - ./backend:/usr/src/backend
+        - transit_server_data:/data
+
+      depends_on:
+        -django
+        -mysql
+        -redis
+
+  celery-beat: # Celery Task Scheduler
+    build:
+      context: ./backend
+
+    command: celery -A core beat -l info
+
+    volumes:
+      - ./backend:/usr/src/backend
+      - transit_server_data:/data
+
+    environment:
+      - DEBUG=1
+      - SECRET_KEY=${CELERY_SECRET_KEY}
+      - DJANGO_ALLOWED_HOSTS=${TRANSIT_ALLOWED_HOSTS}
+      -
+    depends_on:
+      -django
+      -mysql
+      -redis
 
   mysql:
 
@@ -64,7 +117,7 @@ services:
       MYSQL_PASSWORD: ${TRANSIT_DB_PASSWORD}
       MYSQL_ROOT_PASSWORD: ${TRANSIT_DB_PASSWORD}
     volumes:
-      - db_data:/var/lib/mysql
+      - transit_db_data:/var/lib/mysql
     healthcheck:
       test: mysqladmin ping -h 127.0.0.1 -u $$MYSQL_USER --password=$$MYSQL_PASSWORD
       start_period: 5s
@@ -76,5 +129,5 @@ services:
 
 volumes:
 
-  server_data:
-  db_data:
+  transit_server_data:
+  transit_db_data:

@@ -4,6 +4,9 @@ import {toast, Toaster} from "react-hot-toast";
 import {AdvancedMarker, APIProvider, Map, Pin,} from "@vis.gl/react-google-maps";
 import Container from "react-bootstrap/Container";
 import Form from "react-bootstrap/Form";
+import Card from "react-bootstrap/Card";
+import Badge from "react-bootstrap/Badge";
+import Modal from "react-bootstrap/Modal";
 //import Button from "react-bootstrap/Button";
 import Dropdown from "react-bootstrap/Dropdown";
 import ServiceAlerts from "../translink-alerts/ServiceAlerts";
@@ -12,8 +15,27 @@ import {getUserInfoFromBackend, getNextClassFromBackend, setLocation} from "./ut
 import CourseCalendar from "../calendar/CourseCalendar";
 import {Directions} from "./directions";
 import Dialog from "../components/dialog";
-import {BsCalendar3} from "react-icons/bs";
-import { BsExclamationTriangleFill } from "react-icons/bs";
+import {
+    BsCalendar3,
+    BsExclamationTriangleFill,
+    BsGeoAlt,
+    BsPinMap,
+    BsArrowReturnRight,
+    BsClock,
+    BsMap,
+    BsClipboard,
+    BsCheck2,
+    BsArrowLeft,
+    BsArrowRight,
+    BsArrowUp,
+    BsShareFill,
+    BsBusFront,
+    BsTrainFront,
+    BsPersonWalking,
+    BsCalendarPlus,
+    BsQrCode,
+    BsShare
+} from "react-icons/bs";
 const CAMPUSES = [
     { key: "burnaby", name: "SFU Burnaby", address: "49.279950, -122.919906" },
     { key: "surrey", name: "SFU Surrey", address: "13450 102 Ave, Surrey, BC V3T 0A3" },
@@ -29,7 +51,7 @@ export function Dashboard() {
     const [trackingEnabled, setTrackingEnabled] = useState(false);
     const [map, setMap] = useState(null);
     const [manualLocationEnabled, setManualLocationEnabled] = useState(false);
-    // const [travelMode, setTravelMode] = useState("");
+    const [travelMode, setTravelMode] = useState("Transit");
     const [travelTime, setTravelTime] = useState("");
     const [departureTime, setDepartureTime] = useState("");
     const [travelDistance, setTravelDistance] = useState("");
@@ -39,6 +61,9 @@ export function Dashboard() {
     const [selectedCampus, setSelectedCampus] = useState(CAMPUSES[0]);
     const [bufferTime, setBufferTime] = useState(10); // Default 10 minutes buffer
     const [nextClass, setNextClass] = useState(null);
+    const [routeSteps, setRouteSteps] = useState([]);
+    const [copied, setCopied] = useState(false);
+    const [showQrModal, setShowQrModal] = useState(false);
 
     const calculateArrivalTime = useMemo(() => {
         if (!nextClass) {
@@ -224,6 +249,93 @@ export function Dashboard() {
         return `${hours12}:${mins.toString().padStart(2, '0')} ${ampm}`;
     };
 
+    const handleCopyRoute = () => {
+        if (!routeSteps.length) return;
+        // Strip HTML tags for clipboard
+        const text = routeSteps.map(step => {
+            const cleanInstruction = step.instructions.replace(/<[^>]*>?/gm, '');
+            return `${cleanInstruction} (${step.distance.text})`;
+        }).join('\n');
+
+        navigator.clipboard.writeText(text);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    const handleShare = async () => {
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: `Journey to ${selectedCampus.name}`,
+                    text: `Trip time: ${travelTime}. Distance: ${travelDistance}.`,
+                    url: window.location.href
+                });
+            } catch (err) {
+                console.log('Error sharing:', err);
+            }
+        } else {
+            handleCopyRoute();
+        }
+    };
+
+    const getGoogleMapsUrl = () => {
+        const origin = `${userLocation.lat},${userLocation.lng}`;
+        const dest = encodeURIComponent(selectedCampus.address);
+        const mode = travelMode.toLowerCase();
+        return `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${dest}&travelmode=${mode}`;
+    };
+
+    const handleOpenMaps = () => {
+         window.open(getGoogleMapsUrl(), '_blank');
+    }
+
+    const handleAddToCalendar = () => {
+        if (!nextClass || !travelTime || !calculateArrivalTime) {
+            toast.error("No upcoming class to schedule.");
+            return;
+        }
+
+        const parseTravelTime = (timeStr) => {
+            let totalMinutes = 0;
+            const hourMatch = timeStr.match(/(\d+)\s*hour/);
+            const minMatch = timeStr.match(/(\d+)\s*min/);
+            if (hourMatch) totalMinutes += parseInt(hourMatch[1]) * 60;
+            if (minMatch) totalMinutes += parseInt(minMatch[1]);
+            return totalMinutes;
+        };
+
+        const durationMins = parseTravelTime(travelTime);
+        const endTime = calculateArrivalTime; // This is a Date object (Class Start - Buffer)
+        const startTime = new Date(endTime.getTime() - durationMins * 60000);
+
+        const formatGoogleDate = (date) => {
+            return date.toISOString().replace(/-|:|\.\d{3}/g, "");
+        };
+
+        const startStr = formatGoogleDate(startTime);
+        const endStr = formatGoogleDate(endTime);
+        const title = encodeURIComponent(`Commute to ${nextClass.title}`);
+        const details = encodeURIComponent(`Travel time: ${travelTime}\nDistance: ${travelDistance}\n\nRoute: ${getGoogleMapsUrl()}`);
+        const location = encodeURIComponent(selectedCampus.address);
+
+        const url = `https://www.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startStr}/${endStr}&details=${details}&location=${location}`;
+        window.open(url, '_blank');
+    }
+
+    const getActionIcon = (step) => {
+        if (step.travel_mode === 'TRANSIT') {
+             const vehicleType = step.transit?.line?.vehicle?.type;
+             if (vehicleType === 'SUBWAY' || vehicleType === 'TRAIN' || vehicleType === 'HEAVY_RAIL') return <BsTrainFront size={20} />;
+             return <BsBusFront size={20} />;
+        }
+        const text = step.instructions.toLowerCase();
+        if (text.includes("walk to")) return <BsPersonWalking size={16} />;
+        if (text.includes("left")) return <BsArrowLeft size={16} />;
+        if (text.includes("right")) return <BsArrowRight size={16} />;
+        if (text.includes("head") || text.includes("continue")) return <BsArrowUp size={16} />;
+        return <BsArrowReturnRight size={16} />;
+    };
+
     return (
         <>
             <Box>
@@ -325,6 +437,9 @@ export function Dashboard() {
                                             arrivalTime={calculateArrivalTime}
                                                     setDepartureTime={setDepartureTime}
                                             setError={setDirectionsError}
+                                            setRouteSteps={setRouteSteps}
+                                            travelMode={travelMode}
+                                            setTravelMode={setTravelMode}
                                         />
                                     </div>
                                 </div>
@@ -332,6 +447,214 @@ export function Dashboard() {
                             </APIProvider>
 
                         </div>
+
+                        {/* Journey Details Section */}
+                        {routeSteps.length > 0 && (
+                            <div className="w-100 d-flex justify-content-center mb-5">
+                                <style>
+                                    {`
+                                        @keyframes pulse-green {
+                                            0% { box-shadow: 0 0 0 0 rgba(25, 135, 84, 0.4); }
+                                            70% { box-shadow: 0 0 0 15px rgba(25, 135, 84, 0); }
+                                            100% { box-shadow: 0 0 0 0 rgba(25, 135, 84, 0); }
+                                        }
+                                        .instruction-text b { font-weight: 700; color: #0d6efd; }
+                                    `}
+                                </style>
+                                <Card className="shadow-lg border-0 w-100 overflow-hidden" style={{ maxWidth: "1000px", borderRadius: "24px" }}>
+                                    <div className="p-4 bg-light border-bottom d-flex justify-content-between align-items-center">
+                                        <h4 className="fw-bold mb-0 d-flex align-items-center gap-3 text-dark">
+                                            <div className="bg-white p-2 rounded-circle shadow-sm text-primary d-flex">
+                                                <BsPinMap size={24} />
+                                            </div>
+                                            <span className="d-none d-sm-inline">Journey Details</span>
+                                        </h4>
+                                        <div className="d-flex gap-2">
+                                            <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                colorScheme={copied ? "green" : "gray"}
+                                                onClick={handleShare}
+                                                leftIcon={copied ? <BsCheck2 /> : (navigator.share ? <BsShareFill /> : <BsClipboard />)}
+                                            ><BsShare />
+                                                {copied ? "Copied" : (navigator.share ? "Share" : "Copy")}
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                onClick={handleAddToCalendar}
+                                                leftIcon={<BsCalendarPlus />}
+                                                title="Add commute to Calendar"
+                                            >
+                                                <BsCalendar3 />
+                                                Calendar
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                onClick={() => setShowQrModal(true)}
+                                                leftIcon={<BsQrCode />}
+                                                title="Send to Phone"
+                                            >
+                                                <BsQrCode />
+                                                QR Code
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                colorScheme="blue"
+                                                variant="solid"
+                                                onClick={handleOpenMaps}
+                                                leftIcon={<BsMap />}
+                                            ><BsGeoAlt />
+                                                Open Maps
+                                            </Button>
+                                        </div>
+                                    </div>
+
+                                    {/* Quick Stats Bar */}
+                                    <div className="px-4 py-3 bg-white border-bottom d-flex gap-4 align-items-center text-muted small">
+                                        <div className="d-flex align-items-center gap-2">
+                                            <BsClock className="text-primary" /> <strong>{travelTime}</strong>
+                                        </div>
+                                        <div className="d-flex align-items-center gap-2">
+                                            <BsMap className="text-primary" /> <strong>{travelDistance}</strong>
+                                        </div>
+                                    </div>
+
+                                    <Card.Body className="p-4 p-md-5 bg-white">
+                                        <div className="position-relative">
+                                            {/* Gradient Vertical Line */}
+                                            <div style={{
+                                                position: 'absolute',
+                                                left: '24px',
+                                                top: '20px',
+                                                bottom: '20px',
+                                                width: '4px',
+                                                borderRadius: '4px',
+                                                background: 'linear-gradient(to bottom, #198754 0%, #0d6efd 50%, #dc3545 100%)',
+                                                zIndex: 0,
+                                                opacity: 0.3
+                                            }}></div>
+
+                                            {/* Start Node */}
+                                            <div className="d-flex mb-5 position-relative align-items-center group" style={{ zIndex: 1 }}>
+                                                <div className="bg-success rounded-circle d-flex align-items-center justify-content-center text-white flex-shrink-0 shadow-md"
+                                                     style={{ width: '52px', height: '52px', border: '4px solid white', animation: 'pulse-green 2s infinite' }}>
+                                                    <BsGeoAlt size={20} />
+                                                </div>
+                                                <div className="ms-4">
+                                                    <h5 className="fw-bold mb-0 text-dark">Start Journey at {departureTime || calculateLeaveTime()}</h5>
+                                                </div>
+                                            </div>
+
+                                            {/* Steps */}
+                                            {routeSteps.map((step, index) => (
+                                                <div
+                                                    key={index}
+                                                    className="d-flex mb-4 position-relative align-items-start step-item"
+                                                    style={{ zIndex: 1, transition: 'transform 0.2s ease' }}
+                                                    onMouseEnter={(e) => e.currentTarget.style.transform = 'translateX(10px)'}
+                                                    onMouseLeave={(e) => e.currentTarget.style.transform = 'translateX(0)'}
+                                                >
+                                                    <div className="bg-white rounded-circle d-flex align-items-center justify-content-center text-primary flex-shrink-0 shadow-sm"
+                                                         style={{ width: '52px', height: '52px', border: '4px solid #f8f9fa' }}>
+                                                        {getActionIcon(step)}
+                                                    </div>
+                                                    <div className="ms-4 pt-1 w-100 p-3 rounded-3 bg-light border border-light shadow-sm hover-shadow-md transition-all">
+                                                        <div 
+                                                            dangerouslySetInnerHTML={{ __html: step.instructions }} 
+                                                            className="mb-2 text-dark fw-medium instruction-text"
+                                                            style={{ fontSize: '1.05rem', lineHeight: '1.6' }}
+                                                        />
+
+                                                        {/* Transit Details Block */}
+                                                        {step.transit && (
+                                                            <div className="mt-3 mb-3 p-3 bg-white rounded-3 border border-light-subtle shadow-sm">
+                                                                <div className="mb-3">
+                                                                    <div className="d-flex align-items-center gap-2">
+                                                                        <Badge 
+                                                                            bg={step.transit.line.color ? null : "primary"} 
+                                                                            className="px-2 py-1" 
+                                                                            style={{
+                                                                                fontSize: '0.9rem', 
+                                                                                backgroundColor: step.transit.line.color || undefined, 
+                                                                                color: step.transit.line.text_color || undefined
+                                                                            }}
+                                                                        >
+                                                                            {step.transit.line.short_name || step.transit.line.name}
+                                                                        </Badge>
+                                                                        <div className="d-flex flex-column lh-1">
+                                                                            <span className="fw-bold text-dark small">
+                                                                                {step.transit.line.name}
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                    {step.transit.headsign && (
+                                                                        <div className="text-muted small mt-1">
+                                                                            Towards <strong className="text-dark">{step.transit.headsign}</strong>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                                
+                                                                <div className="d-flex flex-column gap-3 position-relative pt-1 ps-3 border-start border-2 border-secondary-subtle ms-3 my-2">
+                                                                    {/* Departure */}
+                                                                    <div className="position-relative">
+                                                                        <div className="position-absolute start-0 translate-middle bg-secondary rounded-circle" 
+                                                                             style={{width: '10px', height: '10px', top: '12px'}}></div>
+                                                                        <div className="ps-4">
+                                                                            <div className="fw-bold text-dark">{step.transit.departure_time.text}</div>
+                                                                            <div className="text-muted small">{step.transit.departure_stop.name}</div>
+                                                                        </div>
+                                                                    </div>
+
+                                                                    {/* Stops */}
+                                                                    <div className="ps-4 text-muted small fst-italic">
+                                                                        <span className="d-inline-block bg-light px-2 border rounded-pill">
+                                                                            {step.transit.num_stops} stops
+                                                                        </span>
+                                                                    </div>
+
+                                                                    {/* Arrival */}
+                                                                    <div className="position-relative">
+                                                                        <div className="position-absolute start-0 translate-middle bg-secondary rounded-circle" 
+                                                                             style={{width: '10px', height: '10px', top: '12px'}}></div>
+                                                                        <div className="ps-4">
+                                                                            <div className="fw-bold text-dark">{step.transit.arrival_time.text}</div>
+                                                                            <div className="text-muted small">{step.transit.arrival_stop.name}</div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        )}
+
+                                                        <div className="d-flex gap-2 mt-2">
+                                                            <Badge bg="white" text="dark" className="border shadow-sm fw-normal d-flex align-items-center gap-2 py-2 px-3 rounded-pill">
+                                                                <span className="text-muted">Distance:</span> <strong>{step.distance.text}</strong>
+                                                            </Badge>
+                                                            <Badge bg="white" text="dark" className="border shadow-sm fw-normal d-flex align-items-center gap-2 py-2 px-3 rounded-pill">
+                                                                <BsClock size={12} className="text-primary" /> <strong>{step.duration.text}</strong>
+                                                            </Badge>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+
+                                            {/* End Node */}
+                                            <div className="d-flex position-relative align-items-start" style={{ zIndex: 1 }}>
+                                                <div className="bg-danger rounded-circle d-flex align-items-center justify-content-center text-white flex-shrink-0 shadow-md"
+                                                     style={{ width: '52px', height: '52px', border: '4px solid white' }}>
+                                                    <BsPinMap size={20} />
+                                                </div>
+                                                <div className="ms-4 pt-2">
+                                                    <h5 className="fw-bold mb-1 text-dark">Arrive at Destination</h5>
+                                                    <p className="text-muted mb-0 small text-uppercase fw-bold tracking-wide">{selectedCampus.name}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </Card.Body>
+                                </Card>
+                            </div>
+                        )}
 
                         <div style={{display: "flex", flexDirection: "row", justifyContent: "center"}}>
 
@@ -384,6 +707,19 @@ export function Dashboard() {
 
         </Box>
 
+        <Modal show={showQrModal} onHide={() => setShowQrModal(false)} centered>
+            <Modal.Header closeButton>
+                <Modal.Title>Scan to Open on Phone</Modal.Title>
+            </Modal.Header>
+            <Modal.Body className="text-center p-4">
+                <img 
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(getGoogleMapsUrl())}`} 
+                    alt="QR Code" 
+                    style={{maxWidth: '100%', borderRadius: '8px'}}
+                />
+                <p className="mt-3 text-muted mb-0">Scan this code to open the route in Google Maps on your mobile device.</p>
+            </Modal.Body>
+        </Modal>
 
         </>
   );

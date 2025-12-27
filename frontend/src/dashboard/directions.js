@@ -4,7 +4,7 @@ import {toast} from "react-hot-toast";
 import { Button, ButtonGroup, Badge} from "react-bootstrap";
 import { BsCarFrontFill, BsBusFrontFill, BsBicycle, BsPersonWalking } from "react-icons/bs";
 
-export function Directions({userLocation, destination, setTravelTime, setTravelDistance, arrivalTime, setDepartureTime, setError}) {
+export function Directions({userLocation, destination, setTravelTime, setTravelDistance, arrivalTime, setDepartureTime, setError, setRouteSteps, setDestinationLocation, travelMode, setTravelMode}) {
     const map = useMap();
     const [directionsService, setDirectionsService] = useState(null);
     const [directionsRenderer, setDirectionsRenderer] = useState(null);
@@ -12,7 +12,6 @@ export function Directions({userLocation, destination, setTravelTime, setTravelD
     const [summary, setSummary] = useState("");
     const [routes, setRoutes] = useState([]);
     const [routeIndex, setRouteIndex] = useState(0);
-    const [travelMode, setTravelMode] = useState("");
     const responseCache = useRef({});
 
     // Initialize services
@@ -112,10 +111,21 @@ export function Directions({userLocation, destination, setTravelTime, setTravelD
             } else {
                 setDepartureTime("");
             }
+
+            if (setRouteSteps) {
+                setRouteSteps(route.legs[0].steps);
+            }
+
+            if (setDestinationLocation && route.legs[0].end_location) {
+                // Handle Google Maps LatLng object
+                const lat = typeof route.legs[0].end_location.lat === 'function' ? route.legs[0].end_location.lat() : route.legs[0].end_location.lat;
+                const lng = typeof route.legs[0].end_location.lng === 'function' ? route.legs[0].end_location.lng() : route.legs[0].end_location.lng;
+                setDestinationLocation({ lat, lng });
+            }
         } else {
             setSummary("Error fetching directions or no routes available");
         }
-    }, [directionsResult, routeIndex, directionsRenderer, setTravelTime, setTravelDistance, setDepartureTime]);
+    }, [directionsResult, routeIndex, directionsRenderer, setTravelTime, setTravelDistance, setDepartureTime, setRouteSteps, setDestinationLocation]);
 
     function fetchRouteDirections(roundedOrigin, uniqueCacheKeyForCurrentRequestParameters) {
         directionsService.route({

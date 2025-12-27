@@ -39,3 +39,5 @@ yarn-error.log
 *.swp
 
 .env
+
+/backend/celerybeat-schedule

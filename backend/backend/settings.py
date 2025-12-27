@@ -63,6 +63,7 @@ SESSION_COOKIE_SAMESITE = 'Lax'
 CELERY_BROKER_URL = "redis://redis:6379"
 CELERY_RESULT_BACKEND = "redis://redis:6379"
 CELERY_TIMEZONE = "America/Vancouver"
+CELERY_IMPORTS = "core.cron"
 
 INSTALLED_APPS = [
     # Django apps
@@ -240,6 +241,10 @@ LOGGING = {
 CELERY_BEAT_SCHEDULE = {
     "update_course_data": {
         "task": "core.cron.update_course_data",
-        "schedule": crontab(hour=0, minute=0, day_of_month='1', month_of_year='1,5,9'),
+        "schedule": crontab(hour=0, minute=0, day_of_month='1', month_of_year='1,5,9')
     },
+    # "test_task": {
+    #     "task": "core.cron.test_task",
+    #     "schedule": crontab(minute="*/1")
+    # }
 }

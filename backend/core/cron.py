@@ -20,7 +20,12 @@ logger = get_task_logger(__name__)
 #     code = 'core.sync_courses_cron_job'  # Unique code for cron
 
 
-@shared_task
+# @shared_task(name="core.cron.test_task")
+# def test_task():
+#     logger.info("Test task")
+
+
+@shared_task(name="core.cron.update_course_data")
 def update_course_data():
     logger.info("Starting course sync cron job.")
 

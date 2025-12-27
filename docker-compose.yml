@@ -30,30 +30,30 @@ services:
     ports:
       - 8000:8000
 
-  cron:
-
-    container_name: cron_scheduler
-    build:
-      context: ./backend
-
-    environment:
-      DJANGO_SETTINGS_MODULE: backend.settings
-      TRANSIT_DB_HOST: mysql
-      TRANSIT_DB_PORT: 3306
-      TRANSIT_DB_NAME: ${TRANSIT_DB_NAME}
-      TRANSIT_DB_PASSWORD: ${TRANSIT_DB_PASSWORD}
-      TRANSIT_DB_USER: ${TRANSIT_DB_USER}
-      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
-      TRANSLINK_API_KEY: ${TRANSLINK_API_KEY}
-
-    volumes:
-      - transit_server_data:/data
-      - ./backend:/usr/src/backend
-    command: >
-      sh -c "python manage.py migrate django_cron && python manage.py runcrons"
-    depends_on:
-      - django
-      - mysql
+#  cron:
+#
+#    container_name: cron_scheduler
+#    build:
+#      context: ./backend
+#
+#    environment:
+#      DJANGO_SETTINGS_MODULE: backend.settings
+#      TRANSIT_DB_HOST: mysql
+#      TRANSIT_DB_PORT: 3306
+#      TRANSIT_DB_NAME: ${TRANSIT_DB_NAME}
+#      TRANSIT_DB_PASSWORD: ${TRANSIT_DB_PASSWORD}
+#      TRANSIT_DB_USER: ${TRANSIT_DB_USER}
+#      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+#      TRANSLINK_API_KEY: ${TRANSLINK_API_KEY}
+#
+#    volumes:
+#      - transit_server_data:/data
+#      - ./backend:/usr/src/backend
+#    command: >
+#      sh -c "python manage.py migrate django_cron && python manage.py runcrons"
+#    depends_on:
+#      - django
+#      - mysql
 
   redis:
 
@@ -71,44 +71,56 @@ services:
     build:
       context: ./backend
 
-      environment:
-        - DEBUG=1
-        - SECRET_KEY=${CELERY_SECRET_KEY}
-        - DJANGO_ALLOWED_HOSTS=${TRANSIT_ALLOWED_HOSTS}
+    environment:
+      DEBUG: 1
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+      DJANGO_ALLOWED_HOSTS: ${TRANSIT_ALLOWED_HOSTS}
+      DJANGO_SETTINGS_MODULE: backend.settings
+      TRANSIT_DB_HOST: mysql
+      TRANSIT_DB_PORT: 3306
+      TRANSIT_DB_NAME: ${TRANSIT_DB_NAME}
+      TRANSIT_DB_PASSWORD: ${TRANSIT_DB_PASSWORD}
+      TRANSIT_DB_USER: ${TRANSIT_DB_USER}
 
-      command: celery -A core worker -l info
-      volumes:
-        - ./backend:/usr/src/backend
-        - transit_server_data:/data
+    command: celery -A backend worker -l info
+    volumes:
+      - ./backend:/usr/src/backend
+      - transit_server_data:/data
 
-      depends_on:
-        -django
-        -mysql
-        -redis
+    depends_on:
+      - django
+      - mysql
+      - redis
 
   celery-beat: # Celery Task Scheduler
     build:
       context: ./backend
 
-    command: celery -A core beat -l info
+    command: celery -A backend beat -l info
 
     volumes:
       - ./backend:/usr/src/backend
       - transit_server_data:/data
 
     environment:
-      - DEBUG=1
-      - SECRET_KEY=${CELERY_SECRET_KEY}
-      - DJANGO_ALLOWED_HOSTS=${TRANSIT_ALLOWED_HOSTS}
-      -
+      DEBUG: 1
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+      DJANGO_ALLOWED_HOSTS: ${TRANSIT_ALLOWED_HOSTS}
+      DJANGO_SETTINGS_MODULE: backend.settings
+      TRANSIT_DB_HOST: mysql
+      TRANSIT_DB_PORT: 3306
+      TRANSIT_DB_NAME: ${TRANSIT_DB_NAME}
+      TRANSIT_DB_PASSWORD: ${TRANSIT_DB_PASSWORD}
+      TRANSIT_DB_USER: ${TRANSIT_DB_USER}
+
     depends_on:
-      -django
-      -mysql
-      -redis
+      - django
+      - mysql
+      - redis
 
   mysql:
 
-    container_name: server_mysql_db
+    container_name: transit_server_mysql_db
     platform: linux/x86_64
     image: mysql:8.0
     environment:

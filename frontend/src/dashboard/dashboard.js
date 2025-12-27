@@ -459,6 +459,8 @@ export function Dashboard() {
                                             100% { box-shadow: 0 0 0 0 rgba(25, 135, 84, 0); }
                                         }
                                         .instruction-text b { font-weight: 700; color: #0d6efd; }
+                                        .step-item:hover .step-card { transform: translateX(10px); }
+                                        .step-card { transition: transform 0.2s ease; }
                                     `}
                                 </style>
                                 <Card className="shadow-lg border-0 w-100 overflow-hidden" style={{ maxWidth: "1000px", borderRadius: "24px" }}>
@@ -552,15 +554,13 @@ export function Dashboard() {
                                                 <div
                                                     key={index}
                                                     className="d-flex mb-4 position-relative align-items-start step-item"
-                                                    style={{ zIndex: 1, transition: 'transform 0.2s ease' }}
-                                                    onMouseEnter={(e) => e.currentTarget.style.transform = 'translateX(10px)'}
-                                                    onMouseLeave={(e) => e.currentTarget.style.transform = 'translateX(0)'}
+                                                    style={{ zIndex: 1 }}
                                                 >
                                                     <div className="bg-white rounded-circle d-flex align-items-center justify-content-center text-primary flex-shrink-0 shadow-sm"
                                                          style={{ width: '52px', height: '52px', border: '4px solid #f8f9fa' }}>
                                                         {getActionIcon(step)}
                                                     </div>
-                                                    <div className="ms-4 pt-1 w-100 p-3 rounded-3 bg-light border border-light shadow-sm hover-shadow-md transition-all">
+                                                    <div className="ms-4 pt-1 w-100 p-3 rounded-3 bg-light border border-light shadow-sm hover-shadow-md transition-all step-card">
                                                         <div 
                                                             dangerouslySetInnerHTML={{ __html: step.instructions }} 
                                                             className="mb-2 text-dark fw-medium instruction-text"

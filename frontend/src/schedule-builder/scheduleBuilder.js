@@ -4,7 +4,7 @@ import apiClient from "../configurations/configAxios";
 import { toast, Toaster } from "react-hot-toast";
 import {Spinner} from "@chakra-ui/react";
 import CourseCalendar from "../calendar/CourseCalendar";
-import { BsListUl, BsCalendar3, BsTrash } from "react-icons/bs";
+import { BsListUl, BsCalendar3, BsTrash, BsPlusLg, BsXLg } from "react-icons/bs";
 import Dialog from "../components/dialog";
 
 const refreshAccessToken = async () => {
@@ -530,20 +530,20 @@ export function ScheduleBuilder() {
                     variant="primary"
                     size="lg"
                     style={{ width: 'max-content' }}
-                    className="px-4 py-1 shadow-sm text-nowrap"
+                    className="px-4 py-1 shadow-sm text-nowrap d-flex align-items-center gap-2"
                     onClick={handleAddCourse}
                   >
-                    Add to Schedule
+                    <BsPlusLg/>Add to Schedule
                   </Button>
                 )}
                 <Button 
                   variant="outline-secondary"
                   size="lg"
                   style={{ width: 'max-content' }}
-                  className="px-4 py-1 shadow-sm text-nowrap"
+                  className="px-4 py-1 shadow-sm text-nowrap d-flex align-items-center gap-2"
                   onClick={handleCancelSelection}
                 >
-                  Cancel
+                  <BsXLg/>Cancel
                 </Button>
               </Col>
             </Row>
@@ -621,10 +621,10 @@ export function ScheduleBuilder() {
                       <Button
                         variant="outline-danger"
                         size="sm"
-                        className="rounded-pill px-3"
+                        className="rounded-pill px-3 d-flex align-items-center gap-1"
                         onClick={() => handleRemoveCourse(item, index)}
                       >
-                        Remove
+                        <BsTrash /> Remove
                       </Button>
                   </div>
                 </ListGroup.Item>

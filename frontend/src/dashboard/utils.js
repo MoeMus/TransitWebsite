@@ -32,6 +32,17 @@ async function getUserInfoFromBackend() {
 
 }
 
+async function getNextClassFromBackend() {
+    try {
+        const response = await apiClient.get('/api/user/next-class/');
+        if (response.status === 204) return null;
+        return response.data;
+    } catch (err) {
+        console.error("Failed to fetch next class", err);
+        return null;
+    }
+}
+
 
 const setLocation = (event, callback)=> {
     event.preventDefault();
@@ -53,5 +64,6 @@ const setLocation = (event, callback)=> {
 
 export {
     getUserInfoFromBackend,
+    getNextClassFromBackend,
     setLocation
 }

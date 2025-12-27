@@ -16,6 +16,7 @@ The SFU Transit Web App integrates students' course schedules with transit and d
 
 - **Django**
 - **Django REST Framework**
+- **Celery**
 
 ### Database
 
@@ -38,7 +39,7 @@ Follow these steps to set up the project and install the required packages for R
 
 ### Prerequisites
 
-- Python 3.10
+- Python 3.10+
 - Node.js (for React front-end)
 - MySQL
 
@@ -72,6 +73,7 @@ Follow these steps to set up the project and install the required packages for R
    TRANSIT_DB_USER=
    TRANSIT_DB_HOST=
    TRANSIT_DB_PORT=
+   TRANSIT_ALLOWED_HOSTS= # Address of backend server (e.g, localhost 127.0.0.1 [::1])
 
 5. **Set Environment Variables For MySQL and Django**  
    ![Linux](https://img.icons8.com/color/48/000000/linux.png) ![Mac](https://img.icons8.com/ios-filled/50/000000/mac-os.png) **Linux/MacOS:**
@@ -107,11 +109,23 @@ Follow these steps to set up the project and install the required packages for R
    python manage.py makemigrations
    python manage.py migrate
 
-7. **Run the server**
+7. **Set up Celery Beat and Worker Node**
+   ```bash
+   # Requires Redis as a message queue
+   redis-server
+   
+   # Start Celery Beat
+   celery -A backend beat -l info
+   
+   # Start Celery Worker Node
+   celery -A backend worker -l info
+   ```
+
+8. **Run the server**
    ```bash
    python manage.py runserver
 
-8. **Alternatively, you can use Docker to run the backend**
+9. **Alternatively, you can use Docker to run the backend (Recommended)**
    ```bash
    docker compose up
 
@@ -136,7 +150,7 @@ Follow these steps to set up the project and install the required packages for R
 5. Set up A Map ID
    - In the Google Maps Platform select the project for this website and on the left side, click `Map Management`
    - Click `CREATE MAP ID`
-   - Enter a name and set the map type as as Javascript, vector, with both rotation and tilt, and click save
+   - Enter a name and set the map type as Javascript, vector, with both rotation and tilt, and click save
    - The map ID should be visible afterwards
    - Save it as an environment variable as `REACT_APP_GOOGLE_MAP_ID` in .env
 

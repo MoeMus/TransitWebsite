@@ -1,6 +1,9 @@
+from datetime import date
+
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import transaction, IntegrityError
 from django_cron import CronJobBase, Schedule
-from .models import Course, LectureSection, NonLectureSection
+from .models import Course, LectureSection, NonLectureSection, User, NewSemesterNotification
 from .utils import get_current_year, get_current_term_code, get_current_term
 import requests
 import logging
@@ -33,6 +36,16 @@ def update_course_data():
     current_term_code = get_current_term_code()
     current_term = get_current_term()
     departments = get_departments()
+
+    try:
+
+        clear_database()
+
+    except IntegrityError:
+
+        logger.exception("Course sync cron job failed: Could not clear database.")
+
+        return
 
     for department in departments:
         try:
@@ -173,6 +186,45 @@ def update_course_data():
 
 def get_departments():
     return ['cmpt']  # Update this list with all relevant departments
+
+
+# Removes all old course data from database and clears every user's schedule
+# TODO: Maybe instead of clearing the schedule, archive it instead
+def clear_database():
+    with transaction.atomic():
+        NonLectureSection.objects.all().delete()
+        LectureSection.objects.all().delete()
+        Course.objects.all().delete()
+
+        users = User.objects.all()
+
+        # Clear all user's schedules
+        for user in users:
+
+            user.lecture_sections.clear()
+            user.non_lecture_sections.clear()
+            user.save()
+
+            upload_notification(user)
+
+
+def upload_notification(user):
+
+    semester = get_current_term().title()
+    today = date.today()
+
+    new_notification = NewSemesterNotification.objects.update_or_create(
+        user=user,
+        defaults={
+            'user': user,
+            'message': f"Your schedule has been cleared, please select your courses for the {semester} {today.year} "
+                       f"semester",
+            'semester': semester,
+            'year': today.year
+        }
+    )
+
+    logger.info(f"New notification created: {new_notification}")
 
 
 def parse_date(date_string):

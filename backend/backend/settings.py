@@ -243,8 +243,8 @@ CELERY_BEAT_SCHEDULE = {
         "task": "core.cron.update_course_data",
         "schedule": crontab(hour=0, minute=0, day_of_month='1', month_of_year='1,5,9')
     },
-    # "test_task": {
-    #     "task": "core.cron.test_task",
-    #     "schedule": crontab(minute="*/1")
-    # }
+    "remove_blacklisted_tokens": {
+        "task": "core.cron.remove_blacklisted_tokens",
+        "schedule": crontab(minute=0, hour='*')
+    }
 }

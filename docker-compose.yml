@@ -22,11 +22,13 @@ services:
       TRANSIT_DB_USER: ${TRANSIT_DB_USER}
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
       TRANSLINK_API_KEY: ${TRANSLINK_API_KEY}
+
     depends_on:
       redis:
         condition: service_healthy
       mysql:
         condition: service_healthy
+
     ports:
       - 8000:8000
 
@@ -83,6 +85,7 @@ services:
       TRANSIT_DB_USER: ${TRANSIT_DB_USER}
 
     command: celery -A backend worker -l info
+
     volumes:
       - ./backend:/usr/src/backend
       - transit_server_data:/data
@@ -93,6 +96,7 @@ services:
       - redis
 
   celery-beat: # Celery Task Scheduler
+
     build:
       context: ./backend
 

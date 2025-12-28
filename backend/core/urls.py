@@ -18,6 +18,7 @@ urlpatterns = [
     path('user/courses/remove/', user_views.remove_course_from_schedule, name='remove-course'),
     path('user/courses/remove/all/', user_views.remove_courses, name='remove-all-courses'),
     path('user/next-class/', user_views.get_next_class, name='get-next-class'),
+    path('user/notification/', user_views.get_new_semester_notification, name='get-new-notification'),
     path('courses/get/all/', course_views.fetch_all_courses, name='fetch-all-courses'),
     path('courses/get/', course_views.get_course, name='fetch-course'),
     path('courses/<int:course_id>/lectures/', course_views.get_lecture_sections, name='get-lecture-sections'),

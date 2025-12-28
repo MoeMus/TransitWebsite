@@ -112,7 +112,7 @@ Ensure you are in the `/backend` directory
    python manage.py makemigrations
    python manage.py migrate
 
-6. **Set up Celery Beat and Worker Node**
+6. **Set up Celery Beat and worker node**
    ```bash
    # Requires Redis as a message queue
    redis-server
@@ -136,7 +136,7 @@ Ensure you are in the `/backend` directory
    # Run Backend
    docker compose up
    ```
-8. **Running Cron Job Manually**
+8. **Running Cron Jobs Manually**
 
    **Every 4 months, the server will update all course data for the new semester by scraping the SFU Course Outlines API**
    **This is set up as a cron job that is managed by Celery. If you want to run this manually, do the following:**
@@ -148,6 +148,15 @@ Ensure you are in the `/backend` directory
    docker exec transit_server python manage.py run_cron_job
    ```
 
+   **Every hour, the server will clear all blacklisted or expired refresh tokens from the database. To do this manually, Django already**
+   **provides a `flushexpiredtokens` management command that can be run as follows**
+   ```bash
+   # Locally
+   python manage.py flushexpiredtokens
+   
+   # In Docker
+   docker exec transit_server python manage.py flushexpiredtokens 
+   ```
 ### Frontend Setup
 
 Ensure you are in the `/frontend` directory

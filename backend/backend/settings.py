@@ -237,14 +237,14 @@ LOGGING = {
 #     'core.cron.SyncCoursesCronJob',
 # ]
 
-# This registers the cron job for Celery to execute every 4 months
+# This registers the cron jobs for Celery to execute
 CELERY_BEAT_SCHEDULE = {
     "update_course_data": {
         "task": "core.cron.update_course_data",
-        "schedule": crontab(hour=0, minute=0, day_of_month='1', month_of_year='1,5,9')
+        "schedule": crontab(hour=0, minute=0, day_of_month='1', month_of_year='1,5,9')  # Every 4 months (Jan, May, Sept)
     },
     "remove_blacklisted_tokens": {
         "task": "core.cron.remove_blacklisted_tokens",
-        "schedule": crontab(minute=0, hour='*')
+        "schedule": crontab(minute=0, hour='*')  # Hourly
     }
 }

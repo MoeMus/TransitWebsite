@@ -148,7 +148,7 @@ Ensure you are in the `/backend` directory
    docker exec transit_server python manage.py run_cron_job
    ```
 
-   **Every hour, the server will clear all blacklisted or expired refresh tokens from the database. To do this manually, Django already**
+   **At the end of each day, the server will clear all blacklisted or expired refresh tokens from the database. To do this manually, Django already**
    **provides a `flushexpiredtokens` management command that can be run as follows:**
    ```bash
    # Locally

@@ -12,10 +12,10 @@ import Modal from "react-bootstrap/Modal";
 import Dropdown from "react-bootstrap/Dropdown";
 import ServiceAlerts from "../translink-alerts/ServiceAlerts";
 import {Box, Button, Flex, Spinner} from "@chakra-ui/react";
-import {getUserInfoFromBackend, getNextClassFromBackend, setLocation} from "./utils"
+import {getUserInfoFromBackend, getNextClassFromBackend, setLocation, getNotification} from "./utils"
 import CourseCalendar from "../calendar/CourseCalendar";
 import {Directions} from "./directions";
-import Dialog from "../components/dialog";
+import Notification from "../components/notification";
 import {
     BsCalendar3,
     BsExclamationTriangleFill,
@@ -37,6 +37,7 @@ import {
     BsQrCode,
     BsShare
 } from "react-icons/bs";
+
 const CAMPUSES = [
     { key: "burnaby", name: "SFU Burnaby", address: "49.279950, -122.919906" },
     { key: "surrey", name: "SFU Surrey", address: "13450 102 Ave, Surrey, BC V3T 0A3" },
@@ -119,6 +120,29 @@ export function Dashboard() {
     }, [username]);
 
 
+    async function getUserNotification() {
+
+        try {
+            const notification_message = await getNotification();
+
+            if (notification_message !== null) {
+                toast.custom((t) => (
+                    <Notification title={"A New semester"} message={notification_message} toast_object={t}/>
+                ), {
+                    duration: 7000,
+                    style: {
+                        all: 'unset', // completely reset global styles
+                    },
+                });
+            }
+
+        } catch (err) {
+            toast.error(err.message || "Something went wrong getting notifications");
+        }
+
+    }
+
+
     function checkLocationTracking() {
         if (!manualLocationEnabled && navigator.geolocation) {
             watchIdRef.current = navigator.geolocation.watchPosition(
@@ -153,11 +177,15 @@ export function Dashboard() {
     //Retrieve user data when dashboard is loaded
     useEffect(() => {
 
-        (async function(){
-            await getUserInfo()
-        })();
+        if (sessionStorage.getItem("access_token")) {
 
-        checkLocationTracking();
+            (async function(){
+                await getUserInfo();
+                await getUserNotification();
+            })();
+
+            checkLocationTracking();
+        }
 
         return () => { if (watchIdRef.current !== null) navigator.geolocation.clearWatch(watchIdRef.current); };
 
@@ -341,7 +369,14 @@ export function Dashboard() {
         <>
             <Box>
 
-                <Toaster position="top-center" duration={5000} reverseOrder={false} />
+                <Toaster position="top-center" duration={5000} toastOptions={{
+                    style: {
+                        fontSize: '16px',
+                        padding: '16px 20px',
+                        maxWidth: '420px',
+                        borderRadius: '10px',
+                    },
+        }} reverseOrder={false} />
                 <Container fluid="lg" className="py-4">
 
                     <div style={{display: "flex", flexDirection: "column"}}>

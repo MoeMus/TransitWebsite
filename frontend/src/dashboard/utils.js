@@ -62,8 +62,28 @@ const setLocation = (event, callback)=> {
 }
 
 
+// Get notification for new semester
+async function getNotification() {
+
+    const response = await apiClient.get('api/user/notification/');
+
+    const notification = response.data;
+
+    if (notification) {
+
+        return notification['message'];
+
+    }
+
+    // If there is no notification
+    return null;
+
+}
+
+
 export {
     getUserInfoFromBackend,
     getNextClassFromBackend,
-    setLocation
+    setLocation,
+    getNotification
 }

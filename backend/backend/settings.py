@@ -245,6 +245,6 @@ CELERY_BEAT_SCHEDULE = {
     },
     "remove_blacklisted_tokens": {
         "task": "core.cron.remove_blacklisted_tokens",
-        "schedule": crontab(minute=0, hour='*')  # Hourly
+        "schedule": crontab(minute=0, hour=0)  # Once a day at midnight
     }
 }

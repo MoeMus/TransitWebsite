@@ -22,6 +22,7 @@ services:
       TRANSIT_DB_USER: ${TRANSIT_DB_USER}
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
       TRANSLINK_API_KEY: ${TRANSLINK_API_KEY}
+      DEBUG: 'True' # TODO: Change to 'False' for production
 
     depends_on:
       redis:
@@ -139,7 +140,7 @@ services:
       timeout: 5s
       retries: 20
     ports:
-      - 3307:3306   # Port 3307 is used to prevent conflicts with MySQL running locally
+      - 127.0.0.1:3307:3306 # Localhost
 
 volumes:
 

@@ -130,7 +130,7 @@ Ensure you are in the `/backend` directory
 
    ### Alternatively, you can use Docker to run the backend (Recommended)
    
-   # Update Containers with any new changes
+   # Update containers with any new changes
    docker compose build
    
    # Run Backend
@@ -138,7 +138,7 @@ Ensure you are in the `/backend` directory
    ```
 8. **Running Cron Jobs Manually**
 
-   **Every 4 months, the server will update all course data for the new semester by scraping the SFU Course Outlines API**
+   **Every 4 months, the server will update all course data for the new semester by scraping the SFU Course Outlines API. **
    **This is set up as a cron job that is managed by Celery. If you want to run this manually, do the following:**
    ```bash
    # Locally

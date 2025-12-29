@@ -10,8 +10,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
 
-from core.models import User, LectureSection, NonLectureSection
-from core.serializers import UserSerializer, LectureSectionSerializer, NonLectureSectionSerializer
+from core.models import User, LectureSection, NonLectureSection, NewSemesterNotification
+from core.serializers import UserSerializer, LectureSectionSerializer, NonLectureSectionSerializer, NewSemesterNotificationSerializer
 from core.utils import check_time_conflicts
 
 
@@ -267,3 +267,28 @@ def get_next_class(request):
     upcoming_classes.sort(key=lambda x: x['startTimeInMinutes'])
 
     return Response(upcoming_classes[0], status=status.HTTP_200_OK)
+
+
+# Gets a notification for the user that the new semester has started
+# Once received, the notification is deleted to save DB space
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_new_semester_notification(request):
+
+    user = request.user
+
+    with transaction.atomic():
+
+        notification = NewSemesterNotification.objects.select_for_update().filter(user=user).first()
+
+        if notification:
+
+            response = Response(NewSemesterNotificationSerializer(notification).data, status=status.HTTP_200_OK)
+
+            notification.delete()
+
+        else:
+
+            response = Response(None, status=status.HTTP_200_OK)
+
+    return response

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, Course, LectureSection, NonLectureSection
+from .models import User, Course, LectureSection, NonLectureSection, NewSemesterNotification
 
 
 class CourseSerializer(serializers.ModelSerializer):
@@ -49,3 +49,10 @@ class UserSerializer(serializers.ModelSerializer):
                                         password=validated_data['password'])
         user.save()
         return user
+
+
+class NewSemesterNotificationSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = NewSemesterNotification
+        fields = '__all__'

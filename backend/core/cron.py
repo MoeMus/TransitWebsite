@@ -1,6 +1,13 @@
+from datetime import date
+
+from django.utils import timezone
+
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import transaction, IntegrityError
 from django_cron import CronJobBase, Schedule
-from .models import Course, LectureSection, NonLectureSection
+from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
+
+from .models import Course, LectureSection, NonLectureSection, User, NewSemesterNotification
 from .utils import get_current_year, get_current_term_code, get_current_term
 import requests
 import logging
@@ -20,9 +27,17 @@ logger = get_task_logger(__name__)
 #     code = 'core.sync_courses_cron_job'  # Unique code for cron
 
 
-# @shared_task(name="core.cron.test_task")
-# def test_task():
-#     logger.info("Test task")
+# Scheduled job that deletes all blacklisted tokens or outstanding tokens that have expired
+@shared_task(name="core.cron.remove_blacklisted_tokens")
+def remove_blacklisted_tokens():
+
+    logger.info("Removing Blacklisted Tokens")
+
+    # Delete expired blacklisted tokens
+    BlacklistedToken.objects.filter(token__expires_at__lt=timezone.now()).delete()
+
+    # Delete expired outstanding tokens
+    OutstandingToken.objects.filter(expires_at__lt=timezone.now()).delete()
 
 
 @shared_task(name="core.cron.update_course_data")
@@ -33,6 +48,16 @@ def update_course_data():
     current_term_code = get_current_term_code()
     current_term = get_current_term()
     departments = get_departments()
+
+    try:
+
+        clear_database()
+
+    except IntegrityError:
+
+        logger.exception("Course sync cron job failed: Could not clear database.")
+
+        return
 
     for department in departments:
         try:
@@ -173,6 +198,47 @@ def update_course_data():
 
 def get_departments():
     return ['cmpt']  # Update this list with all relevant departments
+
+
+# Removes all old course data from database and clears every user's schedule
+# TODO: Maybe instead of clearing the schedule, archive it instead
+def clear_database():
+
+    logger.info("Clearing DB")
+
+    with transaction.atomic():
+
+        NonLectureSection.objects.all().delete()
+        LectureSection.objects.all().delete()
+        Course.objects.all().delete()
+
+        users = User.objects.all()
+
+        # Clear all user's schedules
+        for user in users:
+
+            upload_notification(user)
+
+    logger.info("Finished Clearing DB")
+
+
+def upload_notification(user):
+
+    semester = get_current_term().title()
+    today = date.today()
+
+    new_notification = NewSemesterNotification.objects.update_or_create(
+        user=user,
+        defaults={
+            'user': user,
+            'message': f"Your schedule has been cleared. Please select your courses for the {semester} {today.year} "
+                       f"semester",
+            'term': semester,
+            'year': today.year
+        }
+    )
+
+    logger.info(f"New notification created: {new_notification}")
 
 
 def parse_date(date_string):

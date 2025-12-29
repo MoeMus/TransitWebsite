@@ -45,9 +45,9 @@ def set_cookie(request):
 
 # Retrieve user info from cookie
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def get_user_info_from_cookie(request):
 
-    print(request.COOKIES)
     user_cookie = request.COOKIES.get('user_session')
 
     if user_cookie is None:

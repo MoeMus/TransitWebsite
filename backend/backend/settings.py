@@ -89,12 +89,16 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
       ],
     'DEFAULT_THROTTLE_CLASSES': [
-        'rest_framework.throttling.AnonRateThrottle',
-        'rest_framework.throttling.UserRateThrottle'
+        'core.throttling.BurstAnonRateThrottle',
+        'core.throttling.SustainedAnonRateThrottle',
+        'core.throttling.BurstUserRateThrottle',
+        'core.throttling.SustainedUserRateThrottle'
     ],
     'DEFAULT_THROTTLE_RATES': {
-        'anon': '200/day',
-        'user': '2000/day'
+        'anon_burst': '20/min',
+        'anon_sustained': '200/day',
+        'user_burst': '60/min',
+        'user_sustained': '2000/day'
     }
 }
 
@@ -111,10 +115,10 @@ MIDDLEWARE = [
 ]
 
 SIMPLE_JWT = {
-     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
      'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
      'ROTATE_REFRESH_TOKENS': True,
-     'BLACKLIST_AFTER_ROTATION': False
+     'BLACKLIST_AFTER_ROTATION': True
 }
 
 ROOT_URLCONF = "backend.urls"
@@ -257,8 +261,9 @@ CELERY_BEAT_SCHEDULE = {
     }
 }
 
+
 # Production Security Settings
-if not DEBUG:
+if not DEBUG: 
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True

@@ -9,7 +9,6 @@ from rest_framework.permissions import IsAuthenticated
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_service_alerts(request):
-    # Cache key for alerts
     CACHE_KEY = 'translink_service_alerts'
 
     # Try to get from cache first, cache for 1 minute
@@ -25,7 +24,7 @@ def get_service_alerts(request):
     url = f"https://gtfsapi.translink.ca/v3/gtfsalerts?apikey={api_key}"
 
     try: # Fetch alerts from Translink GTFS Alerts API
-        response = requests.get(url)
+        response = requests.get(url, timeout=10)
         response.raise_for_status()
 
         # Cache the content for 60 seconds

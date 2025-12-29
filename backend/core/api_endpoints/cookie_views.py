@@ -45,9 +45,9 @@ def set_cookie(request):
 
 # Retrieve user info from cookie
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def get_user_info_from_cookie(request):
 
-    print(request.COOKIES)
     user_cookie = request.COOKIES.get('user_session')
 
     if user_cookie is None:
@@ -56,7 +56,10 @@ def get_user_info_from_cookie(request):
     user_info = json.loads(user_cookie)
     if user_info['access_token'] == "" or user_info['refresh_token'] == "" or user_info['username'] == "":
         return Response({'error': 'Cookie not found'}, status=status.HTTP_404_NOT_FOUND)
-    return Response(user_info, status=status.HTTP_200_OK)
+
+    # Filter out access and refresh tokens
+    response_data = {k: v for k, v in user_info.items() if k not in {'access_token', 'refresh_token'}}
+    return Response(response_data, status=status.HTTP_200_OK)
 
 
 @api_view(['DELETE'])

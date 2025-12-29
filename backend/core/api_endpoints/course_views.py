@@ -18,6 +18,7 @@ def get_course(request, department, course_number):
 
         # Check if the course exists in our database of all courses
         course = get_object_or_404(Course, title=department, number=course_number)
+        course = get_object_or_404(Course, department=department, course_number=course_number)
 
         return Response(CourseSerializer(course).data, status=status.HTTP_200_OK)
 
@@ -36,7 +37,7 @@ def get_courses_from_ids(request):
 
     if course_id_params:
 
-        course_ids = [course_id for course_id in course_id_params.split(',')]
+        course_ids = [cid for cid in course_id_params.split(',') if cid.isdigit()]
 
     courses = Course.objects.filter(id__in=course_ids).values()
     if not courses:

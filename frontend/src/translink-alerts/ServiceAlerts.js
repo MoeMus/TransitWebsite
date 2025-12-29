@@ -1,5 +1,6 @@
 import protobuf from "protobufjs"
 import {useState, useEffect} from "react";
+import apiClient from "../configurations/configAxios";
 import { Button } from "../components/ui/button"
 import {
   DrawerActionTrigger,
@@ -16,43 +17,18 @@ import {
 import {Text} from "@chakra-ui/react";
 import { BsFillTrainFrontFill } from "react-icons/bs";
 
-const API_KEY = process.env["REACT_APP_TRANSLINK_API_KEY"];
-const TRANSLINK_SERVICE_ALERT_URL = `https://corsproxy.io/?url=https://gtfsapi.translink.ca/v3/gtfsalerts?apikey=${API_KEY}`;
-const TRANSLINK_TRIP_UPDATES_URL = `https://corsproxy.io/?url=https://gtfsapi.translink.ca/v3/gtfsrealtime?apikey=${API_KEY}`;
-
 export default function ServiceAlerts(){
 
     const [alerts, setAlerts] = useState([]);
 
-    async function getTripUpdates(){
-       if (!API_KEY) return;
-       try{
-
-            const response = await fetch(TRANSLINK_TRIP_UPDATES_URL);
-            if (!response.ok) throw new Error("Failed to fetch trip updates");
-            const byteBuffer = await response.arrayBuffer();
-            const protoRoot = await protobuf.load("gtfs-realtime.proto");
-            const FeedMessage = protoRoot.lookupType("transit_realtime.FeedMessage");
-            const feed = FeedMessage.decode(new Uint8Array(byteBuffer));
-            const object = FeedMessage.toObject(feed, { enums: String });
-            console.log(JSON.stringify(object, null, 2));
-
-        } catch (err){
-            console.log(err);
-        }
-    }
-
     async function getServiceAlerts(){
 
-        if (!API_KEY) {
-            console.error("TransLink API Key is missing. Check your .env file.");
-            return;
-        }
         try{
 
-            const response = await fetch(TRANSLINK_SERVICE_ALERT_URL);
-            if (!response.ok) throw new Error("Failed to fetch service alerts");
-            const byteBuffer = await response.arrayBuffer();
+            const response = await apiClient.get('/api/translink/alerts/', {
+                responseType: 'arraybuffer'
+            });
+            const byteBuffer = response.data;
             const protoRoot = await protobuf.load("gtfs-realtime.proto");
             const FeedMessage = protoRoot.lookupType("transit_realtime.FeedMessage");
             const feed = FeedMessage.decode(new Uint8Array(byteBuffer));

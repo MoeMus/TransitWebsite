@@ -1,4 +1,5 @@
 import '../styles/dashboardStyles.css';
+import DOMPurify from 'dompurify';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {toast, Toaster} from "react-hot-toast";
 import {AdvancedMarker, APIProvider, Map, Pin,} from "@vis.gl/react-google-maps";
@@ -597,7 +598,7 @@ export function Dashboard() {
                                                     </div>
                                                     <div className="ms-4 pt-1 w-100 p-3 rounded-3 bg-light border border-light shadow-sm hover-shadow-md transition-all step-card">
                                                         <div 
-                                                            dangerouslySetInnerHTML={{ __html: step.instructions }} 
+                                                            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(step.instructions) }} 
                                                             className="mb-2 text-dark fw-medium instruction-text"
                                                             style={{ fontSize: '1.05rem', lineHeight: '1.6' }}
                                                         />

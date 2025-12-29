@@ -126,9 +126,9 @@ export function Dashboard() {
 
             if (notification_message !== null) {
                 toast.custom((t) => (
-                    <Notification title={"A New semester"} message={notification_message}/>
+                    <Notification title={"A New semester"} message={notification_message} toast_object={t}/>
                 ), {
-                    duration: 7000000,
+                    duration: 7000,
                     style: {
                         all: 'unset', // completely reset global styles
                     },
@@ -175,17 +175,16 @@ export function Dashboard() {
 
     //Retrieve user data when dashboard is loaded
     useEffect(() => {
+
         if (sessionStorage.getItem("access_token")) {
 
             (async function(){
-            await getUserInfo();
-            await getUserNotification();
+                await getUserInfo();
+                await getUserNotification();
+            })();
 
-        })();
-
-        checkLocationTracking();
+            checkLocationTracking();
         }
-
 
         return () => { if (watchIdRef.current !== null) navigator.geolocation.clearWatch(watchIdRef.current); };
 

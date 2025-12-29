@@ -35,9 +35,9 @@ import {
     BsPersonWalking,
     BsCalendarPlus,
     BsQrCode,
-    BsShare, BsExclamationLg
+    BsShare
 } from "react-icons/bs";
-import {CloseButton} from "react-bootstrap";
+
 const CAMPUSES = [
     { key: "burnaby", name: "SFU Burnaby", address: "49.279950, -122.919906" },
     { key: "surrey", name: "SFU Surrey", address: "13450 102 Ave, Surrey, BC V3T 0A3" },

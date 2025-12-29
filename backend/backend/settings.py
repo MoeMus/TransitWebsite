@@ -13,6 +13,7 @@ from datetime import timedelta
 from pathlib import Path
 import os
 import dotenv
+from celery.schedules import crontab
 
 dotenv.load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -56,6 +57,13 @@ CSRF_COOKIE_SECURE = False
 CSRF_COOKIE_HTTP_ONLY = True
 SESSION_COOKIE_SECURE = False
 SESSION_COOKIE_SAMESITE = 'Lax'
+
+# Celery configuration
+
+CELERY_BROKER_URL = "redis://redis:6379"
+CELERY_RESULT_BACKEND = "redis://redis:6379"
+CELERY_TIMEZONE = "America/Vancouver"
+CELERY_IMPORTS = "core.cron"
 
 INSTALLED_APPS = [
     # Django apps
@@ -223,9 +231,20 @@ LOGGING = {
     },
 }
 
-# Django cron
-# This registers the cron job
-CRON_CLASSES = [
-    'core.cron.SyncCoursesCronJob',
-]
+# # Django cron
+# # This registers the cron job
+# CRON_CLASSES = [
+#     'core.cron.SyncCoursesCronJob',
+# ]
 
+# This registers the cron jobs for Celery to execute
+CELERY_BEAT_SCHEDULE = {
+    "update_course_data": {
+        "task": "core.cron.update_course_data",
+        "schedule": crontab(hour=0, minute=0, day_of_month='1', month_of_year='1,5,9')  # Every 4 months (Jan, May, Sept)
+    },
+    "remove_blacklisted_tokens": {
+        "task": "core.cron.remove_blacklisted_tokens",
+        "schedule": crontab(minute=0, hour='*')  # Hourly
+    }
+}

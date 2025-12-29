@@ -6,23 +6,25 @@ from django.contrib.auth.models import AbstractUser, Group, Permission
 model = models.Model
 
 
+# Semester inner class for defining Semester TextChoices
+class Semester(models.TextChoices):
+    SPRING = "1", "Spring"
+    SUMMER = "2", "Summer"
+    FALL = "3", "Fall"
+
+
+class Component(models.TextChoices):
+    LAB = "LAB", "Lab"
+    TUTORIAL = "TUT", "Tutorial"
+    SEMINAR = "SEM", "Seminar"
+    LECTURE = "LEC", "Lecture"
+
+
 # Class representing a course a student is taking
 class Course(models.Model):
+    DoesNotExist = None
     objects = models.Manager()  # Explicitly adding objects manager
 
-    # Semester inner class for defining Semester TextChoices
-    class Semester(models.TextChoices):
-        SPRING = "1", "Spring"
-        SUMMER = "2", "Summer"
-        FALL = "3", "Fall"
-
-    class Component(models.TextChoices):
-        LAB = "LAB", "Lab"
-        TUTORIAL = "TUT", "Tutorial"
-        SEMINAR = "SEM", "Seminar"
-        LECTURE = "LEC", "Lecture"
-
-    # info
     title = models.CharField(max_length=100, default='Untitled', db_index=True)
     department = models.CharField(max_length=100, default='No department')
     course_number = models.CharField(max_length=10, default='000')  # 125, 225, etc.
@@ -125,3 +127,32 @@ class User(AbstractUser):
         help_text='Specific permissions for this user.',
         verbose_name='user permissions',
     )
+
+
+# A notification to a user that their schedule has been cleared for the next semester
+class NewSemesterNotification(models.Model):
+
+    DoesNotExist = None
+    objects = models.Manager()
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='new_semester_notifications',
+        null=True,
+        default=None,
+    )
+
+    message = models.TextField()
+
+    term = models.CharField(
+        max_length=6,
+        null=True,
+        choices=Semester.choices,
+        default=None
+    )
+
+    year = models.IntegerField()
+
+    def __str__(self):
+        return f"{self.user} - {self.message} - {self.term} - {self.year}"

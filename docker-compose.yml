@@ -10,7 +10,7 @@ services:
       context: ./backend
 
     volumes:
-      - server_data:/data
+      - transit_server_data:/data
       - ./backend:/usr/src/backend
 
     environment:
@@ -22,51 +22,118 @@ services:
       TRANSIT_DB_USER: ${TRANSIT_DB_USER}
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
       TRANSLINK_API_KEY: ${TRANSLINK_API_KEY}
+
     depends_on:
+      redis:
+        condition: service_healthy
       mysql:
         condition: service_healthy
+
     ports:
       - 8000:8000
 
-  cron:
+#  cron:
+#
+#    container_name: cron_scheduler
+#    build:
+#      context: ./backend
+#
+#    environment:
+#      DJANGO_SETTINGS_MODULE: backend.settings
+#      TRANSIT_DB_HOST: mysql
+#      TRANSIT_DB_PORT: 3306
+#      TRANSIT_DB_NAME: ${TRANSIT_DB_NAME}
+#      TRANSIT_DB_PASSWORD: ${TRANSIT_DB_PASSWORD}
+#      TRANSIT_DB_USER: ${TRANSIT_DB_USER}
+#      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+#      TRANSLINK_API_KEY: ${TRANSLINK_API_KEY}
+#
+#    volumes:
+#      - transit_server_data:/data
+#      - ./backend:/usr/src/backend
+#    command: >
+#      sh -c "python manage.py migrate django_cron && python manage.py runcrons"
+#    depends_on:
+#      - django
+#      - mysql
 
-    container_name: cron_scheduler
+  redis:
+
+    image: redis:alpine
+
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+  celery: # Celery Worker Node
+
     build:
       context: ./backend
 
     environment:
+      DEBUG: 1
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+      DJANGO_ALLOWED_HOSTS: ${TRANSIT_ALLOWED_HOSTS}
       DJANGO_SETTINGS_MODULE: backend.settings
       TRANSIT_DB_HOST: mysql
       TRANSIT_DB_PORT: 3306
       TRANSIT_DB_NAME: ${TRANSIT_DB_NAME}
       TRANSIT_DB_PASSWORD: ${TRANSIT_DB_PASSWORD}
       TRANSIT_DB_USER: ${TRANSIT_DB_USER}
-      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
-      TRANSLINK_API_KEY: ${TRANSLINK_API_KEY}
+
+    command: celery -A backend worker -l info
 
     volumes:
-      - server_data:/data
       - ./backend:/usr/src/backend
-    command: >
-      sh -c "python manage.py migrate django_cron && python manage.py runcrons"
+      - transit_server_data:/data
+
     depends_on:
       - django
       - mysql
+      - redis
+
+  celery-beat: # Celery Task Scheduler
+
+    build:
+      context: ./backend
+
+    command: celery -A backend beat -l info
+
+    volumes:
+      - ./backend:/usr/src/backend
+      - transit_server_data:/data
+
+    environment:
+      DEBUG: 1
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+      DJANGO_ALLOWED_HOSTS: ${TRANSIT_ALLOWED_HOSTS}
+      DJANGO_SETTINGS_MODULE: backend.settings
+      TRANSIT_DB_HOST: mysql
+      TRANSIT_DB_PORT: 3306
+      TRANSIT_DB_NAME: ${TRANSIT_DB_NAME}
+      TRANSIT_DB_PASSWORD: ${TRANSIT_DB_PASSWORD}
+      TRANSIT_DB_USER: ${TRANSIT_DB_USER}
+
+    depends_on:
+      - django
+      - mysql
+      - redis
 
   mysql:
 
-    container_name: server_mysql_db
+    container_name: transit_server_mysql_db
     platform: linux/x86_64
     image: mysql:8.0
     environment:
       MYSQL_DATABASE: ${TRANSIT_DB_NAME}
-      MYSQL_USER: ${TRANSIT_DB_USER}
-      MYSQL_PASSWORD: ${TRANSIT_DB_PASSWORD}
       MYSQL_ROOT_PASSWORD: ${TRANSIT_DB_PASSWORD}
     volumes:
-      - db_data:/var/lib/mysql
+      - transit_db_data:/var/lib/mysql
     healthcheck:
-      test: mysqladmin ping -h 127.0.0.1 -u $$MYSQL_USER --password=$$MYSQL_PASSWORD
+      test: mysqladmin ping -h 127.0.0.1 -u ${TRANSIT_DB_USER} --password=$$MYSQL_ROOT_PASSWORD
       start_period: 5s
       interval: 2s
       timeout: 5s
@@ -76,5 +143,5 @@ services:
 
 volumes:
 
-  server_data:
-  db_data:
+  transit_server_data:
+  transit_db_data:

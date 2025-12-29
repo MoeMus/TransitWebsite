@@ -279,7 +279,7 @@ def get_new_semester_notification(request):
 
     with transaction.atomic():
 
-        notification = NewSemesterNotification.objects.filter(user=user).first()
+        notification = NewSemesterNotification.objects.select_for_update().filter(user=user).first()
 
         if notification:
 

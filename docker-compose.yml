@@ -129,13 +129,11 @@ services:
     image: mysql:8.0
     environment:
       MYSQL_DATABASE: ${TRANSIT_DB_NAME}
-      MYSQL_USER: ${TRANSIT_DB_USER}
-      MYSQL_PASSWORD: ${TRANSIT_DB_PASSWORD}
       MYSQL_ROOT_PASSWORD: ${TRANSIT_DB_PASSWORD}
     volumes:
       - transit_db_data:/var/lib/mysql
     healthcheck:
-      test: mysqladmin ping -h 127.0.0.1 -u $$MYSQL_USER --password=$$MYSQL_PASSWORD
+      test: mysqladmin ping -h 127.0.0.1 -u ${TRANSIT_DB_USER} --password=$$MYSQL_ROOT_PASSWORD
       start_period: 5s
       interval: 2s
       timeout: 5s

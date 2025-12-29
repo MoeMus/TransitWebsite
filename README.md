@@ -138,7 +138,7 @@ Ensure you are in the `/backend` directory
    ```
 8. **Running Cron Jobs Manually**
 
-   **Every 4 months, the server will update all course data for the new semester by scraping the SFU Course Outlines API. **
+   **Every 4 months, the server will update all course data for the new semester by scraping the SFU Course Outlines API.**
    **This is set up as a cron job that is managed by Celery. If you want to run this manually, do the following:**
    ```bash
    # Locally
@@ -149,7 +149,7 @@ Ensure you are in the `/backend` directory
    ```
 
    **Every hour, the server will clear all blacklisted or expired refresh tokens from the database. To do this manually, Django already**
-   **provides a `flushexpiredtokens` management command that can be run as follows**
+   **provides a `flushexpiredtokens` management command that can be run as follows:**
    ```bash
    # Locally
    python manage.py flushexpiredtokens

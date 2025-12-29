@@ -73,24 +73,18 @@ class UserView(APIView):
                             status=status.HTTP_400_BAD_REQUEST)
 
 
+# Retrieves all courses (lecture sections and non lecture sections) for a user
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def get_user_courses(request, username):
-    try:
-        user = User.objects.get(username=username)
-        lecture_sections = user.lecture_sections.all()
-        non_lecture_sections = user.non_lecture_sections.all()
-
-        response_data = {
-            "lecture_sections": LectureSectionSerializer(lecture_sections, many=True).data,
-            "non_lecture_sections": NonLectureSectionSerializer(non_lecture_sections, many=True).data
-        }
-
-        return Response(response_data, status=status.HTTP_200_OK)
-
-    except Http404 as e:
-
-        return Response({"error": "User does not exist"}, status=status.HTTP_404_NOT_FOUND)
+def get_user_courses(request):
+    user = request.user
+    lecture_sections = user.lecture_sections.all()
+    non_lecture_sections = user.non_lecture_sections.all()
+    response_data = {
+        "lecture_sections": LectureSectionSerializer(lecture_sections, many=True).data,
+        "non_lecture_sections": NonLectureSectionSerializer(non_lecture_sections, many=True).data
+    }
+    return Response(response_data, status=status.HTTP_200_OK)
 
 
 # Deletes all courses from a user's schedule

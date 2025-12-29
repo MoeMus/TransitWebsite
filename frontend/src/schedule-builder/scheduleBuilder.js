@@ -126,7 +126,7 @@ export function ScheduleBuilder() {
     }
 
     try {
-      const response = await apiClient(`/api/user/${username}/courses/`, {
+      const response = await apiClient(`/api/user/courses/`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${accessToken}`,

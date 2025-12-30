@@ -66,7 +66,11 @@ Ensure you are in the `/backend` directory
    ```bash
    pip install -r requirements.txt
 
-3. **Make sure you're using the port you want to use in `backend/settings.py`** 
+3. **Set up Translink API**
+   - Go to https://developer.translink.ca/ and register for an account.
+   - Use your API key for the `TRANSLINK_API_KEY` variable in the next steps.
+   
+4. **Make sure you're using the port you want to use in `backend/settings.py`** 
 
    **Create a `.env` file in the root directory with these environment variables to establish
    the database connection**
@@ -80,7 +84,7 @@ Ensure you are in the `/backend` directory
    DJANGO_SECRET_KEY=
    TRANSLINK_API_KEY=
 
-4. **Set Environment Variables For MySQL and Django**  
+5. **Set Environment Variables For MySQL and Django**  
    ![Linux](https://img.icons8.com/color/48/000000/linux.png) ![Mac](https://img.icons8.com/ios-filled/50/000000/mac-os.png) **Linux/MacOS:**
 
    1. Open the text editor:
@@ -109,12 +113,12 @@ Ensure you are in the `/backend` directory
    6. Click `OK` on all of the New System Variable, Environment Variables, and System Properties windows
 
 
-5. **Make migrations**
+6. **Make migrations**
    ```bash
    python manage.py makemigrations
    python manage.py migrate
 
-6. **Set up Celery Beat and worker node**
+7. **Set up Celery Beat and worker node**
    ```bash
    # Requires Redis as a message queue
    redis-server
@@ -126,7 +130,7 @@ Ensure you are in the `/backend` directory
    celery -A backend worker -l info
    ```
 
-7. **Run the server**
+8. **Run the server**
    ```bash
    python manage.py runserver
 
@@ -138,7 +142,7 @@ Ensure you are in the `/backend` directory
    # Run Backend
    docker compose up
    ```
-8. **Running Cron Jobs Manually**
+9. **Running Cron Jobs Manually**
 
    **Every 4 months, the server will update all course data for the new semester by scraping the SFU Course Outlines API.**
    **This is set up as a cron job that is managed by Celery. If you want to run this manually, do the following:**

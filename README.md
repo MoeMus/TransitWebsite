@@ -39,7 +39,7 @@ Follow these steps to set up the project and install the required packages for R
 
 ### Prerequisites
 
-- Python 3.10+
+- Python 3.12+
 - Node.js (for React front-end)
 - MySQL
 - Docker (Optional, but recommended)
@@ -48,7 +48,7 @@ Follow these steps to set up the project and install the required packages for R
 
    ```bash
    git clone https://github.com/MoeMus/TransitWebsite.git
-   cd sfu-transit-app/backend
+   cd TransitWebsite/backend
    ```
 
 ## Backend Setup
@@ -77,6 +77,8 @@ Ensure you are in the `/backend` directory
    TRANSIT_DB_HOST=
    TRANSIT_DB_PORT=
    TRANSIT_ALLOWED_HOSTS= # Address of backend server (e.g, localhost 127.0.0.1 [::1])
+   DJANGO_SECRET_KEY=
+   TRANSLINK_API_KEY=
 
 4. **Set Environment Variables For MySQL and Django**  
    ![Linux](https://img.icons8.com/color/48/000000/linux.png) ![Mac](https://img.icons8.com/ios-filled/50/000000/mac-os.png) **Linux/MacOS:**
@@ -88,7 +90,7 @@ Ensure you are in the `/backend` directory
 
    2. Add the following, replacing the MySQL password and Django secret key with your key:
       ```bash
-      export MYSQL_PASSWORD_TRANSIT='your_mysql_password'
+      export TRANSIT_DB_PASSWORD='your_mysql_password'
       export DJANGO_SECRET_KEY='your_django_secret_key'
       export TRANSLINK_API_KEY='your_translink_key'
       ```
@@ -102,7 +104,7 @@ Ensure you are in the `/backend` directory
    1. Open `Win + X`, click `System` then `Advanced System Settings`
    2. Click on `Environment Variables`
    3. Click on `New` under User or System variables, depending on whether you want it to be system-wide or for the current user only
-   4. Set `MYSQL_PASSWORD_TRANSIT` as the variable name and your MySQL password as the value
+   4. Set `TRANSIT_DB_PASSWORD` as the variable name and your MySQL password as the value
    5. Set `DJANGO_SECRET_KEY` as the variable name and your Django secret key as the value
    6. Click `OK` on all of the New System Variable, Environment Variables, and System Properties windows
 

@@ -1,4 +1,5 @@
 import {useState} from "react";
+import '../styles/loginStyles.css';
 import apiClient from '../configurations/configAxios';
 import {useNavigate} from "react-router-dom";
 import {useDispatch} from "react-redux";

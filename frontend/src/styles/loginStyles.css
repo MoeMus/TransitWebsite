@@ -75,3 +75,29 @@
     box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
     padding: 20px;
 }
+
+/* Dark Mode Support for inputs */
+@media (prefers-color-scheme: dark) {
+    .Auth-form-container input,
+    .form-container input {
+        color: #FFFFFF !important;
+        background-color: #2D3748 !important;
+    }
+    .Auth-form-container input::placeholder,
+    .form-container input::placeholder {
+        color: #E2E8F0 !important;
+        opacity: 1;
+    }
+}
+
+[data-theme='dark'] .Auth-form-container input,
+[data-theme='dark'] .form-container input {
+    color: #FFFFFF !important;
+    background-color: #2D3748 !important;
+}
+
+[data-theme='dark'] .Auth-form-container input::placeholder,
+[data-theme='dark'] .form-container input::placeholder {
+    color: #E2E8F0 !important;
+    opacity: 1;
+}

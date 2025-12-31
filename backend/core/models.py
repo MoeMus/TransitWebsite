@@ -1,7 +1,9 @@
 import uuid
+from datetime import timedelta, datetime
 
 from django.db import models
 from django.contrib.auth.models import AbstractUser, Group, Permission
+from django.utils.crypto import get_random_string
 
 model = models.Model
 
@@ -112,6 +114,11 @@ class User(AbstractUser):
     lecture_sections = models.ManyToManyField('LectureSection', related_name='users', blank=True)
     non_lecture_sections = models.ManyToManyField('NonLectureSection', related_name='users', blank=True)
 
+    # One-Time Password for password reset
+    otp = models.CharField(max_length=6, blank=True, null=True)
+    otp_expiry_date = models.DateTimeField(blank=True, null=True)
+    otp_verified = models.BooleanField(default=False)
+
     groups = models.ManyToManyField(
         Group,
         related_name='core_users',
@@ -127,6 +134,13 @@ class User(AbstractUser):
         help_text='Specific permissions for this user.',
         verbose_name='user permissions',
     )
+
+    def generate_otp(self):
+
+        self.otp = get_random_string(6, allowed_chars='1234567890abcdefghijklmnopqrstuvwsyz')
+        self.otp_expiry_date = datetime.now() + timedelta(minutes=10)   # 10-minute window
+        self.otp_verified = False
+        self.save()
 
 
 # A notification to a user that their schedule has been cleared for the next semester

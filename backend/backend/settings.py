@@ -176,6 +176,18 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+# Email Settings
+
+EMAIL_HOST = os.getenv("TRANSIT_EMAIL_HOST", "")
+EMAIL_PORT = int(os.getenv("TRANSIT_EMAIL_PORT", "587"))
+EMAIL_USE_TLS = os.getenv("TRANSIT_EMAIL_USE_TLS", "true") == "true"
+EMAIL_USE_SSL = not os.getenv("TRANSIT_EMAIL_USE_SSL", "false") == "false"
+
+EMAIL_HOST_USER = os.getenv("TRANSIT_EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.getenv("TRANSIT_EMAIL_HOST_PASSWORD", "")
+DEFAULT_FROM_EMAIL = os.getenv("TRANSIT_DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
+
+
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 

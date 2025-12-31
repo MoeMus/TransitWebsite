@@ -1,5 +1,6 @@
 import uuid
-from datetime import timedelta, datetime
+from datetime import timedelta
+from django.utils.timezone import now
 
 from django.db import models
 from django.contrib.auth.models import AbstractUser, Group, Permission
@@ -138,7 +139,7 @@ class User(AbstractUser):
     def generate_otp(self):
 
         self.otp = get_random_string(6, allowed_chars='1234567890abcdefghijklmnopqrstuvwsyz')
-        self.otp_expiry_date = datetime.now() + timedelta(minutes=10)   # 10-minute window
+        self.otp_expiry_date = now() + timedelta(minutes=10)   # 10-minute window
         self.otp_verified = False
         self.save()
 

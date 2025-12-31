@@ -68,13 +68,13 @@ class PasswordResetRequestSerializer(serializers.Serializer):
         try:
             user = User.objects.get(email=value)
         except User.DoesNotExist:
-            raise serializers.ValidationError("User with this email does not exist.")
+            raise serializers.ValidationError({"email": "User with this email does not exist."})
 
         # Generate OTP and send via email
         user.generate_otp()
         send_mail(
             "TransitTail - Password Reset OTP",
-            f"Your OTP for password reset is {user.otp}",
+            f"Your OTP for resetting your password is {user.otp}",
             "noreply@example.com",
             [user.email],
             fail_silently=False,
@@ -88,7 +88,7 @@ class OTPVerificationSerializer(serializers.Serializer):
     email = serializers.EmailField()
     otp = serializers.CharField()
 
-    def validate_otp(self, data):
+    def validate(self, data):
 
         try:
 
@@ -96,15 +96,15 @@ class OTPVerificationSerializer(serializers.Serializer):
 
         except User.DoesNotExist:
 
-            raise serializers.ValidationError("User with this email does not exist.")
+            raise serializers.ValidationError({"email": "User with this email does not exist."})
 
         if user.otp != data["otp"]:
 
-            raise serializers.ValidationError("OTP is incorrect.")
+            raise serializers.ValidationError({"otp": "OTP is incorrect."})
 
         if user.otp_expiry_date < now():
 
-            raise serializers.ValidationError("OTP is expired.")
+            raise serializers.ValidationError({"otp": "OTP is expired."})
 
         user.otp_verified = True
 
@@ -124,10 +124,10 @@ class PasswordResetSerializer(serializers.Serializer):
             user = User.objects.get(email=data["email"])
 
         except User.DoesNotExist:
-            raise serializers.ValidationError("User with this email does not exist.")
+            raise serializers.ValidationError({"email": "User with this email does not exist."})
 
         if not user.otp_verified:
-            raise serializers.ValidationError("OTP verification required.")
+            raise serializers.ValidationError({"otp": "OTP verification required."})
 
         return data
 

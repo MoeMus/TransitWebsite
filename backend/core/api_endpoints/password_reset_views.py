@@ -18,6 +18,7 @@ def request_password_reset(request):
 
 @api_view(["POST"])
 def validate_otp(request):
+
     serializer = OTPVerificationSerializer(data=request.data)
 
     if serializer.is_valid():

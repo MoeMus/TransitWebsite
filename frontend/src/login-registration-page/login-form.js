@@ -8,8 +8,8 @@ import toast, { Toaster } from 'react-hot-toast';
 import Button from "react-bootstrap/Button";
 import {Heading, Input, Text} from "@chakra-ui/react";
 import { PasswordInput } from "../components/ui/password-input"
-import { Alert } from "../components/ui/alert"
-
+import Alert from "react-bootstrap/Alert";
+import Nav from 'react-bootstrap/Nav';
 export function Login() {
 
     const [username, setUsername] = useState("");
@@ -75,7 +75,8 @@ export function Login() {
                             Enter your username and password to continue
                         </Heading>
 
-                        {loginError ?  <Alert status="error" title="Invalid Credentials"> Incorrect Username or Password </Alert> : null}
+                        {loginError ?  <Alert variant="danger" title="Invalid Credentials" dismissible
+                        onClose={()=>{setLoginError(false)}}> Incorrect Username or Password </Alert> : null}
                         <div className="form-group mt-3">
 
                             <label>Username</label>
@@ -102,6 +103,10 @@ export function Login() {
                             <Button type="submit" variant="secondary" className="btn"> Continue </Button>
 
                         </div>
+
+                        <Nav.Link className="d-grid gap-2 mt-3">
+                            <a onClick={()=> {navigate("/reset-password")}}> Forgot your password? </a>
+                        </Nav.Link>
 
                     </div>
 

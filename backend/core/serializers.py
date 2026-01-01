@@ -64,22 +64,22 @@ class NewSemesterNotificationSerializer(serializers.ModelSerializer):
 class PasswordResetRequestSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
-    def validate_email(self, value):
+    def validate_email(self, email):
         try:
-            user = User.objects.get(email=value)
+            user = User.objects.get(email=email)
         except User.DoesNotExist:
-            raise serializers.ValidationError({"email": "User with this email does not exist."})
+            raise serializers.ValidationError("User with this email does not exist.")
 
         # Generate OTP and send via email
         user.generate_otp()
         send_mail(
             "TransitTail - Password Reset OTP",
-            f"Your OTP for resetting your password is {user.otp}",
+            f"Your OTP for resetting your password is {user.otp}. This code will expire in 10 minutes at {user.otp_expiry_date}.",
             "noreply@example.com",
             [user.email],
             fail_silently=False,
         )
-        return value
+        return email
 
 
 # Validates the OTP sent by the user

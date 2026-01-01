@@ -13,7 +13,9 @@ def request_password_reset(request):
         return Response({"success": f"Verification code sent to {request.data['email']}."},
                         status=status.HTTP_200_OK)
 
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    first_error = next(iter(serializer.errors.values()))[0]
+
+    return Response({"error": first_error}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(["POST"])

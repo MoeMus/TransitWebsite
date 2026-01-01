@@ -8,6 +8,7 @@ import {RegistrationPage} from "./login-registration-page/registrationPage";
 import {Dashboard} from "./dashboard/dashboard";
 import refreshAccessToken from "./configurations/refreshAccessToken";
 import WelcomePage from "./components/welcomePage";
+import PasswordResetPage from "./reset-password/password-reset-page";
 import {ScheduleBuilder} from "./schedule-builder/scheduleBuilder";
 import { Provider } from "./components/ui/provider"
 function App() {
@@ -42,6 +43,7 @@ function App() {
             <Route path="/registration" element={ isAuth ?  <Dashboard /> : <RegistrationPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/schedule-builder" element={ isAuth ? <ScheduleBuilder /> : <Navigate to="/registration" replace={true} /> } />
+            <Route path="/reset-password" element={<PasswordResetPage />} />
             {/* Uncomment and add other routes as needed */}
             </Routes>
 

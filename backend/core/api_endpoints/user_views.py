@@ -18,7 +18,7 @@ from core.utils import check_time_conflicts
 class UserView(APIView):
 
     def get_permissions(self):
-        if self.request.method == "GET":
+        if self.request.method == "GET" or self.request.method == "DELETE" or self.request.method == "PUT":
             return [IsAuthenticated()]
         return [AllowAny()]
 
@@ -34,7 +34,6 @@ class UserView(APIView):
         user = serializer.save()
         return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
 
-    @permission_classes([IsAuthenticated])
     def delete(self, request):
 
         # Remove any outstanding tokens currently used
@@ -44,7 +43,6 @@ class UserView(APIView):
         request.user.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @permission_classes([IsAuthenticated])
     def put(self, request):
 
         try:

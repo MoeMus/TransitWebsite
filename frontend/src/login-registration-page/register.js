@@ -11,7 +11,7 @@ import {toast, Toaster} from "react-hot-toast";
 import WelcomePage from "../components/welcomePage";
 import {Heading} from "@chakra-ui/react";
 import {PasswordInput} from "../components/ui/password-input";
-import {Alert} from "../components/ui/alert";
+import Alert from "react-bootstrap/Alert";
 
 export function Register(){
     const [username, setUsername] = useState('');
@@ -25,7 +25,7 @@ export function Register(){
     const [passwordMatch, setPasswordMatch] = useState(true);
     const [passwordMatchMsg, setPasswordMatchMsg] = useState("");
     const [isServerError, setIsServerError] = useState(false);
-    const [serverErrMsg, setServerErrMsg] = useState(false);
+    const [serverErrMsg, setServerErrMsg] = useState("");
     
     useEffect(()=>{
         if(confirmPassword !== password && password.length > 0){
@@ -80,19 +80,27 @@ export function Register(){
         }
     }
 
-    function submitCredentials(evt){
+    async function submitCredentials(evt){
+
         evt.preventDefault();
-        const userCredentials = {username: username, email: email, password: password};
-        apiClient.post('/api/user/', userCredentials, {
-                method: 'POST',
-                withCredentials: true
-        }).then( async () => {
-            loginUser(userCredentials);
-        }).catch(error => {
-            const errorMessage = error.response.data.error;
+
+        try {
+
+            const userCredentials = {username: username, email: email, password: password};
+
+            await apiClient.post('/api/user/', userCredentials);
+            await loginUser(userCredentials);
+
+        } catch (err){
+            console.log(err)
+
+            const errorMessage = err.response.data?.error || "There was an error registering your account";
+
             setServerErrMsg(errorMessage);
             setIsServerError(true);
-        });
+
+        }
+
     }
 
     const registrationForm = () =>{
@@ -105,7 +113,8 @@ export function Register(){
 
                         <Heading fontSize="25px" fontWeight="normal" marginBottom="55px"> Please enter a username, email, and password to register </Heading>
 
-                        {isServerError ? <Alert status="error" title="Invalid Credentials"> {serverErrMsg} </Alert> : null}
+                        {isServerError ? <Alert variant="danger" title="Invalid Credentials"
+                                                dismissible onClose={()=>setIsServerError(false) }> {serverErrMsg} </Alert> : null}
                         <fieldset>
                             <legend className='input-text'>Username</legend>
                             <Form.Control type="text" value={username} placeholder="Enter a username"

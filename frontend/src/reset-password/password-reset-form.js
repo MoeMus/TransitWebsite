@@ -76,7 +76,7 @@ function PasswordResetForm() {
                         {error ? <Alert variant="danger" title="Invalid Credentials" dismissible
                                         onClose={() => setError("")}> {error} </Alert> : null}
 
-                        <fieldset>
+                        <fieldset style={{marginBottom: "15px"}}>
                             <legend className='input-text'>Password</legend>
                             <PasswordInput type="password" value={newPassword} placeholder="Enter a password" required
                                           onChange={(event) => setNewPassword(event.target.value)}/>

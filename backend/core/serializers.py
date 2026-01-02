@@ -2,6 +2,7 @@ from django.core.mail import send_mail
 from django.utils.timezone import now, localtime
 from rest_framework import serializers
 from .models import User, Course, LectureSection, NonLectureSection, NewSemesterNotification
+from django.db.models import Q
 
 
 class CourseSerializer(serializers.ModelSerializer):
@@ -45,6 +46,17 @@ class UserSerializer(serializers.ModelSerializer):
             'password': {'write_only': True, 'max_length': 128},
             'username': {'max_length': 50}
         }
+
+    def validate(self, data):
+
+        existing_user = User.objects.filter(
+            Q(email=data['email']) | Q(username=data['username'])
+        )
+
+        if existing_user.exists():
+            raise serializers.ValidationError({"error": "An account with that username or email already exists"})
+
+        return data
 
     def create(self, validated_data):
         user = User.objects.create_user(email=validated_data['email'], username=validated_data['username'],

@@ -5,7 +5,7 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import permission_classes, api_view
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
@@ -17,29 +17,22 @@ from core.utils import check_time_conflicts
 
 class UserView(APIView):
 
+    def get_permissions(self):
+        if self.request.method == "GET":
+            return [IsAuthenticated()]
+        return [AllowAny()]
+
     # Retrieve user info if logged in
-    @permission_classes([IsAuthenticated])
     def get(self, request):
 
         serializer = UserSerializer(request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
-
-        try:
-
-            serializer = UserSerializer(data=request.data)
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-            else:
-                return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-        except IntegrityError:
-
-            return Response({"error": "User with that username or email already exists"},
-                            status=status.HTTP_400_BAD_REQUEST)
+        serializer = UserSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
 
     @permission_classes([IsAuthenticated])
     def delete(self, request):

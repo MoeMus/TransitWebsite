@@ -7,7 +7,7 @@ from django.urls import path
 
 from .views import *
 
-from .api_endpoints import user_views, course_views, cookie_views, translink_views
+from .api_endpoints import user_views, course_views, cookie_views, translink_views, password_reset_views
 
 urlpatterns = [
     path('test/', test_view, name='test-view'),
@@ -29,4 +29,7 @@ urlpatterns = [
     path('cookie/get/info/', cookie_views.get_user_info_from_cookie, name='get-cookie-info'),
     path('cookie/delete/', cookie_views.delete_cookie, name='delete-cookie'),
     path('translink/alerts/', translink_views.get_service_alerts, name='translink-alerts'),
+    path('password/reset/request/', password_reset_views.request_password_reset, name='password-reset-request'),
+    path('password/otp/validate/', password_reset_views.validate_otp, name='password-reset-validate-otp'),
+    path('password/reset/', password_reset_views.reset_password, name='password-reset-change'),
 ]

@@ -4,6 +4,7 @@ import Button from "react-bootstrap/Button";
 import {useState} from "react";
 import apiClient from "../configurations/configAxios";
 import {useNavigate} from "react-router-dom";
+import {PasswordInput} from "../components/ui/password-input";
 
 function VerificationCodeForm({email}){
 
@@ -57,12 +58,8 @@ function VerificationCodeForm({email}){
                                         onClose={() => setError("")}> {error} </Alert> : null}
                             <label>Verification Code</label>
 
-                            <Input variant="subtle"
-                                   placeholder="Enter Verification Code"
-                                   name='email'
-                                   type='password' value={verificationCode}
-                                   required
-                                   onChange={e => setVerificationCode(e.target.value)}/>
+                            <PasswordInput type="password" value={verificationCode} placeholder="Enter a password" required
+                                           onChange={(event) => setVerificationCode(event.target.value)}/>
 
                         </div>
 

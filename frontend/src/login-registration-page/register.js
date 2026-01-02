@@ -92,7 +92,6 @@ export function Register(){
             await loginUser(userCredentials);
 
         } catch (err){
-            console.log(err)
 
             const errorMessage = err.response.data?.error || "There was an error registering your account";
 

@@ -29,7 +29,7 @@ urlpatterns = [
     path('cookie/get/info/', cookie_views.get_user_info_from_cookie, name='get-cookie-info'),
     path('cookie/delete/', cookie_views.delete_cookie, name='delete-cookie'),
     path('translink/alerts/', translink_views.get_service_alerts, name='translink-alerts'),
-    path('password-reset/request/', password_reset_views.request_password_reset, name='password-reset-request'),
-    path('password-reset/validate-otp/', password_reset_views.validate_otp, name='password-reset-validate-otp'),
-    path('password-reset/change/', password_reset_views.reset_password, name='password-reset-change'),
+    path('password/reset/request/', password_reset_views.request_password_reset, name='password-reset-request'),
+    path('password/otp/validate/', password_reset_views.validate_otp, name='password-reset-validate-otp'),
+    path('password/reset/', password_reset_views.reset_password, name='password-reset-change'),
 ]

@@ -1,15 +1,17 @@
 import {useState} from "react";
 import '../styles/loginStyles.css';
 import apiClient from '../configurations/configAxios';
-import {useNavigate} from "react-router-dom";
+import {useLocation, useNavigate} from "react-router-dom";
 import {useDispatch} from "react-redux";
 import updateAccessToken from "../storeConfig/updateAccessToken";
 import toast, { Toaster } from 'react-hot-toast';
 import Button from "react-bootstrap/Button";
-import {Heading, Input, Text} from "@chakra-ui/react";
+import {Heading, Input} from "@chakra-ui/react";
 import { PasswordInput } from "../components/ui/password-input"
 import Alert from "react-bootstrap/Alert";
 import Nav from 'react-bootstrap/Nav';
+import Notification from "../components/notification";
+
 export function Login() {
 
     const [username, setUsername] = useState("");
@@ -17,6 +19,11 @@ export function Login() {
     const [loginError, setLoginError] = useState(false);
     const dispatch = useDispatch();
     const navigate = useNavigate();
+
+    const location = useLocation();
+    const from = location.state?.from;
+
+    const [showPasswordNotification, setShowPasswordNotification] = useState(from === "/password/reset");
 
     const submit = async e => {
 
@@ -33,11 +40,6 @@ export function Login() {
                 withCredentials: true
             });
 
-
-            if (response.status !== 200) {
-                throw new Error("");
-            }
-
             // Clear local storage in the browser and update the access and refresh tokens there
             const {data} = response;
             sessionStorage.clear();
@@ -53,6 +55,18 @@ export function Login() {
             setLoginError(true);
         }
 
+    }
+
+    function displayPasswordResetNotification(){
+        if (showPasswordNotification){
+            toast.custom((t)=>(
+            <Notification title={"Password Reset"} message={"Your password has been changed"} toast_object={t} />
+            ), {
+                    duration: 15000,
+                }
+            );
+            setShowPasswordNotification(false);
+        }
 
     }
 
@@ -61,9 +75,11 @@ export function Login() {
         <>
 
             <Toaster
-                position="top-left"
+                position="top-center"
                 reverseOrder={false}
             />
+
+            {displayPasswordResetNotification()}
 
             <div className="Auth-form-container">
 
@@ -105,7 +121,7 @@ export function Login() {
                         </div>
 
                         <Nav.Link className="d-grid gap-2 mt-3">
-                            <a onClick={()=> {navigate("/reset-password")}}> Forgot your password? </a>
+                            <a onClick={()=> {navigate("/password/forgot")}}> Forgot your password? </a>
                         </Nav.Link>
 
                     </div>

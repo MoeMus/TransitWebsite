@@ -11,6 +11,7 @@ import WelcomePage from "./components/welcomePage";
 import PasswordResetPage from "./reset-password/password-reset-page";
 import {ScheduleBuilder} from "./schedule-builder/scheduleBuilder";
 import { Provider } from "./components/ui/provider"
+import PasswordResetForm from "./reset-password/password-reset-form";
 function App() {
 
   const [isAuth, setIsAuth] = useState(false);
@@ -43,7 +44,9 @@ function App() {
             <Route path="/registration" element={ isAuth ?  <Dashboard /> : <RegistrationPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/schedule-builder" element={ isAuth ? <ScheduleBuilder /> : <Navigate to="/registration" replace={true} /> } />
-            <Route path="/reset-password" element={<PasswordResetPage />} />
+            <Route path="/password/forgot" element={<PasswordResetPage />} />
+            <Route path="/password/reset" element={<PasswordResetForm />} />
+
             {/* Uncomment and add other routes as needed */}
             </Routes>
 

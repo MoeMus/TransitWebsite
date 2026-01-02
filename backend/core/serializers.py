@@ -1,5 +1,5 @@
 from django.core.mail import send_mail
-from django.utils.timezone import now
+from django.utils.timezone import now, localtime
 from rest_framework import serializers
 from .models import User, Course, LectureSection, NonLectureSection, NewSemesterNotification
 
@@ -72,10 +72,13 @@ class PasswordResetRequestSerializer(serializers.Serializer):
 
         # Generate OTP and send via email
         user.generate_otp()
+
+        expiration_date = localtime(user.otp_expiry_date)
+
         send_mail(
-            "TransitTail - Password Reset OTP",
-            f"Your OTP for resetting your password is {user.otp}. This code will expire in 10 minutes at {user.otp_expiry_date}.",
-            "noreply@example.com",
+            "TransitTail - Password Reset Verification Code",
+            f"The verification code for resetting your password is {user.otp}. This code will expire in 10 minutes at {expiration_date}.",
+            "noreply@TransitTail.com",
             [user.email],
             fail_silently=False,
         )
@@ -104,7 +107,7 @@ class OTPVerificationSerializer(serializers.Serializer):
 
         if user.otp_expiry_date < now():
 
-            raise serializers.ValidationError({"otp": "OTP is expired."})
+            raise serializers.ValidationError({"otp": "OTP has expired."})
 
         user.otp_verified = True
 

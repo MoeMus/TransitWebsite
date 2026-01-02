@@ -138,7 +138,7 @@ class User(AbstractUser):
 
     def generate_otp(self):
 
-        self.otp = get_random_string(6, allowed_chars='1234567890abcdefghijklmnopqrstuvwsyz')
+        self.otp = get_random_string(length=6)
         self.otp_expiry_date = now() + timedelta(minutes=10)   # 10-minute window
         self.otp_verified = False
         self.save()

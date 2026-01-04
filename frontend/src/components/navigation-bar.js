@@ -1,6 +1,5 @@
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
-import React, {useEffect, useState} from 'react';
 import 'bootstrap/dist/css/bootstrap.css';
 import {useNavigate} from "react-router-dom";
 import {useDispatch, useSelector} from "react-redux";
@@ -12,7 +11,7 @@ import {Button} from "@chakra-ui/react";
 import {remove_token} from "../storeConfig/reducer";
 
 
-export function Navigation({user_courses = []}){
+export function Navigation(){
 
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -80,8 +79,6 @@ export function Navigation({user_courses = []}){
                         <>
                             <Nav.Link href="/">Home</Nav.Link>
                             <Nav.Link href="/schedule-builder" className="ms-3"> Build My Schedule </Nav.Link>
-                            {/*<NavDropdown.Item className="delete-button" onClick={}> View Your Schedule </NavDropdown.Item>*/}
-                            {/*<NavDropdown.Item> <Nav.Link onClick={}> TransLink Service Alerts </Nav.Link> </NavDropdown.Item>*/}
                         </>
 
                         : null }

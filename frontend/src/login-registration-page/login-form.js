@@ -35,17 +35,14 @@ export function Login() {
         }
 
         try {
-            //Send credentials to retrieve access and login tokens at /token/
+
+            // Send credentials to retrieve access and refresh tokens
             const response = await apiClient.post('/token/', userCredentials, {
                 withCredentials: true
             });
 
-            // Clear local storage in the browser and update the access and refresh tokens there
             const {data} = response;
-            // sessionStorage.clear();
-            // sessionStorage.setItem('user', username);
-            // sessionStorage.setItem('access_token', data.access);
-            // sessionStorage.setItem('refresh_token', data.refresh);
+
 
             const new_state = {
                 access_token: data.access,
@@ -66,12 +63,15 @@ export function Login() {
     function displayPasswordResetNotification(){
         if (showPasswordNotification){
             toast.custom((t)=>(
+
             <Notification title={"Password Reset"} message={"Your password has been changed"} toast_object={t} />
             ), {
                     duration: 15000,
                 }
             );
+
             setShowPasswordNotification(false);
+
         }
 
     }

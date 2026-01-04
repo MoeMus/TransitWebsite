@@ -10,29 +10,11 @@ import {ScheduleBuilder} from "./schedule-builder/scheduleBuilder";
 import { Provider } from "./components/ui/provider"
 import PasswordResetForm from "./reset-password/password-reset-form";
 import {useSelector} from "react-redux";
+import useCheckAccessToken from "./configurations/refreshAccessToken";
 function App() {
 
-      // const [isAuth, setIsAuth] = useState(false);
-      // const [loading, setLoading] = useState(true);
-
-      const { is_authenticated } = useSelector((state) => state.authentication);
-
-      // if (is_authenticated){
-      //     refreshAccessToken(); //Refreshes access and refresh tokens before they expire
-      // }
-
-      // useEffect(() => {
-      //    if (sessionStorage.getItem('access_token') !== null) {
-      //       setIsAuth(true);
-      //    } else {
-      //        setIsAuth(false);
-      //    }
-      //    setLoading(false);
-      // }, []);
-
-      // if (loading) {
-      //     return (<div> Loading... </div>);
-      // }
+    const { is_authenticated } = useSelector((state) => state.authentication);
+    useCheckAccessToken();
 
     return (
         <>
@@ -54,7 +36,7 @@ function App() {
 
             </Provider>
 
-            </>
+        </>
     );
 }
 

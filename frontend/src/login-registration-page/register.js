@@ -1,12 +1,10 @@
 import '../styles/loginStyles.css';
 import {useEffect, useState} from "react";
-import { Navigate } from "react-router-dom";
 import Button from 'react-bootstrap/Button';
 import Container from 'react-bootstrap/Container';
 import Form from 'react-bootstrap/Form';
 import apiClient from "../configurations/configAxios";
 import {useDispatch} from "react-redux";
-import {toast, Toaster} from "react-hot-toast";
 import WelcomePage from "../components/welcomePage";
 import {Heading} from "@chakra-ui/react";
 import {PasswordInput} from "../components/ui/password-input";
@@ -67,11 +65,6 @@ export function Register(){
             });
 
             const {data} = response;
-
-            // sessionStorage.clear();
-            // sessionStorage.setItem('user', userCredentials.username);
-            // sessionStorage.setItem('access_token', data.access);
-            // sessionStorage.setItem('refresh_token', data.refresh);
 
             const new_state = {
                 access_token: data.access,
@@ -137,16 +130,12 @@ export function Register(){
 
                         <fieldset>
                             <legend className='input-text'>Password</legend>
-                            {/*<Form.Control type="password" value={password}*/}
-                            {/*              onInput={(event) => setPassword(event.target.value)}/>*/}
                             <PasswordInput type="password" value={password} placeholder="Enter a password" required
                                           onChange={(event) => setPassword(event.target.value)}/>
                         </fieldset>
 
                         {password !== '' ? (<fieldset>
                             <legend className='input-text'>Confirm Password</legend>
-                            {/*<Form.Control type="password" value={confirmPassword}*/}
-                            {/*              onInput={(event) => setConfirmPassword(event.target.value)}/>*/}
                             <PasswordInput type="password" value={confirmPassword} placeholder="Reenter your password"
                                           required onChange={(event) => setConfirmPassword(event.target.value)}/>
                         </fieldset>) : null}
@@ -166,13 +155,7 @@ export function Register(){
     return(
         <>
 
-            <Toaster
-                position="top-left"
-                reverseOrder={false}
-            />
-
             {successfulRegister? <WelcomePage /> : registrationForm()}
-
 
         </>
     )

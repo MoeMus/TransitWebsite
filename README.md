@@ -83,6 +83,15 @@ Ensure you are in the `/backend` directory
    TRANSIT_ALLOWED_HOSTS= # Address of backend server (e.g, localhost 127.0.0.1 [::1])
    DJANGO_SECRET_KEY=
    TRANSLINK_API_KEY=
+   DEBUG=True
+   TRANSIT_EMAIL_HOST=smtp.gmail.com # Uses the Gmail SMTP server
+   TRANSIT_EMAIL_PORT=587
+   TRANSIT_EMAIL_USE_TLS=true
+   TRANSIT_EMAIL_USE_SSL=false
+   TRANSIT_EMAIL_HOST_USER= # Your email address
+   TRANSIT_EMAIL_HOST_PASSWORD= # Gmail app password registered on your gmail
+   ```
+   **Read [this](https://support.google.com/mail/answer/185833?hl=en) to set up an app password**
 
 5. **Set Environment Variables For MySQL and Django**  
    ![Linux](https://img.icons8.com/color/48/000000/linux.png) ![Mac](https://img.icons8.com/ios-filled/50/000000/mac-os.png) **Linux/MacOS:**

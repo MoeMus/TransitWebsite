@@ -2,10 +2,11 @@ import {Navigation} from "./navigation-bar";
 import Container from "react-bootstrap/Container";
 import Button from "react-bootstrap/Button";
 import {useNavigate} from "react-router-dom";
-import {useEffect} from "react";
-import {useSelector} from "react-redux";
+
 
 function WelcomePage(){
+
+    const navigate = useNavigate();
 
     return (
         <>
@@ -38,7 +39,7 @@ function WelcomePage(){
 
                         <div>
 
-                            <Button variant="danger"> Go to my dashboard </Button>
+                            <Button variant="danger" onClick={()=>navigate('/dashboard', {replace: true})}> Go to my dashboard </Button>
 
                         </div>
 
@@ -47,10 +48,8 @@ function WelcomePage(){
                 </div>
             </body>
 
-
         </>
-    )
-        ;
+    );
 
 }
 

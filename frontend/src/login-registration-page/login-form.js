@@ -3,7 +3,7 @@ import '../styles/loginStyles.css';
 import apiClient from '../configurations/configAxios';
 import {useLocation, useNavigate} from "react-router-dom";
 import {useDispatch} from "react-redux";
-import updateAccessToken from "../storeConfig/updateAccessToken";
+import {set_token} from "../storeConfig/reducer";
 import toast, { Toaster } from 'react-hot-toast';
 import Button from "react-bootstrap/Button";
 import {Heading, Input} from "@chakra-ui/react";
@@ -35,19 +35,22 @@ export function Login() {
         }
 
         try {
-            //Send credentials to retrieve access and login tokens at /token/
+
+            // Send credentials to retrieve access and refresh tokens
             const response = await apiClient.post('/token/', userCredentials, {
                 withCredentials: true
             });
 
-            // Clear local storage in the browser and update the access and refresh tokens there
             const {data} = response;
-            sessionStorage.clear();
-            sessionStorage.setItem('user', username);
-            sessionStorage.setItem('access_token', data.access);
-            sessionStorage.setItem('refresh_token', data.refresh);
-            dispatch(updateAccessToken());
-            apiClient.defaults.headers.common['Authorization'] = `Bearer ${data.access}`;
+
+
+            const new_state = {
+                access_token: data.access,
+                refresh_token: data.refresh,
+                username: username
+            }
+
+            dispatch(set_token(new_state));
             setLoginError(false);
             navigate("/dashboard", { state: { from: "/registration" } });
             window.location.reload();
@@ -60,12 +63,15 @@ export function Login() {
     function displayPasswordResetNotification(){
         if (showPasswordNotification){
             toast.custom((t)=>(
+
             <Notification title={"Password Reset"} message={"Your password has been changed"} toast_object={t} />
             ), {
                     duration: 15000,
                 }
             );
+
             setShowPasswordNotification(false);
+
         }
 
     }

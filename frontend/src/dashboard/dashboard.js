@@ -37,6 +37,7 @@ import {
     BsQrCode,
     BsShare
 } from "react-icons/bs";
+import {useSelector} from "react-redux";
 
 const CAMPUSES = [
     { key: "burnaby", name: "SFU Burnaby", address: "49.279950, -122.919906" },
@@ -48,7 +49,6 @@ const GOOGLE_MAPS_LIBRARIES = ['places'];
 export function Dashboard() {
     const [loading, setLoading] = useState(true);
     const [userInfo, setUserInfo] = useState({});
-    const username = sessionStorage.getItem("user");
     const [userLocation, setUserLocation] = useState({ lat: 0, lng: 0 });
     const [trackingEnabled, setTrackingEnabled] = useState(false);
     const [map, setMap] = useState(null);
@@ -58,7 +58,6 @@ export function Dashboard() {
     const [departureTime, setDepartureTime] = useState("");
     const [travelDistance, setTravelDistance] = useState("");
     const [directionsError, setDirectionsError] = useState("");
-    // const [userCourses, setUserCourses] = useState([]);
     const [viewCalendar, setViewCalendar] = useState(false);
     const [selectedCampus, setSelectedCampus] = useState(CAMPUSES[0]);
     const [bufferTime, setBufferTime] = useState(10); // Default 10 minutes buffer
@@ -66,6 +65,8 @@ export function Dashboard() {
     const [routeSteps, setRouteSteps] = useState([]);
     const [copied, setCopied] = useState(false);
     const [showQrModal, setShowQrModal] = useState(false);
+
+    const { username } = useSelector((state)=>state.authentication);
 
     const calculateArrivalTime = useMemo(() => {
         if (!nextClass) {

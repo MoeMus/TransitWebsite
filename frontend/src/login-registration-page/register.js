@@ -1,24 +1,21 @@
 import '../styles/loginStyles.css';
 import {useEffect, useState} from "react";
-import { Navigate } from "react-router-dom";
 import Button from 'react-bootstrap/Button';
 import Container from 'react-bootstrap/Container';
 import Form from 'react-bootstrap/Form';
 import apiClient from "../configurations/configAxios";
 import {useDispatch} from "react-redux";
-import updateAccessToken from "../storeConfig/updateAccessToken";
-import {toast, Toaster} from "react-hot-toast";
 import WelcomePage from "../components/welcomePage";
 import {Heading} from "@chakra-ui/react";
 import {PasswordInput} from "../components/ui/password-input";
 import Alert from "react-bootstrap/Alert";
+import {set_token} from "../storeConfig/reducer";
 
 export function Register(){
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [email, setEmail] = useState('');
-    const [status, setStatus] = useState('');
     const [allCredentials, setAllCredentials] = useState(false);
     const [successfulRegister, setSuccessfulRegister] = useState(false);
     const dispatch = useDispatch();
@@ -40,10 +37,8 @@ export function Register(){
 
         if (username && email && password && confirmPassword) {
             setAllCredentials(true);
-            setStatus('');
         } else {
             setAllCredentials(false);
-            setStatus('');
         }
 
     }, [password, confirmPassword, username, email]);
@@ -67,12 +62,15 @@ export function Register(){
             });
 
             const {data} = response;
-            sessionStorage.clear();
-            sessionStorage.setItem('user', userCredentials.username);
-            sessionStorage.setItem('access_token', data.access);
-            sessionStorage.setItem('refresh_token', data.refresh);
+
+            const new_state = {
+                access_token: data.access,
+                refresh_token: data.refresh,
+                username: username
+            }
+
             setSuccessfulRegister(true);
-            dispatch(updateAccessToken());
+            dispatch(set_token(new_state));
             apiClient.defaults.headers.common['Authorization'] = `Bearer ${data.access}`;
 
         } catch (err){
@@ -129,16 +127,12 @@ export function Register(){
 
                         <fieldset>
                             <legend className='input-text'>Password</legend>
-                            {/*<Form.Control type="password" value={password}*/}
-                            {/*              onInput={(event) => setPassword(event.target.value)}/>*/}
                             <PasswordInput type="password" value={password} placeholder="Enter a password" required
                                           onChange={(event) => setPassword(event.target.value)}/>
                         </fieldset>
 
                         {password !== '' ? (<fieldset>
                             <legend className='input-text'>Confirm Password</legend>
-                            {/*<Form.Control type="password" value={confirmPassword}*/}
-                            {/*              onInput={(event) => setConfirmPassword(event.target.value)}/>*/}
                             <PasswordInput type="password" value={confirmPassword} placeholder="Reenter your password"
                                           required onChange={(event) => setConfirmPassword(event.target.value)}/>
                         </fieldset>) : null}
@@ -158,13 +152,7 @@ export function Register(){
     return(
         <>
 
-            <Toaster
-                position="top-left"
-                reverseOrder={false}
-            />
-
             {successfulRegister? <WelcomePage /> : registrationForm()}
-
 
         </>
     )

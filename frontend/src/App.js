@@ -2,58 +2,42 @@ import './App.css';
 import {Navigate, Route, Routes} from "react-router-dom";
 import {Navigation} from "./components/navigation-bar";
 import {Login} from "./login-registration-page/login-form";
-import React, {useEffect, useState} from "react";
 import {Register} from "./login-registration-page/register";
 import {RegistrationPage} from "./login-registration-page/registrationPage";
 import {Dashboard} from "./dashboard/dashboard";
-import refreshAccessToken from "./configurations/refreshAccessToken";
-import WelcomePage from "./components/welcomePage";
 import PasswordResetPage from "./reset-password/password-reset-page";
 import {ScheduleBuilder} from "./schedule-builder/scheduleBuilder";
 import { Provider } from "./components/ui/provider"
 import PasswordResetForm from "./reset-password/password-reset-form";
+import {useSelector} from "react-redux";
+import useCheckAccessToken from "./configurations/refreshAccessToken";
 function App() {
 
-  const [isAuth, setIsAuth] = useState(false);
-  const [loading, setLoading] = useState(true);
+    const { is_authenticated } = useSelector((state) => state.authentication);
+    useCheckAccessToken();
 
-  refreshAccessToken(); //Refreshes access and refresh tokens before they expire
+    return (
+        <>
+            <Provider>
 
-  useEffect(() => {
-     if (sessionStorage.getItem('access_token') !== null) {
-        setIsAuth(true);
-     } else {
-         setIsAuth(false);
-     }
-     setLoading(false);
-  }, []);
+                <Navigation />
+                <Routes>
+                <Route path="/" element={is_authenticated ? <Navigate to="/dashboard" replace={true} /> : <Navigate to="/registration" replace={true} />} />
+                <Route path="/dashboard" element={is_authenticated ? <Dashboard /> : <Navigate to="/registration" replace={true} />} />
+                <Route path="/signup" element={<Register />} />
+                <Route path="/registration" element={ is_authenticated ?  <Dashboard /> : <RegistrationPage />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/schedule-builder" element={ is_authenticated ? <ScheduleBuilder /> : <Navigate to="/registration" replace={true} /> } />
+                <Route path="/password/forgot" element={<PasswordResetPage />} />
+                <Route path="/password/reset" element={<PasswordResetForm />} />
 
-  if (loading) {
-      return (<div> Loading... </div>);
-  }
+                {/* Uncomment and add other routes as needed */}
+                </Routes>
 
-  return (
-    <>
-        <Provider>
+            </Provider>
 
-            <Navigation username={sessionStorage.getItem("user")}/>
-            <Routes>
-            <Route path="/" element={isAuth ? <Navigate to="/dashboard" replace={true} /> : <Navigate to="/registration" replace={true} />} />
-            <Route path="/dashboard" element={isAuth ? <Dashboard /> : <Navigate to="/registration" replace={true} />} />
-            <Route path="/signup" element={<Register />} />
-            <Route path="/registration" element={ isAuth ?  <Dashboard /> : <RegistrationPage />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/schedule-builder" element={ isAuth ? <ScheduleBuilder /> : <Navigate to="/registration" replace={true} /> } />
-            <Route path="/password/forgot" element={<PasswordResetPage />} />
-            <Route path="/password/reset" element={<PasswordResetForm />} />
-
-            {/* Uncomment and add other routes as needed */}
-            </Routes>
-
-        </Provider>
-
-    </>
-  );
+        </>
+    );
 }
 
 export default App;

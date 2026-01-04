@@ -61,7 +61,8 @@ export default function ServiceAlerts(){
             <DrawerRoot placement="start" size ="md" >
                 <DrawerBackdrop/>
                 <DrawerTrigger asChild>
-                    <Button variant="outline" size="sm" width="260px">
+                    <Button size="sm"
+                            variant="ghost">
                        <BsFillTrainFrontFill /> View TransLink Service Alerts
                     </Button>
                 </DrawerTrigger>

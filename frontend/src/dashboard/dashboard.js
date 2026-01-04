@@ -35,9 +35,10 @@ import {
     BsPersonWalking,
     BsCalendarPlus,
     BsQrCode,
-    BsShare
+    BsShare, BsFillPinMapFill
 } from "react-icons/bs";
 import {useSelector} from "react-redux";
+import ManualLocationForm from "./manual-location-form";
 
 const CAMPUSES = [
     { key: "burnaby", name: "SFU Burnaby", address: "49.279950, -122.919906" },
@@ -65,7 +66,7 @@ export function Dashboard() {
     const [routeSteps, setRouteSteps] = useState([]);
     const [copied, setCopied] = useState(false);
     const [showQrModal, setShowQrModal] = useState(false);
-
+    const [isManualLocationFormOpen, setIsManualLocationFormOpen] = useState(false);
     const { username } = useSelector((state)=>state.authentication);
 
     const calculateArrivalTime = useMemo(() => {
@@ -377,8 +378,11 @@ export function Dashboard() {
                         maxWidth: '420px',
                         borderRadius: '10px',
                     },
-        }} reverseOrder={false} />
-                <Container fluid="lg" className="py-4">
+                }} reverseOrder={false} />
+
+                <ManualLocationForm isOpen={isManualLocationFormOpen} onClose={()=>setIsManualLocationFormOpen(false)} manualLocationChange={manualLocationChange} />
+
+                <Container fluid="lg" className="py-4" style={{maxWidth: "1550px"}}>
 
                     <div style={{display: "flex", flexDirection: "column"}}>
 
@@ -487,7 +491,7 @@ export function Dashboard() {
 
                         {/* Journey Details Section */}
                         {routeSteps.length > 0 && (
-                            <div className="w-100 d-flex justify-content-center mb-5">
+                            <div className="d-flex justify-content-center mb-5">
                                 <style>
                                     {`
                                         @keyframes pulse-green {
@@ -500,7 +504,7 @@ export function Dashboard() {
                                         .step-card { transition: transform 0.2s ease; }
                                     `}
                                 </style>
-                                <Card className="shadow-lg border-0 w-100 overflow-hidden" style={{ maxWidth: "1000px", borderRadius: "24px" }}>
+                                <Card className="shadow-lg border-0" style={{ width: "2000px", borderRadius: "24px" }}>
                                     <div className="p-4 bg-light border-bottom d-flex justify-content-between align-items-center">
                                         <h4 className="fw-bold mb-0 d-flex align-items-center gap-3 text-dark">
                                             <div className="bg-white p-2 rounded-circle shadow-sm text-primary d-flex">
@@ -509,6 +513,13 @@ export function Dashboard() {
                                             <span className="d-none d-sm-inline">Journey Details</span>
                                         </h4>
                                         <div className="d-flex gap-2">
+                                            <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                onClick={()=>setIsManualLocationFormOpen(true)}>
+                                                <BsFillPinMapFill /> Set Location Manually
+                                            </Button>
+                                            <ServiceAlerts />
                                             <Button
                                                 size="sm"
                                                 variant="ghost"
@@ -523,18 +534,21 @@ export function Dashboard() {
                                                 variant="ghost"
                                                 onClick={handleAddToCalendar}
                                                 leftIcon={<BsCalendarPlus />}
-                                                title="Add commute to Calendar"
-                                            >
+                                                title="Add commute to Calendar">
                                                 <BsCalendar3 />
                                                 Calendar
+                                            </Button>
+                                            <Button size="sm"
+                                                variant="ghost"
+                                                onClick={enableSchedule}>
+                                                <BsCalendar3 /> View Weekly Schedule
                                             </Button>
                                             <Button
                                                 size="sm"
                                                 variant="ghost"
                                                 onClick={() => setShowQrModal(true)}
                                                 leftIcon={<BsQrCode />}
-                                                title="Send to Phone"
-                                            >
+                                                title="Send to Phone">
                                                 <BsQrCode />
                                                 QR Code
                                             </Button>
@@ -693,51 +707,10 @@ export function Dashboard() {
                             </div>
                         )}
 
-                        <div style={{display: "flex", flexDirection: "row", justifyContent: "center"}}>
-
-                            <Form className="locationBox" style={{textAlign: 'center', marginBottom: "100px", width: "100%", maxWidth: "800px"}}>
-
-                                <Form.Group className="mb-3">
-
-                                    <Form.Label> Enter your location manually (Use if location tracking is not accurate)</Form.Label>
-                                    <Form.Control className="location"></Form.Control>
-                                    <Form.Group style={{marginBottom: "4px"}}>
-                                        <Form.Text className="text-muted">
-                                            Provide any of the following: <strong>"&lt;street number&gt; &lt;street name&gt; &lt;city&gt; &lt;state&gt; &lt;postal
-                                            code&gt;"</strong>
-                                        </Form.Text>
-                                    </Form.Group>
-                                    <Form.Group>
-                                        <Form.Text>
-                                            Example: <strong> 1600 Amphitheatre Parkway, Mountain View, CA 94043. Addresses can also be
-                                            place names, ex: "Statue of Liberty, New York, NY"</strong>
-                                        </Form.Text>
-
-                                    </Form.Group>
-
-
-                                    <Form.Group>
-                                        <Form.Text style={{color: "red"}}>This will disable location tracking</Form.Text>
-                                    </Form.Group>
-                                </Form.Group>
-
-                                <Button variant="solid" type="submit" onClick={manualLocationChange}>
-                                    Set Location
-                                </Button>
-
-                            </Form>
-
-                        </div>
-
                     </div>
 
 
                     <div style={{marginTop: "40px"}}>
-
-                        <Flex justifyContent="center">
-                            <ServiceAlerts />
-                            <Button variant="outline" size="sm" marginLeft="20px" onClick={enableSchedule} width="230px"> <BsCalendar3 /> View Weekly Schedule </Button>
-                        </Flex>
                         {viewCalendar ? <CourseCalendar courses={userInfo.courses}/> : null}
                     </div>
 
@@ -760,5 +733,6 @@ export function Dashboard() {
         </Modal>
 
         </>
-  );
+    );
+
 }

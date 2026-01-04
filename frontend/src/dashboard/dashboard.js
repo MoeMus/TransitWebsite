@@ -37,8 +37,9 @@ import {
     BsQrCode,
     BsShare, BsFillPinMapFill
 } from "react-icons/bs";
-import {useSelector} from "react-redux";
+import {useSelector, useDispatch} from "react-redux";
 import ManualLocationForm from "./manual-location-form";
+import {disable_manual_location, enable_manual_location} from "../storeConfig/manual_location_reducer";
 
 const CAMPUSES = [
     { key: "burnaby", name: "SFU Burnaby", address: "49.279950, -122.919906" },
@@ -51,9 +52,9 @@ export function Dashboard() {
     const [loading, setLoading] = useState(true);
     const [userInfo, setUserInfo] = useState({});
     const [userLocation, setUserLocation] = useState({ lat: 0, lng: 0 });
-    const [trackingEnabled, setTrackingEnabled] = useState(false);
+    // const [trackingEnabled, setTrackingEnabled] = useState(false);
     const [map, setMap] = useState(null);
-    const [manualLocationEnabled, setManualLocationEnabled] = useState(false);
+    // const [manualLocationEnabled, setManualLocationEnabled] = useState(false);
     const [travelMode, setTravelMode] = useState("Transit");
     const [travelTime, setTravelTime] = useState("");
     const [departureTime, setDepartureTime] = useState("");
@@ -68,6 +69,9 @@ export function Dashboard() {
     const [showQrModal, setShowQrModal] = useState(false);
     const [isManualLocationFormOpen, setIsManualLocationFormOpen] = useState(false);
     const { username } = useSelector((state)=>state.authentication);
+    const { manual_location, manual_location_enabled } = useSelector((state)=>state.manual_location);
+
+    const dispatch = useDispatch();
 
     const calculateArrivalTime = useMemo(() => {
         if (!nextClass) {
@@ -95,7 +99,7 @@ export function Dashboard() {
 
     function locationError(error) {
         if (error.code === error.PERMISSION_DENIED) {
-            setTrackingEnabled(false);
+            // setTrackingEnabled(false);
             toast("Location tracking disabled", {
                 id: "userLocation-denied",
             });
@@ -146,7 +150,7 @@ export function Dashboard() {
 
 
     function checkLocationTracking() {
-        if (!manualLocationEnabled && navigator.geolocation) {
+        if (!manual_location_enabled && navigator.geolocation) {
             watchIdRef.current = navigator.geolocation.watchPosition(
                 (position) => {
                     setUserLocation({
@@ -157,11 +161,9 @@ export function Dashboard() {
                 locationError,
                 {enableHighAccuracy: true}
             );
-            setTrackingEnabled(true);
+            // setTrackingEnabled(true);
 
-        } else if (manualLocationEnabled) {
-            toast("Location set");
-        } else {
+        } else if (!navigator.geolocation){
 
             // display an error if not supported
             toast.error(
@@ -171,7 +173,7 @@ export function Dashboard() {
                 }
             );
 
-            setTrackingEnabled(false);
+            // setTrackingEnabled(false);
 
         }
     }
@@ -179,19 +181,34 @@ export function Dashboard() {
     //Retrieve user data when dashboard is loaded
     useEffect(() => {
 
-        if (sessionStorage.getItem("access_token")) {
+        (async function(){
+            await getUserInfo();
+            await getUserNotification();
+        })();
 
-            (async function(){
-                await getUserInfo();
-                await getUserNotification();
-            })();
+        // checkLocationTracking();
+        //
+        // if (manual_location_enabled) {
+        //     setUserLocation(JSON.parse(manual_location));
+        // }
+        //
+        // return () => { if (watchIdRef.current !== null) navigator.geolocation.clearWatch(watchIdRef.current); };
 
+    }, []);
+
+
+    useEffect(() => {
+
+        if (manual_location_enabled) {
+            setUserLocation(JSON.parse(manual_location));
+        } else {
             checkLocationTracking();
         }
 
         return () => { if (watchIdRef.current !== null) navigator.geolocation.clearWatch(watchIdRef.current); };
 
-    }, []);
+    }, [dispatch, manual_location, manual_location_enabled]);
+
 
     // Run when page is loaded from back/forward arrows on browser
     useEffect(() => {
@@ -232,10 +249,16 @@ export function Dashboard() {
 
                     const lat = results[0].geometry.location.lat();
                     const lng = results[0].geometry.location.lng();
+
+                    const new_location_state = {
+                        location: JSON.stringify({lat: lat, lng: lng})
+                    }
                     setUserLocation({lat: lat, lng: lng});
-                    setManualLocationEnabled(true);
+                    dispatch(enable_manual_location(new_location_state));
+
                     if (watchIdRef.current !== null) navigator.geolocation.clearWatch(watchIdRef.current);
-                    setTrackingEnabled(false);
+
+                    // setTrackingEnabled(false);
 
                 } else {
 
@@ -246,7 +269,7 @@ export function Dashboard() {
             }
 
             setLocation(event, callback);
-
+            setIsManualLocationFormOpen(false);
         } catch (err) {
 
             toast.error(err.message);
@@ -513,12 +536,24 @@ export function Dashboard() {
                                             <span className="d-none d-sm-inline">Journey Details</span>
                                         </h4>
                                         <div className="d-flex gap-2">
+                                            {manual_location_enabled ?
+                                            <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                onClick={()=>dispatch(disable_manual_location())}>
+                                                <BsFillPinMapFill /> Enable Location Tracking
+                                            </Button>
+
+                                                :
+
                                             <Button
                                                 size="sm"
                                                 variant="ghost"
                                                 onClick={()=>setIsManualLocationFormOpen(true)}>
                                                 <BsFillPinMapFill /> Set Location Manually
                                             </Button>
+
+                                            }
                                             <ServiceAlerts />
                                             <Button
                                                 size="sm"

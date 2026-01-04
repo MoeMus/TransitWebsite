@@ -32,7 +32,7 @@ const authenticationSlice = createSlice({
 
         },
 
-        remove_token: (state, action)=>{
+        remove_token: (state)=>{
 
             sessionStorage.removeItem("access_token");
             sessionStorage.removeItem("refresh_token");
@@ -47,7 +47,7 @@ const authenticationSlice = createSlice({
 
     }
 
-})
+});
 
 export const {set_token, remove_token} = authenticationSlice.actions
 export default authenticationSlice.reducer;

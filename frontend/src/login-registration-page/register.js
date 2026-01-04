@@ -9,7 +9,7 @@ import WelcomePage from "../components/welcomePage";
 import {Heading} from "@chakra-ui/react";
 import {PasswordInput} from "../components/ui/password-input";
 import Alert from "react-bootstrap/Alert";
-import {set_token} from "../storeConfig/reducer";
+import {set_token} from "../storeConfig/auth_reducer";
 
 export function Register(){
     const [username, setUsername] = useState('');

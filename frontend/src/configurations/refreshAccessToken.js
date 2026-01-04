@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import apiClient from "./configAxios";
 import { useDispatch, useSelector } from "react-redux";
-import {set_token} from "../storeConfig/reducer";
+import {set_token} from "../storeConfig/auth_reducer";
 
 // When the access token stored globally changes, this is run in order to determine when to update it as it expires
 const useCheckAccessToken = () => {

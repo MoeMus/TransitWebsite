@@ -8,7 +8,7 @@ import toast from "react-hot-toast";
 import {deleteAccount, logout} from "./utils";
 import Dialog from "./dialog";
 import {Button} from "@chakra-ui/react";
-import {remove_token} from "../storeConfig/reducer";
+import {remove_token} from "../storeConfig/auth_reducer";
 
 
 export function Navigation(){

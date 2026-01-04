@@ -70,6 +70,8 @@ export default function CourseCalendar({courses}){
 
             <div style={{marginBottom: "60px"}}>
 
+                <h2> Your Weekly Schedule </h2>
+
                 <FullCalendar
                     plugins={[timeGridPlugin]
                     }

@@ -52,7 +52,7 @@ export function Login() {
 
             dispatch(set_token(new_state));
             setLoginError(false);
-            navigate("/dashboard", { state: { from: "/registration" } });
+            navigate("/dashboard", { replace: true, state: { from: location.pathname } });
             window.location.reload();
         } catch (err) {
             setLoginError(true);

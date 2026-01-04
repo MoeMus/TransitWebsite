@@ -8,10 +8,9 @@ import Form from "react-bootstrap/Form";
 import Card from "react-bootstrap/Card";
 import Badge from "react-bootstrap/Badge";
 import Modal from "react-bootstrap/Modal";
-//import Button from "react-bootstrap/Button";
 import Dropdown from "react-bootstrap/Dropdown";
 import ServiceAlerts from "../translink-alerts/ServiceAlerts";
-import {Box, Button, Flex, Spinner} from "@chakra-ui/react";
+import {Box, Button, Spinner} from "@chakra-ui/react";
 import {getUserInfoFromBackend, getNextClassFromBackend, setLocation, getNotification} from "./utils"
 import CourseCalendar from "../calendar/CourseCalendar";
 import {Directions} from "./directions";
@@ -52,9 +51,7 @@ export function Dashboard() {
     const [loading, setLoading] = useState(true);
     const [userInfo, setUserInfo] = useState({});
     const [userLocation, setUserLocation] = useState({ lat: 0, lng: 0 });
-    // const [trackingEnabled, setTrackingEnabled] = useState(false);
     const [map, setMap] = useState(null);
-    // const [manualLocationEnabled, setManualLocationEnabled] = useState(false);
     const [travelMode, setTravelMode] = useState("Transit");
     const [travelTime, setTravelTime] = useState("");
     const [departureTime, setDepartureTime] = useState("");
@@ -68,6 +65,7 @@ export function Dashboard() {
     const [copied, setCopied] = useState(false);
     const [showQrModal, setShowQrModal] = useState(false);
     const [isManualLocationFormOpen, setIsManualLocationFormOpen] = useState(false);
+
     const { username } = useSelector((state)=>state.authentication);
     const { manual_location, manual_location_enabled } = useSelector((state)=>state.manual_location);
 
@@ -181,20 +179,16 @@ export function Dashboard() {
     //Retrieve user data when dashboard is loaded
     useEffect(() => {
 
-        (async function(){
-            await getUserInfo();
-            await getUserNotification();
-        })();
+        if (username !== null){
 
-        // checkLocationTracking();
-        //
-        // if (manual_location_enabled) {
-        //     setUserLocation(JSON.parse(manual_location));
-        // }
-        //
-        // return () => { if (watchIdRef.current !== null) navigator.geolocation.clearWatch(watchIdRef.current); };
+            (async function(){
+                await getUserInfo();
+                await getUserNotification();
+            })();
 
-    }, []);
+        }
+
+    }, [dispatch, username]);
 
 
     useEffect(() => {
@@ -212,7 +206,9 @@ export function Dashboard() {
 
     // Run when page is loaded from back/forward arrows on browser
     useEffect(() => {
+
         getUserInfo();
+
     }, [getUserInfo]);
 
     useEffect(() => {

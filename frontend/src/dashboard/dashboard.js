@@ -388,6 +388,11 @@ export function Dashboard() {
 
     return (
         <>
+
+            <head>
+                <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+                <title>Dashboard</title>
+            </head>
             <Box>
 
                 <Toaster position="top-center" duration={5000} toastOptions={{
@@ -531,7 +536,7 @@ export function Dashboard() {
                                             </div>
                                             <span className="d-none d-sm-inline">Journey Details</span>
                                         </h4>
-                                        <div className="d-flex gap-2">
+                                        <div className="d-flex gap-2" style={{overflow: "auto"}}>
                                             {manual_location_enabled ?
                                             <Button
                                                 size="sm"

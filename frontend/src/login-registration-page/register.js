@@ -6,12 +6,12 @@ import Container from 'react-bootstrap/Container';
 import Form from 'react-bootstrap/Form';
 import apiClient from "../configurations/configAxios";
 import {useDispatch} from "react-redux";
-import updateAccessToken from "../storeConfig/updateAccessToken";
 import {toast, Toaster} from "react-hot-toast";
 import WelcomePage from "../components/welcomePage";
 import {Heading} from "@chakra-ui/react";
 import {PasswordInput} from "../components/ui/password-input";
 import Alert from "react-bootstrap/Alert";
+import {set_token} from "../storeConfig/reducer";
 
 export function Register(){
     const [username, setUsername] = useState('');
@@ -67,12 +67,20 @@ export function Register(){
             });
 
             const {data} = response;
-            sessionStorage.clear();
-            sessionStorage.setItem('user', userCredentials.username);
-            sessionStorage.setItem('access_token', data.access);
-            sessionStorage.setItem('refresh_token', data.refresh);
+
+            // sessionStorage.clear();
+            // sessionStorage.setItem('user', userCredentials.username);
+            // sessionStorage.setItem('access_token', data.access);
+            // sessionStorage.setItem('refresh_token', data.refresh);
+
+            const new_state = {
+                access_token: data.access,
+                refresh_token: data.refresh,
+                username: username
+            }
+
             setSuccessfulRegister(true);
-            dispatch(updateAccessToken());
+            dispatch(set_token(new_state));
             apiClient.defaults.headers.common['Authorization'] = `Bearer ${data.access}`;
 
         } catch (err){

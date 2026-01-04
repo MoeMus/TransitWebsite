@@ -3,53 +3,44 @@ import Navbar from 'react-bootstrap/Navbar';
 import React, {useEffect, useState} from 'react';
 import 'bootstrap/dist/css/bootstrap.css';
 import {useNavigate} from "react-router-dom";
-import apiClient from "../configurations/configAxios";
-import {useDispatch} from "react-redux";
-import updateAccessToken from "../storeConfig/updateAccessToken";
+import {useDispatch, useSelector} from "react-redux";
 import {NavDropdown} from "react-bootstrap";
 import toast from "react-hot-toast";
-//import Button from "react-bootstrap/Button";
-import {deleteAccount} from "./utils";
+import {deleteAccount, logout} from "./utils";
 import Dialog from "./dialog";
 import {Button} from "@chakra-ui/react";
+import {remove_token} from "../storeConfig/reducer";
 
 
-export function Navigation({username = ""}){
+export function Navigation({user_courses = []}){
+
     const navigate = useNavigate();
-    const [isAuth, setIsAuth] = useState(false);
     const dispatch = useDispatch();
+
+    const { is_authenticated, refresh_token, username } = useSelector((state)=>state.authentication);
 
     const logout_msg = "You are about to sign out, are you sure?";
     const account_deletion_msg = "You are about to delete your account, are you sure? This action cannot be undone";
 
-    useEffect(() => {
-        let token = sessionStorage.getItem('access_token');
-        if(token !== null){
-            setIsAuth(true);
-        } else {
-            setIsAuth(false);
-        }
-    }, []);
-
     const handleLogout = async (event) => {
 
         event.preventDefault();
-        const request = {refresh_token: sessionStorage.getItem("refresh_token")};
+        const request = { refresh_token: refresh_token };
 
-        apiClient.post("/api/logout/", request, {
-            method: "POST",
-            withCredentials: true
-        }).then(()=>{
-            sessionStorage.clear()
-            dispatch(updateAccessToken());
-            navigate('/');
-            window.location.reload();
-        }).catch(err=>{
-            toast.error("There as an error logging out", {
-                duration: 3000,
-                position: "top-left"
+        try {
+
+            await logout(request);
+            dispatch(remove_token())
+            navigate('/', {replace: true});
+
+        } catch (err) {
+
+            toast.error(err, {
+                duration: 5000,
+                position: "top-center"
             });
-        });
+
+        }
 
     }
 
@@ -58,16 +49,18 @@ export function Navigation({username = ""}){
         event.preventDefault();
 
         try {
+
             await deleteAccount();
-            sessionStorage.clear()
-            dispatch(updateAccessToken());
-            navigate('/');
-            window.location.reload();
+            dispatch(remove_token());
+            navigate('/', {replace: true});
+
         } catch (err) {
+
             toast.error(err.message, {
-                duration: 3000,
-                position: "top-left"
+                duration: 5000,
+                position: "top-center"
             });
+
         }
 
     }
@@ -79,15 +72,24 @@ export function Navigation({username = ""}){
 
                 <Navbar.Brand style={{marginLeft: '10px'}}> <img src="/websiteLogoSmall.jpg" alt=""/> </Navbar.Brand>
                 <Navbar.Brand style={{marginLeft: '10px'}}> TransitTail </Navbar.Brand>
+
                 <Nav className="me-auto">
-                    {isAuth ?  <Nav.Link href="/">Home</Nav.Link> : null }
-                    {isAuth ?  <Nav.Link href="/schedule-builder" className="ms-3">Schedule Builder</Nav.Link> : null }
+
+                    {is_authenticated ?
+
+                        <>
+                            <Nav.Link href="/">Home</Nav.Link>
+                            <Nav.Link href="/schedule-builder" className="ms-3"> Build My Schedule </Nav.Link>
+                            {/*<NavDropdown.Item className="delete-button" onClick={}> View Your Schedule </NavDropdown.Item>*/}
+                            {/*<NavDropdown.Item> <Nav.Link onClick={}> TransLink Service Alerts </Nav.Link> </NavDropdown.Item>*/}
+                        </>
+
+                        : null }
+
                 </Nav>
 
-
-
                 <Nav>
-                    {isAuth ? <NavDropdown title={username} menuVariant="light" align="end" style={{marginRight: "20px"}}>
+                    {is_authenticated ? <NavDropdown title={username} menuVariant="light" align="end" style={{marginRight: "20px"}}>
                         <NavDropdown.Item> <Dialog dialog_func={handleDeleteAccount} confirmation_msg={account_deletion_msg} button_component={
                             <Button variant="outline" size="sm">
                                 Delete Account
@@ -99,16 +101,12 @@ export function Navigation({username = ""}){
                             </Button>
                         } action={"Sign out"}/> </NavDropdown.Item>
 
-                        {/*<NavDropdown.Item className="delete-button" onClick={confirmDelete}> Delete account </NavDropdown.Item>*/}
-                        {/*<NavDropdown.Item> <Nav.Link onClick={confirmLogout}> Logout </Nav.Link> </NavDropdown.Item>*/}
-
                     </NavDropdown>: null}
                 </Nav>
 
             </Navbar>
 
         </>
-
 
     );
 }

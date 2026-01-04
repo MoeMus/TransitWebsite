@@ -1,10 +1,8 @@
 import apiClient from "../configurations/configAxios";
-import updateAccessToken from "../storeConfig/updateAccessToken";
 
 async function deleteAccount(){
 
     try {
-        console.log("Deleting account")
         await apiClient.delete("/api/user/", {
             withCredentials: true
         });
@@ -16,4 +14,22 @@ async function deleteAccount(){
     }
 }
 
-export {deleteAccount}
+
+async function logout(request){
+
+    try {
+
+        await apiClient.post("/api/logout/", request, {
+            withCredentials: true
+        });
+
+    } catch (err) {
+
+        throw Error("There was an error logging out");
+
+    }
+
+}
+
+
+export {deleteAccount, logout}

@@ -6,12 +6,12 @@ import {set_token} from "../storeConfig/reducer";
 // When the access token stored globally changes, this is run in order to determine when to update it as it expires
 const useCheckAccessToken = () => {
     const dispatch = useDispatch();
-    const { access_token, refresh_token, username } = useSelector((state) => state.authentication);
+    const { access_token, refresh_token, username, is_authenticated } = useSelector((state) => state.authentication);
 
     useEffect(() => {
 
         // Will only run if there is an access token and refresh token (Only when user is logged in)
-        if (access_token === '' || !refresh_token) return;
+        if (!is_authenticated) return;
 
         // Will activate when user is logs in and deactivate when user is logged out
 
@@ -33,16 +33,10 @@ const useCheckAccessToken = () => {
                 if (access) {
 
                     const new_state = {
-                        access_token: access
+                        access_token: access,
+                        refresh_token: refresh,
+                        username: username
                     }
-
-                    if (refresh) {
-
-                        // Save new refresh token if provided
-                        new_state.refresh_token = refresh;
-                    }
-
-                    new_state.username = username;
 
                     dispatch(set_token(new_state));
                 }

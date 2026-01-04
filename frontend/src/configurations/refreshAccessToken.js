@@ -1,19 +1,20 @@
 import { useEffect } from "react";
 import apiClient from "./configAxios";
 import { useDispatch, useSelector } from "react-redux";
-import {set_token} from "../storeConfig/reducer";
+import {set_token} from "../storeConfig/auth_reducer";
 
 // When the access token stored globally changes, this is run in order to determine when to update it as it expires
 const useCheckAccessToken = () => {
     const dispatch = useDispatch();
-    const { access_token, refresh_token, username, is_authenticated } = useSelector((state) => state.authentication);
+    const { access_token, refresh_token, username } = useSelector((state) => state.authentication);
+
+    // Will activate when user is logs in and deactivate when user is logged out
 
     useEffect(() => {
 
         // Will only run if there is an access token and refresh token (Only when user is logged in)
-        if (!is_authenticated) return;
+        if (!access_token || !refresh_token) return;
 
-        // Will activate when user is logs in and deactivate when user is logged out
 
         // Decode the token payload to get expiration
         const decoded_token = JSON.parse(atob(access_token.split(".")[1]));
@@ -34,12 +35,13 @@ const useCheckAccessToken = () => {
 
                     const new_state = {
                         access_token: access,
-                        refresh_token: refresh,
+                        refresh_token: refresh ?? refresh_token,
                         username: username
                     }
 
                     dispatch(set_token(new_state));
                 }
+
             } catch (error) {
                 console.error("Error refreshing token", error); // Handle errors if token refresh fails
             }
@@ -48,7 +50,7 @@ const useCheckAccessToken = () => {
 
         return () => clearInterval(interval); // Cleanup on component unmount
 
-    }, [dispatch]);
+    }, [dispatch, access_token, refresh_token, username]);
 };
 
 export default useCheckAccessToken;

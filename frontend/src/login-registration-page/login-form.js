@@ -3,7 +3,7 @@ import '../styles/loginStyles.css';
 import apiClient from '../configurations/configAxios';
 import {useLocation, useNavigate} from "react-router-dom";
 import {useDispatch} from "react-redux";
-import {set_token} from "../storeConfig/reducer";
+import {set_token} from "../storeConfig/auth_reducer";
 import toast, { Toaster } from 'react-hot-toast';
 import Button from "react-bootstrap/Button";
 import {Heading, Input} from "@chakra-ui/react";
@@ -52,7 +52,7 @@ export function Login() {
 
             dispatch(set_token(new_state));
             setLoginError(false);
-            navigate("/dashboard", { state: { from: "/registration" } });
+            navigate("/dashboard", { replace: true, state: { from: location.pathname } });
             window.location.reload();
         } catch (err) {
             setLoginError(true);

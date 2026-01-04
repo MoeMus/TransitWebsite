@@ -168,79 +168,93 @@ export function Directions({userLocation, destination, setTravelTime, setTravelD
     }
 
     return (
-        <div className="d-flex flex-column gap-3 h-100">
-            {/* Travel Mode Selector */}
-            <div>
-                <label className="text-muted small fw-bold text-uppercase mb-2" style={{fontSize: '0.75rem', letterSpacing: '0.5px'}}>Travel Mode</label>
-                <ButtonGroup className="w-100 shadow-sm">
-                    {[
-                        {mode: "Driving", icon: <BsCarFrontFill />},
-                        {mode: "Transit", icon: <BsBusFrontFill />},
-                        {mode: "Bicycling", icon: <BsBicycle />},
-                        {mode: "Walking", icon: <BsPersonWalking />}
-                    ].map(({ mode, icon }) => (
-                        <Button
-                            key={mode}
-                            variant={travelMode === mode ? "primary" : "outline-secondary"}
-                            onClick={() => setTravelMode(mode)}
-                            className="d-flex align-items-center justify-content-center py-2"
-                            title={mode}
 
-                        >
-                            {icon}
-                        </Button>
-                    ))}
-                </ButtonGroup>
-                
-            </div>
+        <>
 
-            {/* Routes List */}
-            <div className="flex-grow-1" style={{minHeight: 0}}>
-                 <label className="text-muted small fw-bold text-uppercase mb-2" style={{fontSize: '0.75rem', letterSpacing: '0.5px'}}>
-                    {routes.length > 0 ? "Available Routes" : "Routes"}
-                 </label>
-                 
+            <head>
+                <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+                <title>Schedule Builder</title>
+            </head>
 
-                 {routes.length > 0 ? (
-                     <div className="d-flex flex-column gap-2">
-                         {routes.map((route, index) => {
-                             const isSelected = index === routeIndex;
-                             const leg = route.legs[0];
+            <div className="d-flex flex-column gap-3 h-100">
+                {/* Travel Mode Selector */}
+                <div>
+                    <label className="text-muted small fw-bold text-uppercase mb-2"
+                           style={{fontSize: '0.75rem', letterSpacing: '0.5px'}}>Travel Mode</label>
+                    <ButtonGroup className="w-100 shadow-sm">
+                        {[
+                            {mode: "Driving", icon: <BsCarFrontFill/>},
+                            {mode: "Transit", icon: <BsBusFrontFill/>},
+                            {mode: "Bicycling", icon: <BsBicycle/>},
+                            {mode: "Walking", icon: <BsPersonWalking/>}
+                        ].map(({mode, icon}) => (
+                            <Button
+                                key={mode}
+                                variant={travelMode === mode ? "primary" : "outline-secondary"}
+                                onClick={() => setTravelMode(mode)}
+                                className="d-flex align-items-center justify-content-center py-2"
+                                title={mode}
 
-                             return (
-                                 <div
-                                    key={index}
-                                    onClick={() => setRouteIndex(index)}
-                                    className={`p-3 rounded-3 border transition-all ${isSelected ? 'border-primary bg-light shadow-sm' : 'border-light bg-white'}`}
-                                    style={{
-                                        cursor: 'pointer', 
-                                        transition: 'all 0.2s ease',
-                                        borderWidth: isSelected ? '2px' : '1px'
-                                    }}
-                                 >
-                                    <div className="d-flex justify-content-between align-items-center mb-1">
-                                        <span className={`fw-bold ${isSelected ? 'text-primary' : 'text-dark'}`} style={{fontSize: '1.1rem'}}>
+                            >
+                                {icon}
+                            </Button>
+                        ))}
+                    </ButtonGroup>
+
+                </div>
+
+                {/* Routes List */}
+                <div className="flex-grow-1" style={{minHeight: 0}}>
+                    <label className="text-muted small fw-bold text-uppercase mb-2"
+                           style={{fontSize: '0.75rem', letterSpacing: '0.5px'}}>
+                        {routes.length > 0 ? "Available Routes" : "Routes"}
+                    </label>
+
+
+                    {routes.length > 0 ? (
+                        <div className="d-flex flex-column gap-2">
+                            {routes.map((route, index) => {
+                                const isSelected = index === routeIndex;
+                                const leg = route.legs[0];
+
+                                return (
+                                    <div
+                                        key={index}
+                                        onClick={() => setRouteIndex(index)}
+                                        className={`p-3 rounded-3 border transition-all ${isSelected ? 'border-primary bg-light shadow-sm' : 'border-light bg-white'}`}
+                                        style={{
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s ease',
+                                            borderWidth: isSelected ? '2px' : '1px'
+                                        }}
+                                    >
+                                        <div className="d-flex justify-content-between align-items-center mb-1">
+                                        <span className={`fw-bold ${isSelected ? 'text-primary' : 'text-dark'}`}
+                                              style={{fontSize: '1.1rem'}}>
                                             {leg.duration.text}
                                         </span>
-                                        {index === 0 && <Badge bg="success" className="fw-normal">Best</Badge>}
+                                            {index === 0 && <Badge bg="success" className="fw-normal">Best</Badge>}
+                                        </div>
+                                        <div
+                                            className="d-flex justify-content-between align-items-center text-muted small">
+                                            <span>{leg.distance.text}</span>
+                                            <span>{route.summary ? `via ${route.summary}` : ""}</span>
+                                        </div>
+
                                     </div>
-                                    <div className="d-flex justify-content-between align-items-center text-muted small">
-                                        <span>{leg.distance.text}</span>
-                                        <span>{route.summary ? `via ${route.summary}` : ""}</span>
-                                    </div>
-                                    
-                                 </div>
-                             );
-                         })}
-                     </div>
-                 ) : (
-                     /* Just in case no routes are available */
-                     <div className="text-center text-muted py-4 bg-light rounded-3 border border-dashed">
-                        <small>Select an SFU campus and travel mode to see routes.</small>
-                     </div>
-                 )}
+                                );
+                            })}
+                        </div>
+                    ) : (
+                        /* Just in case no routes are available */
+                        <div className="text-center text-muted py-4 bg-light rounded-3 border border-dashed">
+                            <small>Select an SFU campus and travel mode to see routes.</small>
+                        </div>
+                    )}
+                </div>
             </div>
-        </div>
+        </>
+
     );
 }
                        

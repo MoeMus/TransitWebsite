@@ -1,3 +1,5 @@
+from zoneinfo import ZoneInfo
+
 from django.core.mail import send_mail
 from django.utils.timezone import now, localtime
 from rest_framework import serializers
@@ -85,7 +87,7 @@ class PasswordResetRequestSerializer(serializers.Serializer):
         # Generate OTP and send via email
         user.generate_otp()
 
-        expiration_date = localtime(user.otp_expiry_date)
+        expiration_date = localtime(user.otp_expiry_date, ZoneInfo("America/Vancouver"))
 
         send_mail(
             "TransitTail - Password Reset Verification Code",

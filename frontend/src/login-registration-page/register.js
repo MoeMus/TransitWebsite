@@ -16,7 +16,6 @@ export function Register(){
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [email, setEmail] = useState('');
-    const [status, setStatus] = useState('');
     const [allCredentials, setAllCredentials] = useState(false);
     const [successfulRegister, setSuccessfulRegister] = useState(false);
     const dispatch = useDispatch();
@@ -38,10 +37,8 @@ export function Register(){
 
         if (username && email && password && confirmPassword) {
             setAllCredentials(true);
-            setStatus('');
         } else {
             setAllCredentials(false);
-            setStatus('');
         }
 
     }, [password, confirmPassword, username, email]);

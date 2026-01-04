@@ -39,7 +39,7 @@ function WelcomePage(){
 
                         <div>
 
-                            <Button variant="danger" onClick={()=>navigate('/', {replace: true})}> Go to my dashboard </Button>
+                            <Button variant="danger" onClick={()=>navigate('/dashboard', {replace: true})}> Go to my dashboard </Button>
 
                         </div>
 
@@ -47,7 +47,6 @@ function WelcomePage(){
 
                 </div>
             </body>
-
 
         </>
     );

@@ -91,7 +91,7 @@ Ensure you are in the `/backend` directory
    TRANSIT_EMAIL_HOST_USER= # Your email address
    TRANSIT_EMAIL_HOST_PASSWORD= # Gmail app password registered on your gmail
    ```
-   **Read [this](https://support.google.com/mail/answer/185833?hl=en) to set up an app password**
+   **Read [this](https://accounts.google.com/v3/signin/challenge/pwd?TL=AHE1sGV9XMilxGRveqbZdvCaL7SpB--e_wOOgCEFHnZmfWNnfU-8JnCid1b-EUtA&authuser=0&cid=4&continue=https%3A%2F%2Fmyaccount.google.com%2Fapppasswords&dsh=S1426459969%3A1767562290145522&flowName=GlifWebSignIn&followup=https%3A%2F%2Fmyaccount.google.com%2Fapppasswords&ifkv=Ac2yZaWk9sOhYvQGM5qKILVK1otpvYKcOF6els6DxLnC3H0kvKZmTXXAZdTckdQJCa5x_AiFeEMx&osid=1&rart=ANgoxcdBbGVO3rOtWAtfTDNglOeKdTwFKssCL4bd6b8A8QiKjlexo8z8CDqrGaz5W_MLeGBigGBlsRkUwKSmoZdJu81Qz3jLdRIqsc6p3Ig46UDS2GYtGGM&rpbg=1&service=accountsettings) to set up an app password**
 
 5. **Set Environment Variables For MySQL and Django**  
    ![Linux](https://img.icons8.com/color/48/000000/linux.png) ![Mac](https://img.icons8.com/ios-filled/50/000000/mac-os.png) **Linux/MacOS:**

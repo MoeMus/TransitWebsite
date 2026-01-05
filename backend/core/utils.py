@@ -5,9 +5,6 @@ from datetime import date
 
 from django.forms import model_to_dict
 
-# Get today's date
-DATE = date.today()
-
 # Temporary solution for calculating semester
 FALL_SEMESTER_MONTHS = ["09", "10", "11", "12"]
 SPRING_SEMESTER_MONTHS = ["01", "02", "03", "04"]
@@ -15,19 +12,20 @@ SUMMER_SEMESTER_MONTHS = ["05", "06", "07", "08"]
 
 
 def get_current_term_code():
-    century = int(DATE.strftime("%C"))
+    today = date.today()
+    century = int(today.strftime("%C"))
     x = ((century + 1) % 10) * 1000
-    y = (int(DATE.year) % 100) * 10
+    y = (int(today.year) % 100) * 10
     z = get_current_term_code_season()
     return x + y + z
 
 
 def get_current_year():
-    return DATE.year
+    return date.today().year
 
 
 def get_current_term_code_season():
-    month = DATE.strftime("%d")
+    month = date.today().strftime("%m")
     if month in SPRING_SEMESTER_MONTHS:
         return 1
 
@@ -43,16 +41,17 @@ SUMMER_SEM_MONTHS = {5, 6, 7, 8}
 FALL_SEM_MONTHS = {9, 10, 11, 12}
 
 
-def get_current_term():
-    month_date = date.today()
-    month = month_date.month
-
+def get_term_from_month(month):
     if month in SPRING_SEM_MONTHS:
         return "spring"
     elif month in SUMMER_SEM_MONTHS:
         return "summer"
     else:
         return "fall"
+
+
+def get_current_term():
+    return get_term_from_month(date.today().month)
 
 
 # Returns a hash map that maps days to sections + the exact time block that occur on that day
@@ -119,3 +118,23 @@ def check_time_conflicts(new_course, user_courses):
                     conflicts.add(course["section"])
 
     return list([model_to_dict(course) for course in conflicts])
+
+
+# Checks if course data in the DB is from a previous semester and runs the cron job if so
+def refresh_courses_if_stale():
+    from core.models import LectureSection
+    from core.cron import update_course_data
+
+    first_section = LectureSection.objects.first()
+    current_year = get_current_year()
+    current_term = get_current_term()
+
+    is_stale = (
+        not first_section or
+        not first_section.start_date or
+        first_section.start_date.year != current_year or
+        get_term_from_month(first_section.start_date.month) != current_term
+    )
+
+    if is_stale:
+        update_course_data.delay()

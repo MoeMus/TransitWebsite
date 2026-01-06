@@ -5,6 +5,7 @@ import Alert from 'react-bootstrap/Alert';
 import {useState} from "react";
 import apiClient from "../configurations/configAxios";
 import VerificationCodeForm from "./verification-code-form";
+import SecretField from "../components/secret-field";
 
 function EmailForm() {
 
@@ -12,9 +13,13 @@ function EmailForm() {
     const [email, setEmail] = useState("");
     const [requestSuccessful, setRequestSuccessful] = useState(false);
     const [alertOpen, setAlertOpen] = useState(false);
+    const [secretField, setSecretField] = useState("");
+
     async function submitEmail(evt) {
 
         evt.preventDefault();
+
+        if (secretField) return;
 
         const request = {
             email: email
@@ -68,6 +73,8 @@ function EmailForm() {
                                        onChange={e => setEmail(e.target.value)}/>
 
                             </div>
+
+                            <SecretField value={secretField} setter={setSecretField} />
 
                             <div className="d-grid gap-2 mt-3" style={{marginBottom: "40px"}}>
 

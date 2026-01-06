@@ -1,4 +1,4 @@
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import '../styles/loginStyles.css';
 import apiClient from '../configurations/configAxios';
 import {useLocation, useNavigate} from "react-router-dom";
@@ -11,12 +11,14 @@ import { PasswordInput } from "../components/ui/password-input"
 import Alert from "react-bootstrap/Alert";
 import Nav from 'react-bootstrap/Nav';
 import Notification from "../components/notification";
+import SecretField from "../components/secret-field";
 
 export function Login() {
 
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [loginError, setLoginError] = useState(false);
+    const [secretField, setSecretField] = useState("");
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
@@ -28,6 +30,9 @@ export function Login() {
     const submit = async e => {
 
         e.preventDefault()
+
+        // If the hidden honeypot field is filled, it's likely a bot. Return early.
+        if (secretField) return;
 
         const userCredentials = {
             username: username,
@@ -60,21 +65,17 @@ export function Login() {
 
     }
 
-    function displayPasswordResetNotification(){
-        if (showPasswordNotification){
-            toast.custom((t)=>(
-
-            <Notification title={"Password Reset"} message={"Your password has been changed"} toast_object={t} />
+    useEffect(() => {
+        if (showPasswordNotification) {
+            toast.custom((t) => (
+                <Notification title={"Password Reset"} message={"Your password has been changed"} toast_object={t}/>
             ), {
-                    duration: 15000,
-                }
+                duration: 15000,
+            }
             );
-
             setShowPasswordNotification(false);
-
         }
-
-    }
+    }, [showPasswordNotification]);
 
     return (
 
@@ -84,8 +85,6 @@ export function Login() {
                 position="top-center"
                 reverseOrder={false}
             />
-
-            {displayPasswordResetNotification()}
 
             <div className="Auth-form-container">
 
@@ -119,6 +118,8 @@ export function Login() {
                                            value={password} required onChange={e => setPassword(e.target.value)}/>
 
                         </div>
+
+                        <SecretField value={secretField} setter={setSecretField} />
 
                         <div className="d-grid gap-2 mt-3">
 

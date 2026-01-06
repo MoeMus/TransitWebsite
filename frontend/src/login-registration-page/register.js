@@ -10,6 +10,7 @@ import {Heading} from "@chakra-ui/react";
 import {PasswordInput} from "../components/ui/password-input";
 import Alert from "react-bootstrap/Alert";
 import {set_token} from "../storeConfig/auth_reducer";
+import SecretField from "../components/secret-field";
 
 export function Register(){
     const [username, setUsername] = useState('');
@@ -23,6 +24,7 @@ export function Register(){
     const [passwordMatchMsg, setPasswordMatchMsg] = useState("");
     const [isServerError, setIsServerError] = useState(false);
     const [serverErrMsg, setServerErrMsg] = useState("");
+    const [secretField, setSecretField] = useState("");
     
     useEffect(()=>{
         if(confirmPassword !== password && password.length > 0){
@@ -82,6 +84,8 @@ export function Register(){
 
         evt.preventDefault();
 
+        if (secretField) return;
+
         try {
 
             const userCredentials = {username: username, email: email, password: password};
@@ -136,6 +140,8 @@ export function Register(){
                             <PasswordInput type="password" value={confirmPassword} placeholder="Reenter your password"
                                           required onChange={(event) => setConfirmPassword(event.target.value)}/>
                         </fieldset>) : null}
+
+                        <SecretField value={secretField} setter={setSecretField} />
 
                         <Button className='button' type="submit" variant="success" style={{marginTop: '10px', marginBottom: '10px'}}>Register</Button>{' '}
 

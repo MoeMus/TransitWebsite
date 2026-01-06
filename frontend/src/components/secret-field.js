@@ -1,6 +1,6 @@
 import React from 'react';
 
-const BotField = ({ value, setter }) => {
+const SecretField = ({ value, setter }) => {
     return (
         <div style={{ position: "absolute", left: "-9999px" }} aria-hidden="true">
             <label htmlFor="website_url">Website</label>
@@ -16,4 +16,4 @@ const BotField = ({ value, setter }) => {
     );
 };
 
-export default BotField;
+export default SecretField;

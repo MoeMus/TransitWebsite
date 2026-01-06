@@ -63,10 +63,10 @@ function EmailForm() {
                             <div className="form-group mt-3">
                                 {error ? <Alert variant="danger" title="Invalid Credentials" dismissible
                                                 onClose={() => setError("")}> {error} </Alert> : null}
-                                <label>Username</label>
+                                <label>Email Address</label>
 
                                 <Input variant="subtle"
-                                       placeholder="Enter Email"
+                                       placeholder="Enter Email Address"
                                        name='email'
                                        type='email' value={email}
                                        required

@@ -12,6 +12,7 @@ import Alert from "react-bootstrap/Alert";
 import Nav from 'react-bootstrap/Nav';
 import Notification from "../components/notification";
 import SecretField from "../components/secret-field";
+import TurnstileWidget from "../components/TurnstileWidget";
 
 export function Login() {
 
@@ -19,6 +20,7 @@ export function Login() {
     const [password, setPassword] = useState("");
     const [loginError, setLoginError] = useState(false);
     const [secretField, setSecretField] = useState("");
+    const [turnstileToken, setTurnstileToken] = useState("");
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
@@ -31,12 +33,14 @@ export function Login() {
 
         e.preventDefault()
 
-        // If the hidden honeypot field is filled, it's likely a bot. Return early.
         if (secretField) return;
+
+        if (process.env.REACT_APP_TURNSTILE_SITE_KEY && !turnstileToken) return;
 
         const userCredentials = {
             username: username,
-            password: password
+            password: password,
+            turnstile_token: turnstileToken
         }
 
         try {
@@ -120,6 +124,8 @@ export function Login() {
                         </div>
 
                         <SecretField value={secretField} setter={setSecretField} />
+
+                        <TurnstileWidget setToken={setTurnstileToken} />
 
                         <div className="d-grid gap-2 mt-3">
 

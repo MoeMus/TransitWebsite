@@ -6,6 +6,7 @@ import {useState} from "react";
 import apiClient from "../configurations/configAxios";
 import VerificationCodeForm from "./verification-code-form";
 import SecretField from "../components/secret-field";
+import TurnstileWidget from "../components/TurnstileWidget";
 
 function EmailForm() {
 
@@ -14,6 +15,7 @@ function EmailForm() {
     const [requestSuccessful, setRequestSuccessful] = useState(false);
     const [alertOpen, setAlertOpen] = useState(false);
     const [secretField, setSecretField] = useState("");
+    const [turnstileToken, setTurnstileToken] = useState("");
 
     async function submitEmail(evt) {
 
@@ -21,8 +23,11 @@ function EmailForm() {
 
         if (secretField) return;
 
+        if (process.env.REACT_APP_TURNSTILE_SITE_KEY && !turnstileToken) return;
+
         const request = {
-            email: email
+            email: email,
+            turnstile_token: turnstileToken
         }
 
         try {
@@ -75,6 +80,8 @@ function EmailForm() {
                             </div>
 
                             <SecretField value={secretField} setter={setSecretField} />
+
+                            <TurnstileWidget setToken={setTurnstileToken} />
 
                             <div className="d-grid gap-2 mt-3" style={{marginBottom: "40px"}}>
 

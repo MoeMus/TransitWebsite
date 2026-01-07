@@ -10,6 +10,7 @@ import {Heading} from "@chakra-ui/react";
 import {PasswordInput} from "../components/ui/password-input";
 import Alert from "react-bootstrap/Alert";
 import {set_token} from "../storeConfig/auth_reducer";
+import toast, { Toaster } from 'react-hot-toast';
 import SecretField from "../components/secret-field";
 import TurnstileWidget from "../components/TurnstileWidget";
 
@@ -88,7 +89,10 @@ export function Register(){
 
         if (secretField) return;
 
-        if (process.env.REACT_APP_TURNSTILE_SITE_KEY && !turnstileToken) return;
+        if (process.env.REACT_APP_TURNSTILE_SITE_KEY && !turnstileToken) {
+            toast.error("Please verify you are human");
+            return;
+        }
 
         try {
 
@@ -168,6 +172,7 @@ export function Register(){
 
     return(
         <>
+            <Toaster position="top-center" reverseOrder={false} />
 
             {successfulRegister? <WelcomePage /> : registrationForm()}
 

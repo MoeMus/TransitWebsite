@@ -1,5 +1,5 @@
 import Button from 'react-bootstrap/Button';
-import {Toaster} from "react-hot-toast";
+import toast, {Toaster} from "react-hot-toast";
 import {Flex, Heading, Input} from "@chakra-ui/react";
 import Alert from 'react-bootstrap/Alert';
 import {useState} from "react";
@@ -23,7 +23,10 @@ function EmailForm() {
 
         if (secretField) return;
 
-        if (process.env.REACT_APP_TURNSTILE_SITE_KEY && !turnstileToken) return;
+        if (process.env.REACT_APP_TURNSTILE_SITE_KEY && !turnstileToken) {
+            toast.error("Please verify you are human");
+            return;
+        }
 
         const request = {
             email: email,
@@ -52,6 +55,8 @@ function EmailForm() {
     return (
 
         <>
+
+            <Toaster position="top-center" reverseOrder={false} />
 
             <Flex direction="column">
 

@@ -33,9 +33,13 @@ export function Login() {
 
         e.preventDefault()
 
+        // If the hidden honeypot field is filled, it's likely a bot. Return early.
         if (secretField) return;
 
-        if (process.env.REACT_APP_TURNSTILE_SITE_KEY && !turnstileToken) return;
+        if (process.env.REACT_APP_TURNSTILE_SITE_KEY && !turnstileToken) {
+            toast.error("Please verify you are human");
+            return;
+        }
 
         const userCredentials = {
             username: username,

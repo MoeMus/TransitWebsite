@@ -45,7 +45,7 @@ const TurnstileWidget = ({ setToken }) => {
     }, [setToken]);
 
     return (
-        <div id="turnstile-widget" className="d-flex justify-content-center mb-3"></div>
+        <div id="turnstile-widget" className="d-flex justify-content-center mt-3 mb-3"></div>
     );
 };
 

@@ -69,8 +69,19 @@ Ensure you are in the `/backend` directory
 3. **Set up Translink API**
    - Go to https://developer.translink.ca/ and register for an account.
    - Use your API key for the `TRANSLINK_API_KEY` variable in the next steps.
+
+4. **Set up Cloudflare Turnstile Secret Key**
+   - Log in to Cloudflare and go to the Cloudflare Dashboard
+   - Navigate to Turnstile on the left-hand sidebar
+   - Click **Add site**
+   - Configure a site name (Transit Website)
+   - Add the domain for which the widget will be used. For local development, use `localhost`.
+   - Select the **Managed** widget
+   - Click **Create** to obtain your **Site Key** and **Secret Key**.
+   - Add the **Secret Key** to your backend `.env` file as `TURNSTILE_SECRET_KEY` (see the next step)
+   - The **Site Key** will be used in the frontend `.env` file as `REACT_APP_TURNSTILE_SITE_KEY`. Frontend setup will be explained after the backend setup instructions in this README file.
    
-4. **Make sure you're using the port you want to use in `backend/settings.py`** 
+5. **Make sure you're using the port you want to use in `backend/settings.py`** 
 
    **Create a `.env` file in the root directory with these environment variables to establish
    the database connection**
@@ -84,6 +95,7 @@ Ensure you are in the `/backend` directory
    DJANGO_SECRET_KEY=
    TRANSLINK_API_KEY=
    DEBUG=True
+   TURNSTILE_SECRET_KEY= # From Cloudflare Turnstile
    TRANSIT_EMAIL_HOST=smtp.gmail.com # Uses the Gmail SMTP server
    TRANSIT_EMAIL_PORT=587
    TRANSIT_EMAIL_USE_TLS=true
@@ -93,7 +105,7 @@ Ensure you are in the `/backend` directory
    ```
    **Read [this](https://accounts.google.com/v3/signin/challenge/pwd?TL=AHE1sGV9XMilxGRveqbZdvCaL7SpB--e_wOOgCEFHnZmfWNnfU-8JnCid1b-EUtA&authuser=0&cid=4&continue=https%3A%2F%2Fmyaccount.google.com%2Fapppasswords&dsh=S1426459969%3A1767562290145522&flowName=GlifWebSignIn&followup=https%3A%2F%2Fmyaccount.google.com%2Fapppasswords&ifkv=Ac2yZaWk9sOhYvQGM5qKILVK1otpvYKcOF6els6DxLnC3H0kvKZmTXXAZdTckdQJCa5x_AiFeEMx&osid=1&rart=ANgoxcdBbGVO3rOtWAtfTDNglOeKdTwFKssCL4bd6b8A8QiKjlexo8z8CDqrGaz5W_MLeGBigGBlsRkUwKSmoZdJu81Qz3jLdRIqsc6p3Ig46UDS2GYtGGM&rpbg=1&service=accountsettings) to set up an app password**
 
-5. **Set Environment Variables For MySQL and Django**  
+6. **Set Environment Variables For MySQL and Django**  
    ![Linux](https://img.icons8.com/color/48/000000/linux.png) ![Mac](https://img.icons8.com/ios-filled/50/000000/mac-os.png) **Linux/MacOS:**
 
    1. Open the text editor:
@@ -122,12 +134,12 @@ Ensure you are in the `/backend` directory
    6. Click `OK` on all of the New System Variable, Environment Variables, and System Properties windows
 
 
-6. **Make migrations**
+7. **Make migrations**
    ```bash
    python manage.py makemigrations
    python manage.py migrate
 
-7. **Set up Celery Beat and worker node**
+8. **Set up Celery Beat and worker node**
    ```bash
    # Requires Redis as a message queue
    redis-server
@@ -139,7 +151,7 @@ Ensure you are in the `/backend` directory
    celery -A backend worker -l info
    ```
 
-8. **Run the server**
+9. **Run the server**
    ```bash
    python manage.py runserver
 
@@ -151,7 +163,7 @@ Ensure you are in the `/backend` directory
    # Run Backend
    docker compose up
    ```
-9. **Running Cron Jobs Manually**
+10. **Running Cron Jobs Manually**
 
    **Every 4 months, the server will update all course data for the new semester by scraping the SFU Course Outlines API.**
    **This is set up as a cron job that is managed by Celery. If you want to run this manually, do the following:**
@@ -196,6 +208,9 @@ Ensure you are in the `/frontend` directory
    - The map ID should be visible afterwards
    - Save it as an environment variable as `REACT_APP_GOOGLE_MAP_ID` in .env
 
-5. **Start the React development server**
+5. **Set up Cloudflare Turnstile Site Key**
+   - Add the **Site Key** you received from the backend setup instructions to your frontend `.env` file as `REACT_APP_TURNSTILE_SITE_KEY`.
+
+6. **Start the React development server**
    ```bash
    npm start

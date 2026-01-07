@@ -10,6 +10,9 @@ import {Heading} from "@chakra-ui/react";
 import {PasswordInput} from "../components/ui/password-input";
 import Alert from "react-bootstrap/Alert";
 import {set_token} from "../storeConfig/auth_reducer";
+import toast, { Toaster } from 'react-hot-toast';
+import SecretField from "../components/secret-field";
+import TurnstileWidget from "../components/TurnstileWidget";
 
 export function Register(){
     const [username, setUsername] = useState('');
@@ -23,6 +26,8 @@ export function Register(){
     const [passwordMatchMsg, setPasswordMatchMsg] = useState("");
     const [isServerError, setIsServerError] = useState(false);
     const [serverErrMsg, setServerErrMsg] = useState("");
+    const [secretField, setSecretField] = useState("");
+    const [turnstileToken, setTurnstileToken] = useState("");
     
     useEffect(()=>{
         if(confirmPassword !== password && password.length > 0){
@@ -82,9 +87,21 @@ export function Register(){
 
         evt.preventDefault();
 
+        if (secretField) return;
+
+        if (process.env.REACT_APP_TURNSTILE_SITE_KEY && !turnstileToken) {
+            toast.error("Please verify you are human");
+            return;
+        }
+
         try {
 
-            const userCredentials = {username: username, email: email, password: password};
+            const userCredentials = {
+                username: username,
+                email: email,
+                password: password,
+                turnstile_token: turnstileToken
+            };
 
             await apiClient.post('/api/user/', userCredentials);
             await loginUser(userCredentials);
@@ -137,6 +154,10 @@ export function Register(){
                                           required onChange={(event) => setConfirmPassword(event.target.value)}/>
                         </fieldset>) : null}
 
+                        <SecretField value={secretField} setter={setSecretField} />
+
+                        <TurnstileWidget setToken={setTurnstileToken} />
+
                         <Button className='button' type="submit" variant="success" style={{marginTop: '10px', marginBottom: '10px'}}>Register</Button>{' '}
 
                     </Form>
@@ -151,6 +172,7 @@ export function Register(){
 
     return(
         <>
+            <Toaster position="top-center" reverseOrder={false} />
 
             {successfulRegister? <WelcomePage /> : registrationForm()}
 

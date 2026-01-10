@@ -2,7 +2,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from core.serializers import PasswordResetSerializer, OTPVerificationSerializer, PasswordResetRequestSerializer
+from core.model_serializers.password_reset_serializers import *
 
 
 @api_view(["POST"])

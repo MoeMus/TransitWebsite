@@ -66,6 +66,14 @@ class UserView(APIView):
                             status=status.HTTP_400_BAD_REQUEST)
 
 
+# Validates the user credentials for signup
+@api_view(["POST"])
+def validate_user_credentials(request):
+    serializer = UserSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+
+    return Response({"success": "Valid user credentials"}, status=status.HTTP_200_OK)
+
 # Retrieves all courses (lecture sections and non lecture sections) for a user
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])

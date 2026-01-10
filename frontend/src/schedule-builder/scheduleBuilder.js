@@ -347,6 +347,17 @@ export function ScheduleBuilder() {
     }
   }
 
+  function flattenScheduleField(lecture) {
+    return [...new Set(
+        lecture.schedule?.flatMap(block =>
+            block.days.split(", ").map(
+                day => `${day} ${block.startTime} - ${block.endTime}`
+            )
+        )
+    )
+    ].join(" | ");
+  }
+
   return (
     <>
       <Toaster position="top-center" duration={5000} reverseOrder={false} />
@@ -395,14 +406,7 @@ export function ScheduleBuilder() {
                           <option key={lecture.id} value={lecture.id}>
                             {lecture.section_code}{" - "}
                             ({
-                            [...new Set(
-                                lecture.schedule?.flatMap(block =>
-                                  block.days.split(", ").map(
-                                    day => `${day} ${block.startTime} - ${block.endTime}`
-                                  )
-                                )
-                              )
-                            ].join(" | ")
+                            flattenScheduleField(lecture)
                           })
                           </option>
                       ))}
@@ -425,16 +429,7 @@ export function ScheduleBuilder() {
                       {Array.isArray(nonLectureSections) && nonLectureSections.map((nonLecture) => (
                         <option key={nonLecture.id} value={nonLecture.id}>
                           {nonLecture.section_code}{" - "}
-                          ({
-                            [...new Set(
-                                nonLecture.schedule?.flatMap(block =>
-                                  block.days.split(", ").map(
-                                    day => `${day} ${block.startTime} - ${block.endTime}`
-                                  )
-                                )
-                              )
-                            ].join(" | ")
-                          })
+                          ({flattenScheduleField(nonLecture)})
                         </option>
                       ))}
                     </Form.Control>
@@ -534,31 +529,13 @@ export function ScheduleBuilder() {
                       <div className="text-muted small">
                         <span className="me-3">
                           <strong>Lecture:</strong> {lectureData.section_code || "N/A"} 
-                          <span className="ms-1 text-primary">({
-                            [...new Set(
-                                lectureData.schedule?.flatMap(block =>
-                                  block.days.split(", ").map(
-                                    day => `${day} ${block.startTime} - ${block.endTime}`
-                                  )
-                                )
-                              )
-                            ].join(" | ")
-                          })
+                          <span className="ms-1 text-primary">({flattenScheduleField(lectureData)})
                         </span>
                         </span>
                         {nonLectureData && (
                           <span>
                             <strong>Non-Lecture:</strong> {nonLectureData.section_code} 
-                            <span className="ms-1 text-primary">({
-                            [...new Set(
-                                nonLectureData.schedule?.flatMap(block =>
-                                  block.days.split(", ").map(
-                                    day => `${day} ${block.startTime} - ${block.endTime}`
-                                  )
-                                )
-                              )
-                            ].join(" | ")
-                          })</span>
+                            <span className="ms-1 text-primary">({flattenScheduleField(nonLectureData)})</span>
                           </span>
                         )}
                       </div>

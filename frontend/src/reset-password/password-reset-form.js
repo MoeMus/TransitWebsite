@@ -1,5 +1,5 @@
-import {useState} from "react";
-import {Navigate, useLocation, useNavigate} from "react-router-dom";
+import {useEffect, useState} from "react";
+import {Navigate, useLocation, useNavigate, useNavigationType, NavigationType} from "react-router-dom";
 import apiClient from "../configurations/configAxios";
 import Container from "react-bootstrap/Container";
 import Form from "react-bootstrap/Form";
@@ -14,6 +14,19 @@ function PasswordResetForm() {
     const [newPassword, setNewPassword] = useState("");
     const location = useLocation();
     const [confirmNewPassword, setConfirmNewPassword] = useState("");
+    const [showDialog, setShowDialog] = useState(false);
+    const navigationType = useNavigationType();
+
+
+    // If the user attempts to go back via the browser's back button, the page should be replaced in the browser history
+
+    useEffect(() => {
+        if (navigationType === NavigationType.Pop) {
+
+            navigate("/registration", { replace: true });
+
+        }
+    }, [navigationType]);
 
     // Email must come from the forgot password page
     const email = location.state?.email;

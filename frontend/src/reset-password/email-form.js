@@ -2,7 +2,7 @@ import Button from 'react-bootstrap/Button';
 import {Toaster} from "react-hot-toast";
 import {Flex, Heading, Input} from "@chakra-ui/react";
 import Alert from 'react-bootstrap/Alert';
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import apiClient from "../configurations/configAxios";
 import VerificationCodeForm from "./verification-code-form";
 
@@ -12,6 +12,27 @@ function EmailForm() {
     const [email, setEmail] = useState("");
     const [requestSuccessful, setRequestSuccessful] = useState(false);
     const [alertOpen, setAlertOpen] = useState(false);
+    const [timeoutEnabled, setTimeoutEnabled] = useState(false);
+    const [timeLeft, setTimeLeft] = useState(0);
+
+    useEffect(() => {
+
+        if (!timeoutEnabled) return;
+
+        setTimeLeft(30);
+        const interval = setInterval(()=>setTimeLeft(prev_second => {
+            if (prev_second <= 1) {
+                clearInterval(interval);
+                setTimeoutEnabled(false);
+                return 0;
+            }
+            return prev_second - 1;
+        }), 1000);
+        return ()=> clearInterval(interval)
+
+    }, [timeoutEnabled]);
+
+
     async function submitEmail(evt) {
 
         evt.preventDefault();
@@ -27,6 +48,7 @@ function EmailForm() {
             setError("");
             setRequestSuccessful(true);
             setAlertOpen(true);
+            setTimeoutEnabled(true);
 
         } catch (err) {
 
@@ -36,6 +58,7 @@ function EmailForm() {
             setAlertOpen(false);
 
         }
+
 
     }
 
@@ -50,6 +73,8 @@ function EmailForm() {
                     <form onSubmit={submitEmail}>
 
                         <div className="Auth-form-content">
+
+                            { timeoutEnabled ? <Alert variant={"secondary"}> {`You can resend your verification code in ${timeLeft} seconds`} </Alert> : null}
 
                             <Heading textAlign="center" fontSize="20px" fontWeight="normal" my="10px">
                                 Enter the email belonging to your account to receive a verification code
@@ -71,16 +96,15 @@ function EmailForm() {
 
                             <div className="d-grid gap-2 mt-3" style={{marginBottom: "40px"}}>
 
-                                <Button type="submit" variant="secondary" className="btn"> Submit </Button>
+                                <Button type="submit" variant="secondary" className="btn" disabled={timeoutEnabled}> Submit </Button>
 
                             </div>
 
 
-                            {alertOpen ? <Alert status={"primary"} style={{padding: "10px"}} dismissible
+                            {alertOpen ? <Alert variant={"primary"} style={{padding: "10px"}} dismissible
                                                 onClose={() => setAlertOpen(false)}>
                                 <Alert.Heading> Verification Code Sent </Alert.Heading>
-                                <p> If you didn't receive the email, click <Alert.Link
-                                    onClick={submitEmail}>here</Alert.Link> to resend it </p>
+                                <p> If you didn't receive the email, resubmit to resend it </p>
                             </Alert> : null}
 
                         </div>

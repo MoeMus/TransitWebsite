@@ -123,7 +123,7 @@ function EmailForm() {
                             {alertOpen ? <Alert variant={"primary"} style={{padding: "10px"}} dismissible
                                                 onClose={() => setAlertOpen(false)}>
                                 <Alert.Heading> Verification Code Sent </Alert.Heading>
-                                <p> If you didn't receive the email, resubmit to resend it </p>
+                                <p> If you didn't receive the email, click submit again to resend it </p>
                             </Alert> : null}
 
                         </div>

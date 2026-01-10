@@ -347,6 +347,7 @@ export function ScheduleBuilder() {
     }
   }
 
+  // Flattens the schedule field of a lecture/non lecture section object into a single string (ex: 'We 13:30 - 14:20 | Fr 12:30 - 14:20')
   function flattenScheduleField(lecture) {
     return [...new Set(
         lecture.schedule?.flatMap(block =>

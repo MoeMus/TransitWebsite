@@ -1,10 +1,12 @@
 import Button from 'react-bootstrap/Button';
-import {Toaster} from "react-hot-toast";
+import toast, {Toaster} from "react-hot-toast";
 import {Flex, Heading, Input} from "@chakra-ui/react";
 import Alert from 'react-bootstrap/Alert';
 import {useEffect, useState} from "react";
 import apiClient from "../configurations/configAxios";
 import VerificationCodeForm from "./verification-code-form";
+import SecretField from "../components/secret-field";
+import TurnstileWidget from "../components/TurnstileWidget";
 
 function EmailForm() {
 
@@ -14,6 +16,8 @@ function EmailForm() {
     const [alertOpen, setAlertOpen] = useState(false);
     const [timeoutEnabled, setTimeoutEnabled] = useState(false);
     const [timeLeft, setTimeLeft] = useState(0);
+    const [secretField, setSecretField] = useState("");
+    const [turnstileToken, setTurnstileToken] = useState("");
 
     useEffect(() => {
 
@@ -33,12 +37,21 @@ function EmailForm() {
     }, [timeoutEnabled]);
 
 
+
     async function submitEmail(evt) {
 
         evt.preventDefault();
 
+        if (secretField) return;
+
+        if (process.env.REACT_APP_TURNSTILE_SITE_KEY && !turnstileToken) {
+            toast.error("Please verify you are human");
+            return;
+        }
+
         const request = {
-            email: email
+            email: email,
+            turnstile_token: turnstileToken
         }
 
         try {
@@ -66,6 +79,8 @@ function EmailForm() {
 
         <>
 
+            <Toaster position="top-center" reverseOrder={false} />
+
             <Flex direction="column">
 
                 <div className="Auth-form-container">
@@ -83,16 +98,20 @@ function EmailForm() {
                             <div className="form-group mt-3">
                                 {error ? <Alert variant="danger" title="Invalid Credentials" dismissible
                                                 onClose={() => setError("")}> {error} </Alert> : null}
-                                <label>Username</label>
+                                <label>Email Address</label>
 
                                 <Input variant="subtle"
-                                       placeholder="Enter Email"
+                                       placeholder="Enter Email Address"
                                        name='email'
                                        type='email' value={email}
                                        required
                                        onChange={e => setEmail(e.target.value)}/>
 
                             </div>
+
+                            <SecretField value={secretField} setter={setSecretField} />
+
+                            <TurnstileWidget setToken={setTurnstileToken} />
 
                             <div className="d-grid gap-2 mt-3" style={{marginBottom: "40px"}}>
 

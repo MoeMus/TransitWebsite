@@ -12,7 +12,7 @@ from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, Bl
 
 from core.models import User, LectureSection, NonLectureSection, NewSemesterNotification
 from core.serializers import UserSerializer, LectureSectionSerializer, NonLectureSectionSerializer, NewSemesterNotificationSerializer
-from core.utils import check_time_conflicts
+from core.utils import check_time_conflicts, refresh_courses_if_stale
 
 
 class UserView(APIView):
@@ -24,6 +24,8 @@ class UserView(APIView):
 
     # Retrieve user info if logged in
     def get(self, request):
+
+        refresh_courses_if_stale()
 
         serializer = UserSerializer(request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)

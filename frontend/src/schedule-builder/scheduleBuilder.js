@@ -394,7 +394,16 @@ export function ScheduleBuilder() {
                       {Array.isArray(uniqueLectureSections) && uniqueLectureSections.map((lecture) => (
                           <option key={lecture.id} value={lecture.id}>
                             {lecture.section_code}{" - "}
-                            ({lecture.schedule?.map(block => `${block.days.split(", ")} ${block.startTime}–${block.endTime}`).join(" | ")})
+                            ({
+                            [...new Set(
+                                lecture.schedule?.flatMap(block =>
+                                  block.days.split(", ").map(
+                                    day => `${day} ${block.startTime} - ${block.endTime}`
+                                  )
+                                )
+                              )
+                            ].join(" | ")
+                          })
                           </option>
                       ))}
                     </Form.Control>
@@ -416,7 +425,16 @@ export function ScheduleBuilder() {
                       {Array.isArray(nonLectureSections) && nonLectureSections.map((nonLecture) => (
                         <option key={nonLecture.id} value={nonLecture.id}>
                           {nonLecture.section_code}{" - "}
-                          ({nonLecture.schedule?.map(block => `${block.days.split(", ")} ${block.startTime}–${block.endTime}`).join(" | ")})
+                          ({
+                            [...new Set(
+                                nonLecture.schedule?.flatMap(block =>
+                                  block.days.split(", ").map(
+                                    day => `${day} ${block.startTime} - ${block.endTime}`
+                                  )
+                                )
+                              )
+                            ].join(" | ")
+                          })
                         </option>
                       ))}
                     </Form.Control>
@@ -516,12 +534,31 @@ export function ScheduleBuilder() {
                       <div className="text-muted small">
                         <span className="me-3">
                           <strong>Lecture:</strong> {lectureData.section_code || "N/A"} 
-                          <span className="ms-1 text-primary">({lectureData.schedule?.map(block => `${block.days} ${block.startTime}–${block.endTime}`).join(" | ")})</span>
+                          <span className="ms-1 text-primary">({
+                            [...new Set(
+                                lectureData.schedule?.flatMap(block =>
+                                  block.days.split(", ").map(
+                                    day => `${day} ${block.startTime} - ${block.endTime}`
+                                  )
+                                )
+                              )
+                            ].join(" | ")
+                          })
+                        </span>
                         </span>
                         {nonLectureData && (
                           <span>
                             <strong>Non-Lecture:</strong> {nonLectureData.section_code} 
-                            <span className="ms-1 text-primary">({nonLectureData.schedule?.map(block => `${block.days.split(", ")} ${block.startTime}–${block.endTime}`).join(" | ")})</span>
+                            <span className="ms-1 text-primary">({
+                            [...new Set(
+                                nonLectureData.schedule?.flatMap(block =>
+                                  block.days.split(", ").map(
+                                    day => `${day} ${block.startTime} - ${block.endTime}`
+                                  )
+                                )
+                              )
+                            ].join(" | ")
+                          })</span>
                           </span>
                         )}
                       </div>

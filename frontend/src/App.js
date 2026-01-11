@@ -11,6 +11,7 @@ import { Provider } from "./components/ui/provider"
 import PasswordResetForm from "./reset-password/password-reset-form";
 import {useSelector} from "react-redux";
 import useCheckAccessToken from "./configurations/refreshAccessToken";
+import WelcomePage from "./components/welcomePage";
 function App() {
 
     const { is_authenticated } = useSelector((state) => state.authentication);
@@ -30,6 +31,7 @@ function App() {
                 <Route path="/schedule-builder" element={ is_authenticated ? <ScheduleBuilder /> : <Navigate to="/registration" replace={true} /> } />
                 <Route path="/password/forgot" element={<PasswordResetPage />} />
                 <Route path="/password/reset" element={<PasswordResetForm />} />
+                <Route path="/welcome" element={ is_authenticated ? <WelcomePage /> : <Navigate to="/registration" replace={true} /> } />
 
                 {/* Uncomment and add other routes as needed */}
                 </Routes>

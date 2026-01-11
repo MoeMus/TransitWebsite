@@ -34,6 +34,8 @@ class NonLectureSectionSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     lecture_sections = LectureSectionSerializer(many=True, read_only=True)
     non_lecture_sections = NonLectureSectionSerializer(many=True, read_only=True)
+    username = serializers.CharField(validators=[])
+    email = serializers.EmailField(validators=[])
 
     class Meta:
         model = User

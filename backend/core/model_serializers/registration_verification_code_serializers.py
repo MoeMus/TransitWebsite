@@ -14,7 +14,7 @@ class RegistrationVerificationCodeSerializer(serializers.Serializer):
 
     def validate_email(self, email):
 
-        otp_object = OneTimePassword.objects.update_or_create(
+        otp_object, created = OneTimePassword.objects.update_or_create(
             email=email,
             defaults={
                 "email": email

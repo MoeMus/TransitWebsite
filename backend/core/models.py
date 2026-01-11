@@ -188,4 +188,4 @@ class OneTimePassword(models.Model):
         self.save()
 
     def __str__(self):
-        return f"{self.email} - {self.otp_verified} - Expires ay {self.otp_expiry_date}"
+        return f"{self.user} - {self.otp} - Expires at {self.otp_expiry_date}"

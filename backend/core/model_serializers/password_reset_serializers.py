@@ -17,11 +17,11 @@ class BaseSerializer(serializers.Serializer):
         try:
 
             user = User.objects.get(email=email)
-            otp_object = OneTimePassword.objects.create_or_update(user=user)
+            otp_object, created = OneTimePassword.objects.update_or_create(user=user)
 
         except User.DoesNotExist:
 
-            raise serializers.ValidationError({"email": "User with this email does not exist."})
+            raise serializers.ValidationError("User with this email does not exist.")
 
         return user, otp_object
 
@@ -68,7 +68,7 @@ class OTPVerificationSerializer(BaseSerializer):
 
         _, otp_object = self.get_user_and_otp(data['email'])
 
-        if not check_password(data['otp'], otp_object.password):
+        if not check_password(data['otp'], otp_object.otp):
 
             raise serializers.ValidationError({"otp": "Verification code is invalid."})
 

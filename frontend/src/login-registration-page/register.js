@@ -13,7 +13,7 @@ import {set_token} from "../storeConfig/auth_reducer";
 import toast, { Toaster } from 'react-hot-toast';
 import SecretField from "../components/secret-field";
 import TurnstileWidget from "../components/TurnstileWidget";
-import {useNavigate} from "react-router-dom";
+import {useLocation, useNavigate} from "react-router-dom";
 import EmailForm from "../reset-password/email-form";
 import VerificationCodeForm from "../reset-password/verification-code-form";
 
@@ -35,6 +35,7 @@ export function Register(){
     const [timeoutEnabled, setTimeoutEnabled] = useState(false);
     const navigate = useNavigate();
     const [timeLeft, setTimeLeft] = useState(0);
+    const location = useLocation();
 
     useEffect(() => {
 
@@ -111,7 +112,7 @@ export function Register(){
             }
 
             dispatch(set_token(new_state));
-            navigate("/welcome", {replace: true});
+            navigate("/welcome", { replace: true, state: {from: location.pathname} });
 
         } catch (err){
             throw err;

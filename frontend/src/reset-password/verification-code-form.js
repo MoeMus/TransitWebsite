@@ -47,7 +47,7 @@ function VerificationCodeForm({onSubmitVerificationCode}){
                                         onClose={() => setError("")}> {error} </Alert> : null}
                             <label>Verification Code</label>
 
-                            <PasswordInput type="password" value={verificationCode} placeholder="Enter a password" required
+                            <PasswordInput type="password" value={verificationCode} placeholder="Enter your verification code" required
                                            onChange={(event) => setVerificationCode(event.target.value)}/>
 
                         </div>

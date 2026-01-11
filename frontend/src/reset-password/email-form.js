@@ -21,13 +21,25 @@ function EmailForm() {
 
     useEffect(() => {
 
+        const storedTime = localStorage.getItem('emailNextSendTime');
+        if (storedTime) {
+            const remaining = Math.ceil((parseInt(storedTime) - Date.now()) / 1000);
+            if (remaining > 0) {
+                setTimeLeft(remaining);
+                setTimeoutEnabled(true);
+            }
+        }
+    }, []);
+
+    useEffect(() => {
+
         if (!timeoutEnabled) return;
 
-        setTimeLeft(30);
         const interval = setInterval(()=>setTimeLeft(prev_second => {
             if (prev_second <= 1) {
                 clearInterval(interval);
                 setTimeoutEnabled(false);
+                localStorage.removeItem('emailNextSendTime');
                 return 0;
             }
             return prev_second - 1;
@@ -61,7 +73,9 @@ function EmailForm() {
             setError("");
             setRequestSuccessful(true);
             setAlertOpen(true);
+            setTimeLeft(30);
             setTimeoutEnabled(true);
+            localStorage.setItem('emailNextSendTime', (Date.now() + 30000).toString());
 
         } catch (err) {
 

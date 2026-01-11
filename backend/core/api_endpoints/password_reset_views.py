@@ -1,12 +1,16 @@
 from rest_framework import status
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, throttle_classes
 from rest_framework.response import Response
+from rest_framework.throttling import ScopedRateThrottle
 
 from core.serializers import PasswordResetSerializer, OTPVerificationSerializer, PasswordResetRequestSerializer
 
 
 @api_view(["POST"])
+@throttle_classes([ScopedRateThrottle])
 def request_password_reset(request):
+    request_password_reset.throttle_scope = 'password_reset_request'
+
     serializer = PasswordResetRequestSerializer(data=request.data)
 
     if serializer.is_valid():

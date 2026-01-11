@@ -38,7 +38,7 @@ export function Register(){
 
     useEffect(() => {
 
-        const storedTime = localStorage.getItem('emailNextSendTime');
+        const storedTime = localStorage.getItem('time_until_next_registration_email');
         if (storedTime) {
             const remaining = Math.ceil((parseInt(storedTime) - Date.now()) / 1000);
             if (remaining > 0) {

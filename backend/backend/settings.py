@@ -98,7 +98,8 @@ REST_FRAMEWORK = {
         'anon_burst': '20/min',
         'anon_sustained': '200/day',
         'user_burst': '60/min',
-        'user_sustained': '2000/day'
+        'user_sustained': '2000/day',
+        'password_reset_request': '2/min'
     }
 }
 

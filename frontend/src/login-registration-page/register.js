@@ -32,7 +32,38 @@ export function Register(){
     const [turnstileToken, setTurnstileToken] = useState("");
     const [validCredentials, setValidCredentials] = useState(false);
     const [alertOpen, setAlertOpen] = useState(false);
+    const [timeoutEnabled, setTimeoutEnabled] = useState(false);
     const navigate = useNavigate();
+    const [timeLeft, setTimeLeft] = useState(0);
+
+    useEffect(() => {
+
+        const storedTime = localStorage.getItem('emailNextSendTime');
+        if (storedTime) {
+            const remaining = Math.ceil((parseInt(storedTime) - Date.now()) / 1000);
+            if (remaining > 0) {
+                setTimeLeft(remaining);
+                setTimeoutEnabled(true);
+            }
+        }
+    }, []);
+
+    useEffect(() => {
+
+        if (!timeoutEnabled) return;
+
+        const interval = setInterval(()=>setTimeLeft(prev_second => {
+            if (prev_second <= 1) {
+                clearInterval(interval);
+                setTimeoutEnabled(false);
+                localStorage.removeItem('time_until_next_registration_email');
+                return 0;
+            }
+            return prev_second - 1;
+        }), 1000);
+        return ()=> clearInterval(interval)
+
+    }, [timeoutEnabled]);
 
     useEffect(()=>{
         if(confirmPassword !== password && password.length > 0){
@@ -110,7 +141,10 @@ export function Register(){
             await apiClient.post('/api/user/validate-credentials/', userCredentials);
             setValidCredentials(true);
             setAlertOpen(true);
-
+            setTimeLeft(30);
+            setTimeoutEnabled(true);
+            localStorage.setItem('time_until_next_registration_email', (Date.now() + 30000).toString());
+            setIsServerError(false);
         } catch (err){
 
             const errorMessage = err.response.data?.error || "There was an error registering your account";
@@ -158,6 +192,9 @@ export function Register(){
 
                                 <Form onSubmit={submitCredentials}>
 
+                                    { timeoutEnabled ? <Alert variant={"secondary"}> {`You can resend your verification code in ${timeLeft} seconds`} </Alert> : null}
+
+
                                     <Heading fontSize="25px" fontWeight="normal" marginBottom="55px"> Please enter a username,
                                         email, and password to register </Heading>
 
@@ -197,13 +234,13 @@ export function Register(){
                                     <TurnstileWidget setToken={setTurnstileToken}/>
 
                                     <Button className='button' type="submit" variant="success"
-                                            style={{marginTop: '10px', marginBottom: '10px'}}>Register</Button>{' '}
+                                            style={{marginTop: '10px', marginBottom: '10px'}} disabled={timeoutEnabled}>Register</Button>{' '}
 
                                     {alertOpen ?
                                         <Alert status={"primary"} style={{padding: "10px"}} dismissible
                                                onClose={() => setAlertOpen(false)}>
                                             <Alert.Heading> Verification Code Sent </Alert.Heading>
-                                            <p> If you didn't receive the email, click <Alert.Link
+                                            <p> If you didn't receive the email, click <Alert.Link disabled={timeoutEnabled}
                                                 onClick={submitCredentials}>here</Alert.Link> to resend it </p>
                                         </Alert> : null }
 

@@ -44,7 +44,7 @@ def remove_blacklisted_tokens():
 def remove_expired_otps():
 
     logger.info("Removing expired OTPs")
-    OneTimePassword.objects.filter(expires_at__lt=timezone.now()).delete()
+    OneTimePassword.objects.filter(otp_expiry_date__lt=timezone.now()).delete()
 
 
 @shared_task(name="core.cron.update_course_data")

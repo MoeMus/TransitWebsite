@@ -65,6 +65,7 @@ export function Dashboard() {
     const [copied, setCopied] = useState(false);
     const [showQrModal, setShowQrModal] = useState(false);
     const [isManualLocationFormOpen, setIsManualLocationFormOpen] = useState(false);
+    const scheduleRef = useRef(null);
 
     const { username } = useSelector((state)=>state.authentication);
     const { manual_location, manual_location_enabled } = useSelector((state)=>state.manual_location);
@@ -85,11 +86,11 @@ export function Dashboard() {
     const watchIdRef = useRef(null);
 
     const enableSchedule = ()=> {
-      if(viewCalendar){
-        setViewCalendar(false);
-      } else {
-        setViewCalendar(true);
-      }
+        if(viewCalendar){
+            setViewCalendar(false);
+        } else {
+            setViewCalendar(true);
+        }
     }
     const onMapLoad = (mapInstance) => {
       setMap(mapInstance);
@@ -189,6 +190,17 @@ export function Dashboard() {
         }
 
     }, [dispatch, username]);
+
+    useEffect(()=>{
+        if (viewCalendar && scheduleRef.current) {
+
+            scheduleRef.current.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
+        }
+
+    }, [viewCalendar]);
 
 
     useEffect(() => {
@@ -574,11 +586,21 @@ export function Dashboard() {
                                                 <BsCalendar3 />
                                                 Calendar
                                             </Button>
+                                            {viewCalendar ?
+                                            <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                onClick={enableSchedule}>
+                                                <BsCalendar3 /> Close Weekly Schedule
+                                            </Button>
+                                            :
                                             <Button size="sm"
                                                 variant="ghost"
                                                 onClick={enableSchedule}>
                                                 <BsCalendar3 /> View Weekly Schedule
                                             </Button>
+                                            }
+
                                             <Button
                                                 size="sm"
                                                 variant="ghost"
@@ -746,7 +768,7 @@ export function Dashboard() {
                     </div>
 
 
-                    <div style={{marginTop: "40px"}}>
+                    <div style={{marginTop: "40px"}} ref={scheduleRef}>
                         {viewCalendar ? <CourseCalendar courses={userInfo.courses}/> : null}
                     </div>
 

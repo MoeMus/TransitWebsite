@@ -44,7 +44,7 @@ function ManualLocationForm({manualLocationChange, isOpen, onClose}) {
                                 </Form.Group>
                                 <Form.Group>
                                     <Form.Text>
-                                        Example: <strong> 1600 Amphitheatre Parkway, Mountain View, CA 94043. </strong>
+                                        Example: <strong> 453 W 12th Ave, Vancouver, BC V5Y 1V4. </strong>
                                         Addresses can also be place names, <strong>ex: "Statue of Liberty, New York, NY"</strong>
                                     </Form.Text>
 

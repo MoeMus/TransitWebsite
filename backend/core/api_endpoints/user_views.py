@@ -1,6 +1,7 @@
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from django.db import IntegrityError, transaction
+from django.forms import model_to_dict
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from rest_framework import status
@@ -163,6 +164,16 @@ def add_course_to_schedule(request):
 
                 conflicts = check_time_conflicts(new_lecture_section, user_courses)
 
+                if conflicts:
+
+                    error_response = Response({
+                        "error": "Time conflicts detected",
+                        "section": model_to_dict(new_lecture_section),
+                        "conflicts": conflicts
+                    }, status=status.HTTP_409_CONFLICT)
+
+                    raise Exception
+
                 non_lecture_section = None
 
                 if non_lecture_section_code:
@@ -170,16 +181,17 @@ def add_course_to_schedule(request):
                     non_lecture_section = NonLectureSection.objects.filter(department=department, number=course_number,
                                                                            section_code=non_lecture_section_code).first()
 
-                    conflicts += check_time_conflicts(non_lecture_section, user_courses)
+                    conflicts = check_time_conflicts(non_lecture_section, user_courses)
 
-                if conflicts:
+                    if conflicts:
 
-                    error_response = Response({
-                        "error": "Time conflicts detected",
-                        "conflicts": conflicts
-                    }, status=status.HTTP_409_CONFLICT)
+                        error_response = Response({
+                            "error": "Time conflicts detected",
+                            "section": model_to_dict(non_lecture_section),
+                            "conflicts": conflicts
+                        }, status=status.HTTP_409_CONFLICT)
 
-                    raise Exception
+                        raise Exception
 
                 user.lecture_sections.add(new_lecture_section)
                 if non_lecture_section:

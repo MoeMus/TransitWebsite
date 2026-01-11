@@ -7,48 +7,6 @@ import CourseCalendar from "../calendar/CourseCalendar";
 import { BsListUl, BsCalendar3, BsTrash, BsPlusLg, BsXLg } from "react-icons/bs";
 import Dialog from "../components/dialog";
 
-const refreshAccessToken = async () => {
-  const refreshToken = sessionStorage.getItem('refresh_token');
-
-  // Refresh token is expired, send user to the login page
-  if (!refreshToken) {
-    sessionStorage.clear();
-    window.location.href = "/";
-    return false;
-  }
-
-  try {
-    const response = await apiClient('/token/refresh/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': '', // don't send an expired Bearer token to refresh endpoint
-      },
-      data: {
-        refresh: refreshToken,
-      },
-    });
-
-    if (response.status === 200) {
-      const data = await response.data;
-      sessionStorage.setItem('access_token', data.access);
- 
-      if (data.refresh) {
-        sessionStorage.setItem('refresh_token', data.refresh);
-      }
-      return true;
-    } else {
-      sessionStorage.clear();
-      window.location.href = "/";
-      return false;
-    }
-  } catch (error) {
-    console.error("Refresh token expired or invalid:", error);
-    sessionStorage.clear();
-    window.location.href = "/";
-    return false;
-  }
-};
 
 export function ScheduleBuilder() {
   const [availableCourses, setAvailableCourses] = useState([]);
@@ -76,23 +34,19 @@ export function ScheduleBuilder() {
   // Displays a toast notification showing all courses that conflict with the selected course
   function displayCourseConflicts(course_conflicts) {
     let conflicts = [];
-    course_conflicts.map((item) => {
+    course_conflicts.conflicts.map((item) => {
       conflicts.push(`${item.department} ${item.number} ${item.section_code}`);
     })
 
-    toast.error(`${selectedCourse.department} ${selectedCourse.course_number} conflicts with ${conflicts.join(" | ")}`);
+    const conflicting_section = course_conflicts.section;
+
+    toast.error(`${conflicting_section.department} ${conflicting_section.number} ${conflicting_section.section_code} conflicts with ${conflicts.join(" | ")}`);
   }
 
   // Fetch all available courses
   const fetchAvailableCourses = useCallback(async () => {
-    const accessToken = sessionStorage.getItem('access_token');
     try {
-      const response = await apiClient('/api/courses/get/all/', {
-        method: "GET",
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        }
+      const response = await apiClient.get('/api/courses/get/all/', {
       });
       const data = await response.data;  // Convert the response to JSON
       setAvailableCourses(Array.isArray(data) ? data : []);  // Set the parsed data to state
@@ -119,19 +73,9 @@ export function ScheduleBuilder() {
 
   // Fetch the user's saved courses
   const fetchUserCourses = useCallback(async () => {
-    const accessToken = sessionStorage.getItem('access_token');
-    if (!accessToken) {
-      toast.error("User is not authenticated");
-      return;
-    }
 
     try {
-      const response = await apiClient(`/api/user/courses/`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
+      const response = await apiClient.get(`/api/user/courses/`, {
       });
 
       if (response.status === 200) {
@@ -173,7 +117,6 @@ export function ScheduleBuilder() {
         toast.error("Failed to load your courses.");
       }
     } catch (err) {
-      console.error(err);
       toast.error("Failed to load your courses.");
     }
   }, [username]);
@@ -200,7 +143,6 @@ export function ScheduleBuilder() {
           non_lecture_section_code: selectedNonLectureSection?.section_code || null
         };
 
-        console.log("Posting add course:", request);
         try {
           // Send the POST request to persist the course on the backend.
           await apiClient.post(
@@ -208,7 +150,6 @@ export function ScheduleBuilder() {
             request,
             {
               withCredentials: true,
-              method: "POST"
             }
           );
 
@@ -222,7 +163,7 @@ export function ScheduleBuilder() {
           setSelectionStage("course");
         } catch (error) {
           if (error.response && error.response.status === 409) {
-            displayCourseConflicts(error.response.data.conflicts);
+            displayCourseConflicts(error.response.data);
           } else {
             toast.error(error.response?.data?.error || "Error adding course to schedule");
           }
@@ -267,7 +208,6 @@ export function ScheduleBuilder() {
           post_request,
           {
             withCredentials: true,
-            method: "POST"
           }
         );
         toast.success(`${courseData.title} ${sectionData.section_code} removed from schedule`);
@@ -296,7 +236,6 @@ export function ScheduleBuilder() {
         {},
         {
           withCredentials: true,
-          method: "POST"
         }
       );
       setSelectedCourses([]);
@@ -316,28 +255,11 @@ export function ScheduleBuilder() {
   };
 
 
-
   // Fetch lecture sections for a given course
   const fetchLectureSections = async (courseId) => {
-    const accessToken = sessionStorage.getItem('access_token');
-
-    if (!accessToken) {
-      toast.error("User is not authenticated");
-      return;
-    }
-
-    const isTokenValid = await refreshAccessToken();
-    if (!isTokenValid) {
-      return;
-    }
 
     try {
-      const response = await apiClient(`/api/courses/${courseId}/lectures/`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`, // Add Bearer token
-          'Content-Type': 'application/json',
-        },
+      const response = await apiClient.get(`/api/courses/${courseId}/lectures/`, {
       });
 
       const data = await response.data;
@@ -354,25 +276,9 @@ export function ScheduleBuilder() {
 
   // Fetch non-lecture sections for a given lecture section
   const fetchNonLectureSections = async (lectureId) => {
-    const accessToken = sessionStorage.getItem('access_token');
-
-    if (!accessToken) {
-      toast.error("User is not authenticated");
-      return;
-    }
-
-    const isTokenValid = await refreshAccessToken();
-    if (!isTokenValid) {
-      return;
-    }
 
     try {
-      const response = await apiClient(`/api/courses/lectures/${lectureId}/non-lectures/`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
+      const response = await apiClient.get(`/api/courses/lectures/${lectureId}/non-lectures/`, {
       });
 
       const data = await response.data;
@@ -385,7 +291,7 @@ export function ScheduleBuilder() {
   };
 
   // Handle course selection from dropdown
-  const handleCourseSelection = (e) => {
+  const handleCourseSelection = async (e) => {
     const courseId = e.target.value;
     const course = availableCourses.find((course) => course.id === parseInt(courseId));
     setSelectedCourse(course);
@@ -393,7 +299,7 @@ export function ScheduleBuilder() {
     setSelectedNonLectureSection(null);
     setLectureSections([]);
     setNonLectureSections([]);
-    fetchLectureSections(courseId);
+    await fetchLectureSections(courseId);
   };
 
   // Handle lecture section selection from dropdown
@@ -441,6 +347,18 @@ export function ScheduleBuilder() {
     }
   }
 
+  // Flattens the schedule field of a lecture/non lecture section object into a single string (ex: 'We 13:30 - 14:20 | Fr 12:30 - 14:20')
+  function flattenScheduleField(lecture) {
+    return [...new Set(
+        lecture.schedule?.flatMap(block =>
+            block.days.split(", ").map(
+                day => `${day} ${block.startTime} - ${block.endTime}`
+            )
+        )
+    )
+    ].join(" | ");
+  }
+
   return (
     <>
       <Toaster position="top-center" duration={5000} reverseOrder={false} />
@@ -486,9 +404,12 @@ export function ScheduleBuilder() {
                     >
                       <option value="">Choose a lecture...</option>
                       {Array.isArray(uniqueLectureSections) && uniqueLectureSections.map((lecture) => (
-                        <option key={lecture.id} value={lecture.id}>
-                          {lecture.section_code} ({lecture.schedule?.[0]?.startTime || "N/A"} - {lecture.schedule?.[0]?.endTime || "N/A"})
-                        </option>
+                          <option key={lecture.id} value={lecture.id}>
+                            {lecture.section_code}{" - "}
+                            ({
+                            flattenScheduleField(lecture)
+                          })
+                          </option>
                       ))}
                     </Form.Control>
                   </Form.Group>
@@ -508,7 +429,8 @@ export function ScheduleBuilder() {
                       <option value="">Choose a section...</option>
                       {Array.isArray(nonLectureSections) && nonLectureSections.map((nonLecture) => (
                         <option key={nonLecture.id} value={nonLecture.id}>
-                          {nonLecture.section_code} ({nonLecture.schedule?.[0]?.startTime || "N/A"} - {nonLecture.schedule?.[0]?.endTime || "N/A"})
+                          {nonLecture.section_code}{" - "}
+                          ({flattenScheduleField(nonLecture)})
                         </option>
                       ))}
                     </Form.Control>
@@ -608,12 +530,13 @@ export function ScheduleBuilder() {
                       <div className="text-muted small">
                         <span className="me-3">
                           <strong>Lecture:</strong> {lectureData.section_code || "N/A"} 
-                          <span className="ms-1 text-primary">({lectureData.schedule?.[0]?.startTime || "N/A"} - {lectureData.schedule?.[0]?.endTime || "N/A"})</span>
+                          <span className="ms-1 text-primary">({flattenScheduleField(lectureData)})
+                        </span>
                         </span>
                         {nonLectureData && (
                           <span>
                             <strong>Non-Lecture:</strong> {nonLectureData.section_code} 
-                            <span className="ms-1 text-primary">({nonLectureData.schedule?.[0]?.startTime || "N/A"} - {nonLectureData.schedule?.[0]?.endTime || "N/A"})</span>
+                            <span className="ms-1 text-primary">({flattenScheduleField(nonLectureData)})</span>
                           </span>
                         )}
                       </div>

@@ -3,7 +3,7 @@ from rest_framework.decorators import api_view, throttle_classes
 from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
 
-from core.serializers import PasswordResetSerializer, OTPVerificationSerializer, PasswordResetRequestSerializer
+from core.model_serializers.password_reset_serializers import *
 
 
 @api_view(["POST"])
@@ -17,9 +17,7 @@ def request_password_reset(request):
         return Response({"success": f"Verification code sent to {request.data['email']}."},
                         status=status.HTTP_200_OK)
 
-    first_error = next(iter(serializer.errors.values()))[0]
-
-    return Response({"error": first_error}, status=status.HTTP_400_BAD_REQUEST)
+    return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(["POST"])

@@ -1,12 +1,24 @@
 import {Navigation} from "./navigation-bar";
 import Container from "react-bootstrap/Container";
 import Button from "react-bootstrap/Button";
-import {useNavigate} from "react-router-dom";
+import {useLocation, useNavigate} from "react-router-dom";
+import {useEffect, useState} from "react";
 
 
 function WelcomePage(){
 
     const navigate = useNavigate();
+    const location = useLocation();
+
+    const prev_url = location.state?.from;
+
+    const cameFromRegistrationPage = prev_url === "/signup";
+
+    useEffect(()=>{
+        if (!cameFromRegistrationPage) {
+            navigate("/", {replace: true});
+        }
+    }, [cameFromRegistrationPage]);
 
     return (
         <>
@@ -26,7 +38,6 @@ function WelcomePage(){
                 }}>
 
                     <Container className="page">
-
 
                         <div>
                             <p className="welcome-message">

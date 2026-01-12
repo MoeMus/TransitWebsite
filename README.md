@@ -165,14 +165,15 @@ Ensure you are in the `/backend` directory
    ```
 10. **Running Cron Jobs Manually**
 
-   **Every 4 months, the server will update all course data for the new semester by scraping the SFU Course Outlines API.**
-   **This is set up as a cron job that is managed by Celery. If you want to run this manually, do the following:**
+   **All cron jobs are handled by Celery, but can be run manually for development/testing purposes**
+
+   **Every 4 months, the server will update all course data for the new semester by scraping the SFU Course Outlines API. If you want to run this manually, do the following:**
    ```bash
    # Locally
-   python manage.py run_cron_job
+   python manage.py update_course_data
    
    # In Docker
-   docker exec transit_server python manage.py run_cron_job
+   docker exec transit_server python manage.py update_course_data
    ```
 
    **At the end of each day, the server will clear all blacklisted or expired refresh tokens from the database. To do this manually, Django already**
@@ -184,7 +185,17 @@ Ensure you are in the `/backend` directory
    # In Docker
    docker exec transit_server python manage.py flushexpiredtokens 
    ```
+   
+   **At the end of each day, the server will clear all expired OTPs from password resets and account creations. To run this manually, do the following:**
+   ```bash
+   # Locally
+   python manage.py remove_expired_otps
+   
+   # In Docker
+   docker exec transit_server python manage.py remove_expired_otps
+   ```
 ### Frontend Setup
+
 
 Ensure you are in the `/frontend` directory
 

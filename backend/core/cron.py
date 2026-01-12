@@ -7,7 +7,7 @@ from django.db import transaction, IntegrityError
 from django_cron import CronJobBase, Schedule
 from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
 
-from .models import Course, LectureSection, NonLectureSection, User, NewSemesterNotification
+from .models import Course, LectureSection, NonLectureSection, User, NewSemesterNotification, OneTimePassword
 from .utils import get_current_year, get_current_term_code, get_current_term
 import requests
 import logging
@@ -38,6 +38,13 @@ def remove_blacklisted_tokens():
 
     # Delete expired outstanding tokens
     OutstandingToken.objects.filter(expires_at__lt=timezone.now()).delete()
+
+
+@shared_task(name="core.cron.remove_expired_otps")
+def remove_expired_otps():
+
+    logger.info("Removing expired OTPs")
+    OneTimePassword.objects.filter(otp_expiry_date__lt=timezone.now()).delete()
 
 
 @shared_task(name="core.cron.update_course_data")

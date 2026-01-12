@@ -1,7 +1,7 @@
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
 import 'bootstrap/dist/css/bootstrap.css';
-import {useNavigate} from "react-router-dom";
+import {useNavigate, useLocation} from "react-router-dom";
 import {useDispatch, useSelector} from "react-redux";
 import {NavDropdown} from "react-bootstrap";
 import toast from "react-hot-toast";
@@ -14,9 +14,15 @@ import {remove_token} from "../storeConfig/auth_reducer";
 export function Navigation(){
 
     const navigate = useNavigate();
+    const location = useLocation();
     const dispatch = useDispatch();
 
     const { is_authenticated, refresh_token, username } = useSelector((state)=>state.authentication);
+
+    // If the user is not logged in, hide navbar on the registration page
+    if (location.pathname === "/registration" && !is_authenticated) {
+        return null;
+    }
 
     const logout_msg = "You are about to sign out, are you sure?";
     const account_deletion_msg = "You are about to delete your account, are you sure? This action cannot be undone";
@@ -107,4 +113,3 @@ export function Navigation(){
 
     );
 }
-

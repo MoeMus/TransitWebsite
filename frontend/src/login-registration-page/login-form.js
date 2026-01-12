@@ -91,6 +91,7 @@ export function Login() {
             toast.custom((t) => (
                 <Notification title={"Password Reset"} message={"Your password has been changed"} toast_object={t}/>
             ), {
+                id: "password-reset-notification",
                 duration: 15000,
             }
             );

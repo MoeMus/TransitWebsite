@@ -20,6 +20,7 @@ export function Navigation(){
     const { is_authenticated, refresh_token, username } = useSelector((state)=>state.authentication);
 
     // If the user is not logged in, hide navbar on the registration page
+    if (location.pathname === "/registration" && !is_authenticated) {
         return null;
     }
 

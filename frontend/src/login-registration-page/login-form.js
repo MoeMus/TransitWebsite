@@ -111,7 +111,7 @@ export function Login() {
                 <form onSubmit={submit}>
                     <VStack spacing={5}>
                         {loginError && (
-                            <Box bg="red.50" _dark={{ bg: "red.900" }} p={3} borderRadius="md" color="red.800" _dark={{ color: "red.100" }} width="full">
+                            <Box bg="red.50" _dark={{ bg: "red.900", color: "red.100" }} p={3} borderRadius="md" color="red.800" width="full">
                                 <HStack spacing={2}>
                                     <Icon as={BsExclamationCircle} />
                                     <Text fontSize="sm">Incorrect Username or Password</Text>

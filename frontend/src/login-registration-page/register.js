@@ -1,18 +1,21 @@
 import '../styles/loginStyles.css';
-import {useEffect, useState} from "react";
+import React, {useEffect, useState} from "react";
 import Button from 'react-bootstrap/Button';
 import Container from 'react-bootstrap/Container';
 import Form from 'react-bootstrap/Form';
 import apiClient from "../configurations/configAxios";
 import {useDispatch} from "react-redux";
 import WelcomePage from "../components/welcomePage";
-import {Heading} from "@chakra-ui/react";
+import {Flex, Heading} from "@chakra-ui/react";
 import {PasswordInput} from "../components/ui/password-input";
 import Alert from "react-bootstrap/Alert";
 import {set_token} from "../storeConfig/auth_reducer";
 import toast, { Toaster } from 'react-hot-toast';
 import SecretField from "../components/secret-field";
 import TurnstileWidget from "../components/TurnstileWidget";
+import {useLocation, useNavigate} from "react-router-dom";
+import EmailForm from "../reset-password/email-form";
+import VerificationCodeForm from "../reset-password/verification-code-form";
 
 export function Register(){
     const [username, setUsername] = useState('');
@@ -20,7 +23,6 @@ export function Register(){
     const [confirmPassword, setConfirmPassword] = useState('');
     const [email, setEmail] = useState('');
     const [allCredentials, setAllCredentials] = useState(false);
-    const [successfulRegister, setSuccessfulRegister] = useState(false);
     const dispatch = useDispatch();
     const [passwordMatch, setPasswordMatch] = useState(true);
     const [passwordMatchMsg, setPasswordMatchMsg] = useState("");
@@ -28,7 +30,42 @@ export function Register(){
     const [serverErrMsg, setServerErrMsg] = useState("");
     const [secretField, setSecretField] = useState("");
     const [turnstileToken, setTurnstileToken] = useState("");
-    
+    const [validCredentials, setValidCredentials] = useState(false);
+    const [alertOpen, setAlertOpen] = useState(false);
+    const [timeoutEnabled, setTimeoutEnabled] = useState(false);
+    const navigate = useNavigate();
+    const [timeLeft, setTimeLeft] = useState(0);
+    const location = useLocation();
+
+    useEffect(() => {
+
+        const storedTime = localStorage.getItem('time_until_next_registration_email');
+        if (storedTime) {
+            const remaining = Math.ceil((parseInt(storedTime) - Date.now()) / 1000);
+            if (remaining > 0) {
+                setTimeLeft(remaining);
+                setTimeoutEnabled(true);
+            }
+        }
+    }, []);
+
+    useEffect(() => {
+
+        if (!timeoutEnabled) return;
+
+        const interval = setInterval(()=>setTimeLeft(prev_second => {
+            if (prev_second <= 1) {
+                clearInterval(interval);
+                setTimeoutEnabled(false);
+                localStorage.removeItem('time_until_next_registration_email');
+                return 0;
+            }
+            return prev_second - 1;
+        }), 1000);
+        return ()=> clearInterval(interval)
+
+    }, [timeoutEnabled]);
+
     useEffect(()=>{
         if(confirmPassword !== password && password.length > 0){
             setPasswordMatchMsg("Passwords must match");
@@ -74,9 +111,8 @@ export function Register(){
                 username: username
             }
 
-            setSuccessfulRegister(true);
             dispatch(set_token(new_state));
-            apiClient.defaults.headers.common['Authorization'] = `Bearer ${data.access}`;
+            navigate("/welcome", { replace: true, state: {from: location.pathname} });
 
         } catch (err){
             throw err;
@@ -103,78 +139,124 @@ export function Register(){
                 turnstile_token: turnstileToken
             };
 
-            await apiClient.post('/api/user/', userCredentials);
-            await loginUser(userCredentials);
-
+            await apiClient.post('/api/user/validate-credentials/', userCredentials);
+            setValidCredentials(true);
+            setAlertOpen(true);
+            setTimeLeft(30);
+            setTimeoutEnabled(true);
+            localStorage.setItem('time_until_next_registration_email', (Date.now() + 30000).toString());
+            setIsServerError(false);
         } catch (err){
 
             const errorMessage = err.response.data?.error || "There was an error registering your account";
 
             setServerErrMsg(errorMessage);
             setIsServerError(true);
+            setValidCredentials(false);
 
         }
 
     }
 
-    const registrationForm = () =>{
-        return (<>
-            <Container fluid>
+    async function createAccount(verificationCode){
 
-                <div className="form-container">
+        const request = {
+            email: email,
+            otp: verificationCode
+        }
 
-                    <Form onSubmit={submitCredentials}>
+        await apiClient.post("/api/user/validate-registration-code/", request);
 
-                        <Heading fontSize="25px" fontWeight="normal" marginBottom="55px"> Please enter a username, email, and password to register </Heading>
+        const userCredentials = {
+            username: username,
+            email: email,
+            password: password,
+            turnstile_token: turnstileToken
+        };
 
-                        {isServerError ? <Alert variant="danger" title="Invalid Credentials"
-                                                dismissible onClose={()=>setIsServerError(false) }> {serverErrMsg} </Alert> : null}
-                        <fieldset>
-                            <legend className='input-text'>Username</legend>
-                            <Form.Control type="text" value={username} placeholder="Enter a username"
-                                          onInput={(event) => setUsername(event.target.value)}/>
-                        </fieldset>
+        await apiClient.post("/api/user/", userCredentials);
 
-                        <fieldset>
-                            <legend className='input-text'>Email</legend>
-                            <Form.Control type="email" value={email} placeholder="Enter your email address"
-                                          onInput={(event) => setEmail(event.target.value)}/>
-                        </fieldset>
+        await loginUser(userCredentials);
 
-
-                        <fieldset>
-                            <legend className='input-text'>Password</legend>
-                            <PasswordInput type="password" value={password} placeholder="Enter a password" required
-                                          onChange={(event) => setPassword(event.target.value)}/>
-                        </fieldset>
-
-                        {password !== '' ? (<fieldset>
-                            <legend className='input-text'>Confirm Password</legend>
-                            <PasswordInput type="password" value={confirmPassword} placeholder="Reenter your password"
-                                          required onChange={(event) => setConfirmPassword(event.target.value)}/>
-                        </fieldset>) : null}
-
-                        <SecretField value={secretField} setter={setSecretField} />
-
-                        <TurnstileWidget setToken={setTurnstileToken} />
-
-                        <Button className='button' type="submit" variant="success" style={{marginTop: '10px', marginBottom: '10px'}}>Register</Button>{' '}
-
-                    </Form>
-                    {!passwordMatch ? <p style={{color: "indianred"}}> {passwordMatchMsg} </p> : null}
-
-
-                </div>
-
-            </Container>
-        </>);
     }
 
     return(
         <>
             <Toaster position="top-center" reverseOrder={false} />
 
-            {successfulRegister? <WelcomePage /> : registrationForm()}
+                <Flex  direction="column">
+
+                    <Flex justifyContent="center">
+                        <Flex direction="column">
+
+                            <div className="Auth-form-container">
+
+                                <Form onSubmit={submitCredentials}>
+
+                                    { timeoutEnabled ? <Alert variant={"secondary"}> {`You can resend your verification code in ${timeLeft} seconds`} </Alert> : null}
+
+
+                                    <Heading fontSize="25px" fontWeight="normal" marginBottom="55px"> Please enter a username,
+                                        email, and password to register </Heading>
+
+                                    {isServerError ? <Alert variant="danger" title="Invalid Credentials"
+                                                            dismissible
+                                                            onClose={() => setIsServerError(false)}> {serverErrMsg} </Alert> : null}
+                                    <fieldset>
+                                        <legend className='input-text'>Username</legend>
+                                        <Form.Control type="text" value={username} placeholder="Enter a username"
+                                                      onInput={(event) => setUsername(event.target.value)}/>
+                                    </fieldset>
+
+                                    <fieldset>
+                                        <legend className='input-text'>Email</legend>
+                                        <Form.Control type="email" value={email} placeholder="Enter your email address"
+                                                      onInput={(event) => setEmail(event.target.value)}/>
+                                    </fieldset>
+
+
+                                    <fieldset>
+                                        <legend className='input-text'>Password</legend>
+                                        <PasswordInput type="password" value={password} placeholder="Enter a password" required
+                                                       onChange={(event) => setPassword(event.target.value)}/>
+                                    </fieldset>
+
+                                    {password !== '' ? (<fieldset>
+                                        <legend className='input-text'>Confirm Password</legend>
+                                        <PasswordInput type="password" value={confirmPassword}
+                                                       placeholder="Reenter your password"
+                                                       required onChange={(event) => setConfirmPassword(event.target.value)}/>
+                                    </fieldset>) : null}
+
+                                    {!passwordMatch ? <p style={{color: "indianred"}}> {passwordMatchMsg} </p> : null}
+
+                                    <SecretField value={secretField} setter={setSecretField}/>
+
+                                    <TurnstileWidget setToken={setTurnstileToken}/>
+
+                                    <Button className='button' type="submit" variant="success"
+                                            style={{marginTop: '10px', marginBottom: '10px'}} disabled={timeoutEnabled}>Register</Button>{' '}
+
+                                    {alertOpen ?
+                                        <Alert status={"primary"} style={{padding: "10px"}} dismissible
+                                               onClose={() => setAlertOpen(false)}>
+                                            <Alert.Heading> Verification Code Sent </Alert.Heading>
+                                            <p> If you didn't receive the email, click <Alert.Link disabled={timeoutEnabled}
+                                                onClick={submitCredentials}>here</Alert.Link> to resend it </p>
+                                        </Alert> : null }
+
+                                </Form>
+
+
+                            </div>
+
+                            {validCredentials ? <VerificationCodeForm onSubmitVerificationCode={createAccount}/> : null}
+
+                        </Flex>
+
+                    </Flex>
+
+                </Flex>
 
         </>
     )

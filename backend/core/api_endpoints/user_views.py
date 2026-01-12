@@ -14,7 +14,7 @@ from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, Bl
 from core.models import User, LectureSection, NonLectureSection, NewSemesterNotification
 from core.serializers import UserSerializer, LectureSectionSerializer, NonLectureSectionSerializer, NewSemesterNotificationSerializer
 from core.utils import check_time_conflicts, refresh_courses_if_stale
-
+from core.model_serializers.registration_verification_code_serializers import *
 
 class UserView(APIView):
 
@@ -65,6 +65,28 @@ class UserView(APIView):
 
             return Response({"error": "User with that username or email already exists"},
                             status=status.HTTP_400_BAD_REQUEST)
+
+
+# Validates the user credentials for signup
+@api_view(["POST"])
+def validate_user_credentials(request):
+
+    serializer = UserSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+
+    verification_code_serializer = RegistrationVerificationCodeSerializer(data=request.data)
+    verification_code_serializer.is_valid(raise_exception=True)
+
+    return Response({"success": f"Verification code sent to {request.data['email']}."}, status=status.HTTP_200_OK)
+
+
+@api_view(["POST"])
+def validate_registration_code(request):
+    serializer = RegistrationVerifyOTPSerializer(data=request.data)
+
+    serializer.is_valid(raise_exception=True)
+
+    return Response({"success": "OTP verified."}, status=status.HTTP_200_OK)
 
 
 # Retrieves all courses (lecture sections and non lecture sections) for a user

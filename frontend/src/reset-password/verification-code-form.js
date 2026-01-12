@@ -6,37 +6,26 @@ import apiClient from "../configurations/configAxios";
 import {useNavigate} from "react-router-dom";
 import {PasswordInput} from "../components/ui/password-input";
 
-function VerificationCodeForm({email}){
+function VerificationCodeForm({onSubmitVerificationCode}){
 
     const [error, setError] = useState("");
     const [verificationCode, setVerificationCode] = useState("");
 
-    const navigate = useNavigate();
-
-    async function submitVerificationCode(evt) {
+    async function submitCode(evt) {
 
         evt.preventDefault();
 
-        const request = {
-
-            email: email,
-            otp: verificationCode
-
-        };
-
         try {
 
-            await apiClient.post("/api/password/otp/validate/", request);
-
-            navigate("/password/reset", {replace: true, state: {email: email}});
+            await onSubmitVerificationCode(verificationCode);
 
         } catch (err){
-            const message = err.response?.data?.otp || "Could not verify your verification code";
+            console.log(err)
+            const message = err.response?.data?.error || err.response?.data?.error?.email || err.response?.data?.otp || "Could not verify your verification code";
 
             setError(message);
 
         }
-
     }
 
     return (
@@ -45,7 +34,7 @@ function VerificationCodeForm({email}){
 
             <div className="Auth-form-container">
 
-                <form onSubmit={submitVerificationCode}>
+                <form onSubmit={submitCode}>
 
                     <div className="Auth-form-content">
 

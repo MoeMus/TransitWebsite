@@ -352,7 +352,7 @@ export function ScheduleBuilder() {
     return [...new Set(
         lecture.schedule?.flatMap(block =>
             block.days.split(", ").map(
-                day => `${day} ${block.startTime} - ${block.endTime}`
+                day => `${day || 'N/A'} ${block?.startTime || `N/A`} - ${block?.endTime || 'N/A'}`
             )
         )
     )

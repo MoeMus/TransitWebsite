@@ -7,6 +7,7 @@ import apiClient from "../configurations/configAxios";
 import VerificationCodeForm from "./verification-code-form";
 import SecretField from "../components/secret-field";
 import TurnstileWidget from "../components/TurnstileWidget";
+import {useNavigate} from "react-router-dom";
 
 function EmailForm() {
 
@@ -18,6 +19,7 @@ function EmailForm() {
     const [timeLeft, setTimeLeft] = useState(0);
     const [secretField, setSecretField] = useState("");
     const [turnstileToken, setTurnstileToken] = useState("");
+    const navigate = useNavigate();
 
     useEffect(() => {
 
@@ -78,8 +80,7 @@ function EmailForm() {
             localStorage.setItem('emailNextSendTime', (Date.now() + 30000).toString());
 
         } catch (err) {
-
-            const message = err.response?.data?.error || "Something went wrong. Please try again.";
+            const message = err.response?.data?.error?.email || "Something went wrong. Please try again.";
             setError(message);
             setRequestSuccessful(false);
             setAlertOpen(false);
@@ -88,6 +89,22 @@ function EmailForm() {
 
 
     }
+
+    async function submitVerificationCode(verificationCode) {
+
+        const request = {
+
+            email: email,
+            otp: verificationCode
+
+        };
+
+        await apiClient.post("/api/password/otp/validate/", request);
+
+        navigate("/password/reset", {replace: true, state: {email: email}});
+
+    }
+
 
     return (
 
@@ -146,7 +163,7 @@ function EmailForm() {
 
                 </div>
 
-                {requestSuccessful ? <VerificationCodeForm email={email}/> : null}
+                {requestSuccessful ? <VerificationCodeForm onSubmitVerificationCode={submitVerificationCode}/> : null}
 
             </Flex>
 

@@ -13,13 +13,12 @@ import {
     Text,
     HStack,
     Icon,
-    IconButton
 } from "@chakra-ui/react";
 import Notification from "../components/notification";
 import SecretField from "../components/secret-field";
 import TurnstileWidget from "../components/TurnstileWidget";
 import { BsExclamationCircle } from "react-icons/bs";
-import { LuUser, LuLock, LuEye, LuEyeOff } from "react-icons/lu";
+import { LuUser, LuLock, LuEye, LuEyeOff, LuX } from "react-icons/lu";
 
 export function Login() {
 
@@ -113,9 +112,12 @@ export function Login() {
                     <VStack spacing={5}>
                         {loginError && (
                             <Box bg="red.50" _dark={{ bg: "red.900", color: "red.100" }} p={3} borderRadius="md" color="red.800" width="full">
-                                <HStack spacing={2}>
-                                    <Icon as={BsExclamationCircle} />
-                                    <Text fontSize="sm">Incorrect Username or Password</Text>
+                                <HStack spacing={2} justify="space-between" align="center">
+                                    <HStack spacing={2} align="center">
+                                        <Icon as={BsExclamationCircle} boxSize={4} />
+                                        <Text fontSize="sm" mb={0}>Incorrect Username or Password</Text>
+                                    </HStack>
+                                    <Icon as={LuX} cursor="pointer" onClick={() => setLoginError(false)} _hover={{ opacity: 0.7 }} />
                                 </HStack>
                             </Box>
                         )}
@@ -194,15 +196,23 @@ export function Login() {
                                     alignItems="center"
                                     zIndex={2}
                                 >
-                                    <IconButton
-                                        variant="ghost"
-                                        icon={showPassword ? <LuEyeOff /> : <LuEye />}
+                                    <Box
+                                        as="button"
+                                        type="button"
                                         onClick={() => setShowPassword(!showPassword)}
                                         aria-label={showPassword ? "Hide password" : "Show password"}
-                                        size="sm"
+                                        display="flex"
+                                        alignItems="center"
+                                        justifyContent="center"
+                                        p={2}
                                         color="gray.400"
-                                        _hover={{ color: "gray.600", bg: "transparent" }}
-                                    />
+                                        _hover={{ color: "gray.600" }}
+                                        bg="transparent"
+                                        border="none"
+                                        cursor="pointer"
+                                    >
+                                        <Icon as={showPassword ? LuEyeOff : LuEye} fontSize="xl" />
+                                    </Box>
                                 </Box>
                             </Box>
                             <Box textAlign="right" mt={2}>

@@ -13,7 +13,6 @@ import {
     Text,
     HStack,
     Icon,
-    IconButton
 } from "@chakra-ui/react";
 import Notification from "../components/notification";
 import SecretField from "../components/secret-field";
@@ -193,15 +192,23 @@ export function Login() {
                                     alignItems="center"
                                     zIndex={2}
                                 >
-                                    <IconButton
-                                        variant="ghost"
-                                        icon={showPassword ? <LuEyeOff /> : <LuEye />}
+                                    <Box
+                                        as="button"
+                                        type="button"
                                         onClick={() => setShowPassword(!showPassword)}
                                         aria-label={showPassword ? "Hide password" : "Show password"}
-                                        size="sm"
+                                        display="flex"
+                                        alignItems="center"
+                                        justifyContent="center"
+                                        p={2}
                                         color="gray.400"
-                                        _hover={{ color: "gray.600", bg: "transparent" }}
-                                    />
+                                        _hover={{ color: "gray.600" }}
+                                        bg="transparent"
+                                        border="none"
+                                        cursor="pointer"
+                                    >
+                                        <Icon as={showPassword ? LuEyeOff : LuEye} fontSize="xl" />
+                                    </Box>
                                 </Box>
                             </Box>
                             <Box textAlign="right" mt={2}>

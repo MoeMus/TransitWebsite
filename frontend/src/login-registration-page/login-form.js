@@ -18,7 +18,7 @@ import Notification from "../components/notification";
 import SecretField from "../components/secret-field";
 import TurnstileWidget from "../components/TurnstileWidget";
 import { BsExclamationCircle } from "react-icons/bs";
-import { LuUser, LuLock, LuEye, LuEyeOff } from "react-icons/lu";
+import { LuUser, LuLock, LuEye, LuEyeOff, LuX } from "react-icons/lu";
 
 export function Login() {
 
@@ -111,9 +111,12 @@ export function Login() {
                     <VStack spacing={5}>
                         {loginError && (
                             <Box bg="red.50" _dark={{ bg: "red.900", color: "red.100" }} p={3} borderRadius="md" color="red.800" width="full">
-                                <HStack spacing={2}>
-                                    <Icon as={BsExclamationCircle} />
-                                    <Text fontSize="sm">Incorrect Username or Password</Text>
+                                <HStack spacing={2} justify="space-between" align="center">
+                                    <HStack spacing={2} align="center">
+                                        <Icon as={BsExclamationCircle} boxSize={4} />
+                                        <Text fontSize="sm" lineHeight="1">Incorrect Username or Password</Text>
+                                    </HStack>
+                                    <Icon as={LuX} cursor="pointer" onClick={() => setLoginError(false)} _hover={{ opacity: 0.7 }} />
                                 </HStack>
                             </Box>
                         )}

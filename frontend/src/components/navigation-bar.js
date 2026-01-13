@@ -9,7 +9,7 @@ import {deleteAccount, logout} from "./utils";
 import Dialog from "./dialog";
 import {Button} from "@chakra-ui/react";
 import {remove_token} from "../storeConfig/auth_reducer";
-
+import {disable_manual_location} from "../storeConfig/manual_location_reducer";
 
 export function Navigation(){
 
@@ -35,7 +35,9 @@ export function Navigation(){
         try {
 
             await logout(request);
-            dispatch(remove_token())
+            dispatch(remove_token());
+            dispatch(disable_manual_location());
+
             navigate('/', {replace: true});
 
         } catch (err) {
@@ -57,6 +59,7 @@ export function Navigation(){
 
             await deleteAccount();
             dispatch(remove_token());
+            dispatch(disable_manual_location());
             navigate('/', {replace: true});
 
         } catch (err) {

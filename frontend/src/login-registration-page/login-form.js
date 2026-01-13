@@ -114,7 +114,7 @@ export function Login() {
                                 <HStack spacing={2} justify="space-between" align="center">
                                     <HStack spacing={2} align="center">
                                         <Icon as={BsExclamationCircle} boxSize={4} />
-                                        <Text fontSize="sm" lineHeight="1">Incorrect Username or Password</Text>
+                                        <Text fontSize="sm" mb={0}>Incorrect Username or Password</Text>
                                     </HStack>
                                     <Icon as={LuX} cursor="pointer" onClick={() => setLoginError(false)} _hover={{ opacity: 0.7 }} />
                                 </HStack>

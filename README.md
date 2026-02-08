@@ -209,7 +209,13 @@ Ensure you are in the `/frontend` directory
    <Environment Variable> = '<value>'
 
 3. **Set up Google Maps API**
-   - Go to https://developers.google.com/maps/documentation/routes/cloud-setup and follow the instructions to obtain the API key for the Google Maps API
+   - Go to the [Google Cloud Console](https://console.cloud.google.com/).
+   - Create a project and obtain an API key.
+   - Ensure the following APIs are enabled for your key:
+     - **Maps JavaScript API** (for the map display)
+     - **Directions API** (for route calculations)
+     - **Geocoding API** (for manual location input)
+     - **Places API** (for search functionality)
    - Add the key to `.env` with the exact variable name `REACT_APP_GOOGLE_MAPS_API_KEY`
    
 4. **Set up A Map ID**

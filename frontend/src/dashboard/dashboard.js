@@ -11,7 +11,7 @@ import Modal from "react-bootstrap/Modal";
 import Dropdown from "react-bootstrap/Dropdown";
 import ServiceAlerts from "../translink-alerts/ServiceAlerts";
 import {Box, Button, Spinner} from "@chakra-ui/react";
-import {getUserInfoFromBackend, getNextClassFromBackend, setLocation, getNotification} from "./utils"
+import {getUserInfoFromBackend, getNextClassFromBackend, geocodeAddress, getNotification} from "./utils"
 import CourseCalendar from "../calendar/CourseCalendar";
 import {Directions} from "./directions";
 import Notification from "../components/notification";
@@ -65,6 +65,8 @@ export function Dashboard() {
     const [copied, setCopied] = useState(false);
     const [showQrModal, setShowQrModal] = useState(false);
     const [isManualLocationFormOpen, setIsManualLocationFormOpen] = useState(false);
+    const [isGeocoding, setIsGeocoding] = useState(false);
+    const [lastManualUpdate, setLastManualUpdate] = useState(0);
     const scheduleRef = useRef(null);
 
     const { username } = useSelector((state)=>state.authentication);
@@ -109,7 +111,7 @@ export function Dashboard() {
             });
             setIsManualLocationFormOpen(true);
         } else if (userLocation.lat === 0) {
-            // Only show error if we don't have any location yet to avoid intermittent toasts during signal drops
+            // Only show error if we don't have any location yet to avoid intermittent toasts
             toast.error("Could not retrieve your location. Please try again.");
         }
     }
@@ -275,44 +277,43 @@ export function Dashboard() {
         }
     }, [nextClass]);
 
-    const manualLocationChange = (event)=>{
+    const manualLocationChange = async (address) => {
+        const now = Date.now();
+        const cooldown = 180000; // 3 minutes
 
-        try {
-
-            const callback = (results, status)=> {
-
-                if(status === window.google.maps.GeocoderStatus.OK){
-
-                    const lat = results[0].geometry.location.lat();
-                    const lng = results[0].geometry.location.lng();
-
-                    const new_location_state = {
-                        location: JSON.stringify({lat: lat, lng: lng})
-                    }
-                    setUserLocation({lat: lat, lng: lng});
-                    dispatch(enable_manual_location(new_location_state));
-
-                    if (watchIdRef.current !== null) navigator.geolocation.clearWatch(watchIdRef.current);
-
-                    // setTrackingEnabled(false);
-
-                } else {
-
-                    toast.error("The provided location could not be processed");
-
-                }
-
-            }
-
-            setLocation(event, callback);
-            setIsManualLocationFormOpen(false);
-        } catch (err) {
-
-            toast.error(err.message);
-
+        if (now - lastManualUpdate < cooldown) {
+            const remaining = Math.ceil((cooldown - (now - lastManualUpdate)) / 1000);
+            toast.error(`Please wait ${remaining} seconds before changing your location again.`, { 
+                id: "location-throttle" 
+            });
+            return;
         }
 
-    }
+        setIsGeocoding(true);
+        try {
+            const location = await geocodeAddress(address);
+            const lat = location.lat();
+            const lng = location.lng();
+
+            const new_location_state = {
+                location: JSON.stringify({ lat, lng })
+            };
+
+            setUserLocation({ lat, lng });
+            dispatch(enable_manual_location(new_location_state));
+
+            if (watchIdRef.current !== null) {
+                navigator.geolocation.clearWatch(watchIdRef.current);
+            }
+
+            setLastManualUpdate(now);
+            setIsManualLocationFormOpen(false);
+        } catch (err) {
+            toast.error(err.message);
+        } finally {
+            setIsGeocoding(false);
+        }
+    };
 
     if (loading) {
         return  <Spinner size="sm" />;
@@ -444,7 +445,12 @@ export function Dashboard() {
                     },
                 }} reverseOrder={false} />
 
-                <ManualLocationForm isOpen={isManualLocationFormOpen} onClose={()=>setIsManualLocationFormOpen(false)} manualLocationChange={manualLocationChange} />
+                <ManualLocationForm 
+                    isOpen={isManualLocationFormOpen} 
+                    onClose={()=>setIsManualLocationFormOpen(false)} 
+                    manualLocationChange={manualLocationChange}
+                    isGeocoding={isGeocoding}
+                />
 
                 <Container fluid="lg" className="py-4" style={{maxWidth: "1550px"}}>
 

@@ -11,7 +11,7 @@ import Modal from "react-bootstrap/Modal";
 import Dropdown from "react-bootstrap/Dropdown";
 import ServiceAlerts from "../translink-alerts/ServiceAlerts";
 import {Box, Button, Spinner} from "@chakra-ui/react";
-import {getUserInfoFromBackend, getNextClassFromBackend, setLocation, getNotification} from "./utils"
+import {getUserInfoFromBackend, getNextClassFromBackend, geocodeAddress, getNotification} from "./utils"
 import CourseCalendar from "../calendar/CourseCalendar";
 import {Directions} from "./directions";
 import Notification from "../components/notification";
@@ -65,6 +65,8 @@ export function Dashboard() {
     const [copied, setCopied] = useState(false);
     const [showQrModal, setShowQrModal] = useState(false);
     const [isManualLocationFormOpen, setIsManualLocationFormOpen] = useState(false);
+    const [isGeocoding, setIsGeocoding] = useState(false);
+    const [lastManualUpdate, setLastManualUpdate] = useState(0);
     const scheduleRef = useRef(null);
 
     const { username } = useSelector((state)=>state.authentication);
@@ -97,15 +99,21 @@ export function Dashboard() {
     };
 
     function locationError(error) {
-        if (error.code === error.PERMISSION_DENIED) {
-            // setTrackingEnabled(false);
-            toast("Location tracking disabled", {
-                id: "userLocation-denied",
-            });
+        if (error.code === 1) { // GeolocationPositionError.PERMISSION_DENIED
+            const isMac = navigator.userAgent.includes("Mac");
+            const message = isMac 
+                ? "Location denied. Check Safari > Settings > Websites > Location. Also check macOS System Settings > Privacy & Security."
+                : "Location access denied. Please enable permissions in browser settings.";
 
-            //TODO: Change how map is shown on dashboard
+            toast.error(message, {
+                id: "userLocation-denied",
+                duration: 6000
+            });
+            setIsManualLocationFormOpen(true);
+        } else if (userLocation.lat === 0) {
+            // Only show error if we don't have any location yet to avoid intermittent toasts
+            toast.error("Could not retrieve your location. Please try again.");
         }
-        toast.error("Could not retrieve your location");
     }
 
     const getUserInfo = useCallback( async () => {
@@ -150,17 +158,39 @@ export function Dashboard() {
 
     function checkLocationTracking() {
         if (!manual_location_enabled && navigator.geolocation) {
-            watchIdRef.current = navigator.geolocation.watchPosition(
-                (position) => {
-                    setUserLocation({
-                        lat: position.coords.latitude,
-                        lng: position.coords.longitude,
-                    });
+            
+            const onGeoSuccess = (position) => {
+                setUserLocation({
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude,
+                });
+
+                if (watchIdRef.current !== null) navigator.geolocation.clearWatch(watchIdRef.current);
+
+                watchIdRef.current = navigator.geolocation.watchPosition(
+                    (pos) => {
+                        setUserLocation({
+                            lat: pos.coords.latitude,
+                            lng: pos.coords.longitude,
+                        });
+                    },
+                    (err) => console.warn("Watch position error:", err),
+                    { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
+                );
+            };
+
+            // Try high accuracy first, fall back to low accuracy if it times out
+            navigator.geolocation.getCurrentPosition(
+                onGeoSuccess,
+                (error) => {
+                    if (error.code === 3 || error.code === 2) { // TIMEOUT or POSITION_UNAVAILABLE
+                        navigator.geolocation.getCurrentPosition(onGeoSuccess, locationError, { enableHighAccuracy: false, timeout: 10000 });
+                    } else {
+                        locationError(error);
+                    }
                 },
-                locationError,
-                {enableHighAccuracy: true}
+                { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
             );
-            // setTrackingEnabled(true);
 
         } else if (!navigator.geolocation){
 
@@ -247,44 +277,43 @@ export function Dashboard() {
         }
     }, [nextClass]);
 
-    const manualLocationChange = (event)=>{
+    const manualLocationChange = async (address) => {
+        const now = Date.now();
+        const cooldown = 180000; // 3 minutes
 
-        try {
-
-            const callback = (results, status)=> {
-
-                if(status === window.google.maps.GeocoderStatus.OK){
-
-                    const lat = results[0].geometry.location.lat();
-                    const lng = results[0].geometry.location.lng();
-
-                    const new_location_state = {
-                        location: JSON.stringify({lat: lat, lng: lng})
-                    }
-                    setUserLocation({lat: lat, lng: lng});
-                    dispatch(enable_manual_location(new_location_state));
-
-                    if (watchIdRef.current !== null) navigator.geolocation.clearWatch(watchIdRef.current);
-
-                    // setTrackingEnabled(false);
-
-                } else {
-
-                    toast.error("The provided location could not be processed");
-
-                }
-
-            }
-
-            setLocation(event, callback);
-            setIsManualLocationFormOpen(false);
-        } catch (err) {
-
-            toast.error(err.message);
-
+        if (now - lastManualUpdate < cooldown) {
+            const remaining = Math.ceil((cooldown - (now - lastManualUpdate)) / 1000);
+            toast.error(`Please wait ${remaining} seconds before changing your location again.`, { 
+                id: "location-throttle" 
+            });
+            return;
         }
 
-    }
+        setIsGeocoding(true);
+        try {
+            const location = await geocodeAddress(address);
+            const lat = location.lat();
+            const lng = location.lng();
+
+            const new_location_state = {
+                location: JSON.stringify({ lat, lng })
+            };
+
+            setUserLocation({ lat, lng });
+            dispatch(enable_manual_location(new_location_state));
+
+            if (watchIdRef.current !== null) {
+                navigator.geolocation.clearWatch(watchIdRef.current);
+            }
+
+            setLastManualUpdate(now);
+            setIsManualLocationFormOpen(false);
+        } catch (err) {
+            toast.error(err.message);
+        } finally {
+            setIsGeocoding(false);
+        }
+    };
 
     if (loading) {
         return  <Spinner size="sm" />;
@@ -416,7 +445,12 @@ export function Dashboard() {
                     },
                 }} reverseOrder={false} />
 
-                <ManualLocationForm isOpen={isManualLocationFormOpen} onClose={()=>setIsManualLocationFormOpen(false)} manualLocationChange={manualLocationChange} />
+                <ManualLocationForm 
+                    isOpen={isManualLocationFormOpen} 
+                    onClose={()=>setIsManualLocationFormOpen(false)} 
+                    manualLocationChange={manualLocationChange}
+                    isGeocoding={isGeocoding}
+                />
 
                 <Container fluid="lg" className="py-4" style={{maxWidth: "1550px"}}>
 
@@ -482,10 +516,18 @@ export function Dashboard() {
 
                                     </div>
                                     :
-                                    <div>
-
-                                        <p> <Spinner size="sm" /> Retrieving Directions </p>
-
+                                    <div className="d-flex flex-column align-items-center gap-2">
+                                        <p className="mb-0"> <Spinner size="sm" /> Retrieving Directions </p>
+                                        {(!manual_location_enabled && userLocation.lat === 0) && (
+                                            <Button 
+                                                size="sm" 
+                                                colorScheme="blue" 
+                                                onClick={checkLocationTracking}
+                                                leftIcon={<BsGeoAlt />}
+                                            >
+                                                Enable Location
+                                            </Button>
+                                        )}
                                     </div>)
                                 }
 

@@ -1,13 +1,23 @@
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button"
-import React from "react";
+import React, { useState } from "react";
 import {
     DrawerBackdrop, DrawerBody, DrawerCloseTrigger,
     DrawerContent,
     DrawerRoot,
 } from "../components/ui/drawer";
 
-function ManualLocationForm({manualLocationChange, isOpen, onClose}) {
+function ManualLocationForm({manualLocationChange, isOpen, onClose, isGeocoding}) {
+    const [address, setAddress] = useState("");
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (!address.trim()) {
+            return;
+        }
+        manualLocationChange(address);
+        setAddress(""); 
+    };
 
     return (<>
 
@@ -23,6 +33,7 @@ function ManualLocationForm({manualLocationChange, isOpen, onClose}) {
                     <div style={{display: "flex", flexDirection: "row", justifyContent: "center"}}>
 
                         <Form className="locationBox"
+                              onSubmit={handleSubmit}
                               style={{
                                   textAlign: 'center',
                                   marginBottom: "100px",
@@ -34,7 +45,12 @@ function ManualLocationForm({manualLocationChange, isOpen, onClose}) {
 
                                 <Form.Label> Enter your location manually (Use if location tracking is not
                                     accurate)</Form.Label>
-                                <Form.Control className="location"></Form.Control>
+                                <Form.Control 
+                                    className="location" 
+                                    value={address}
+                                    onChange={(e) => setAddress(e.target.value)}
+                                    placeholder="e.g. 453 W 12th Ave, Vancouver"
+                                />
                                 <Form.Group style={{marginBottom: "4px"}}>
                                     <Form.Text className="text-muted">
                                         Provide any of the following: <strong>"&lt;street number&gt; &lt;street
@@ -57,8 +73,13 @@ function ManualLocationForm({manualLocationChange, isOpen, onClose}) {
                                 </Form.Group>
                             </Form.Group>
 
-                            <Button variant="light" type="submit" onClick={manualLocationChange} style={{marginRight: "10px"}}>
-                                Set Location
+                            <Button 
+                                variant="light" 
+                                type="submit" 
+                                disabled={isGeocoding} 
+                                style={{marginRight: "10px"}}
+                            >
+                                {isGeocoding ? "Processing..." : "Set Location"}
                             </Button>
                             <Button variant="light" onClick={onClose}>Exit</Button>
 

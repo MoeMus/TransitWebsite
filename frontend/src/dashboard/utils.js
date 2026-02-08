@@ -43,23 +43,44 @@ async function getNextClassFromBackend() {
     }
 }
 
+const geocodingCache = {};
 
-const setLocation = (event, callback)=> {
-    event.preventDefault();
-    const geocoder = new window.google.maps.Geocoder();
-    const address = document.querySelector(".location").value;
+const geocodeAddress = (address) => {
+    return new Promise((resolve, reject) => {
+        if (!window.google || !window.google.maps) {
+            reject(new Error("Google Maps library not loaded. Please refresh the page."));
+            return;
+        }
 
-    if(address){
+         const normalizedAddress = address.trim().toLowerCase();
 
-        geocoder.geocode({address: address}, callback);
+        // Check geocodingCache first
+        if (geocodingCache[normalizedAddress]) {
+            resolve(geocodingCache[normalizedAddress]);
+            return;
+        }
 
-    } else {
-
-        throw Error("Please enter a location");
-
-    }
-
-}
+        const geocoder = new window.google.maps.Geocoder();
+        geocoder.geocode({ address: address }, (results, status) => {
+            if (status === "OK") {
+                geocodingCache[normalizedAddress] = results[0].geometry.location; // Add good result to cache
+                resolve(results[0].geometry.location);
+            } else {
+                let errorMessage = "The provided location could not be processed";
+                
+                if (status === "ZERO_RESULTS") {
+                    errorMessage = "Location not found. Please try a more specific address.";
+                } else if (status === "REQUEST_DENIED") {
+                    errorMessage = "API Access Denied. Ensure the 'Geocoding API' is enabled in Google Cloud Console.";
+                } else if (status === "OVER_QUERY_LIMIT") {
+                    errorMessage = "API Quota exceeded. Please try again later.";
+                }
+                
+                reject(new Error(errorMessage));
+            }
+        });
+    });
+};
 
 
 // Get notification for new semester
@@ -84,6 +105,6 @@ async function getNotification() {
 export {
     getUserInfoFromBackend,
     getNextClassFromBackend,
-    setLocation,
+    geocodeAddress,
     getNotification
 }

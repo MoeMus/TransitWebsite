@@ -97,15 +97,21 @@ export function Dashboard() {
     };
 
     function locationError(error) {
-        if (error.code === error.PERMISSION_DENIED) {
-            // setTrackingEnabled(false);
-            toast("Location tracking disabled", {
-                id: "userLocation-denied",
-            });
+        if (error.code === 1) { // GeolocationPositionError.PERMISSION_DENIED
+            const isMac = navigator.userAgent.includes("Mac");
+            const message = isMac 
+                ? "Location denied. Check Safari > Settings > Websites > Location. Also check macOS System Settings > Privacy & Security."
+                : "Location access denied. Please enable permissions in browser settings.";
 
-            //TODO: Change how map is shown on dashboard
+            toast.error(message, {
+                id: "userLocation-denied",
+                duration: 6000
+            });
+            setIsManualLocationFormOpen(true);
+        } else if (userLocation.lat === 0) {
+            // Only show error if we don't have any location yet to avoid intermittent toasts during signal drops
+            toast.error("Could not retrieve your location. Please try again.");
         }
-        toast.error("Could not retrieve your location");
     }
 
     const getUserInfo = useCallback( async () => {
@@ -150,17 +156,39 @@ export function Dashboard() {
 
     function checkLocationTracking() {
         if (!manual_location_enabled && navigator.geolocation) {
-            watchIdRef.current = navigator.geolocation.watchPosition(
-                (position) => {
-                    setUserLocation({
-                        lat: position.coords.latitude,
-                        lng: position.coords.longitude,
-                    });
+            
+            const onGeoSuccess = (position) => {
+                setUserLocation({
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude,
+                });
+
+                if (watchIdRef.current !== null) navigator.geolocation.clearWatch(watchIdRef.current);
+
+                watchIdRef.current = navigator.geolocation.watchPosition(
+                    (pos) => {
+                        setUserLocation({
+                            lat: pos.coords.latitude,
+                            lng: pos.coords.longitude,
+                        });
+                    },
+                    (err) => console.warn("Watch position error:", err),
+                    { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
+                );
+            };
+
+            // Try high accuracy first, fall back to low accuracy if it times out
+            navigator.geolocation.getCurrentPosition(
+                onGeoSuccess,
+                (error) => {
+                    if (error.code === 3 || error.code === 2) { // TIMEOUT or POSITION_UNAVAILABLE
+                        navigator.geolocation.getCurrentPosition(onGeoSuccess, locationError, { enableHighAccuracy: false, timeout: 10000 });
+                    } else {
+                        locationError(error);
+                    }
                 },
-                locationError,
-                {enableHighAccuracy: true}
+                { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
             );
-            // setTrackingEnabled(true);
 
         } else if (!navigator.geolocation){
 
@@ -482,10 +510,18 @@ export function Dashboard() {
 
                                     </div>
                                     :
-                                    <div>
-
-                                        <p> <Spinner size="sm" /> Retrieving Directions </p>
-
+                                    <div className="d-flex flex-column align-items-center gap-2">
+                                        <p className="mb-0"> <Spinner size="sm" /> Retrieving Directions </p>
+                                        {(!manual_location_enabled && userLocation.lat === 0) && (
+                                            <Button 
+                                                size="sm" 
+                                                colorScheme="blue" 
+                                                onClick={checkLocationTracking}
+                                                leftIcon={<BsGeoAlt />}
+                                            >
+                                                Enable Location
+                                            </Button>
+                                        )}
                                     </div>)
                                 }
 

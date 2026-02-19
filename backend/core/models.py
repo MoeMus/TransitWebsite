@@ -24,10 +24,27 @@ class Component(models.TextChoices):
     LECTURE = "LEC", "Lecture"
 
 
+class Department(models.Model):
+    DoesNotExist = None
+    objects = models.Manager()
+
+    code = models.CharField(max_length=100, default='Untitled', db_index=True)
+    name = models.CharField(max_length=100, default='Untitled', db_index=True)
+
+    def __str__(self):
+        return f"{self.code} - {self.name} (Department)"
+
+    def save(self, *args, **kwargs):
+        self.code = self.code.upper()
+        super().save(*args, **kwargs)
+
+
 # Class representing a course a student is taking
 class Course(models.Model):
     DoesNotExist = None
     objects = models.Manager()  # Explicitly adding objects manager
+
+    department_code = models.ForeignKey(Department, related_name="courses", on_delete=models.CASCADE, null=True)
 
     title = models.CharField(max_length=100, default='Untitled', db_index=True)
     department = models.CharField(max_length=100, default='No department')
@@ -35,7 +52,6 @@ class Course(models.Model):
 
     # The __str method below makes the Django Course model readable for when you do print(course)
     def __str__(self):
-
         return f"{self.department} {self.course_number} - {self.title}"
 
     def save(self, *args, **kwargs):
@@ -135,7 +151,6 @@ class User(AbstractUser):
 
 # A notification to a user that their schedule has been cleared for the next semester
 class NewSemesterNotification(models.Model):
-
     DoesNotExist = None
     objects = models.Manager()
 
@@ -163,7 +178,6 @@ class NewSemesterNotification(models.Model):
 
 
 class OneTimePassword(models.Model):
-
     DoesNotExist = None
     objects = models.Manager()
 
@@ -181,9 +195,8 @@ class OneTimePassword(models.Model):
     otp_verified = models.BooleanField(default=False)
 
     def generate_otp(self, otp):
-
-        self.otp = make_password(otp)   # Hashes the OTP for extra security
-        self.otp_expiry_date = now() + timedelta(minutes=10)   # 10-minute window
+        self.otp = make_password(otp)  # Hashes the OTP for extra security
+        self.otp_expiry_date = now() + timedelta(minutes=10)  # 10-minute window
         self.otp_verified = False
         self.save()
 

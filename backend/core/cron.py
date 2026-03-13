@@ -7,7 +7,7 @@ from django.db import transaction, IntegrityError
 from django_cron import CronJobBase, Schedule
 from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
 
-from .models import Course, LectureSection, NonLectureSection, User, NewSemesterNotification, OneTimePassword
+from .models import Course, LectureSection, NonLectureSection, User, NewSemesterNotification, OneTimePassword, Department
 from .utils import get_current_year, get_current_term_code, get_current_term
 import requests
 import logging
@@ -54,7 +54,6 @@ def update_course_data():
     current_year = get_current_year()
     current_term_code = get_current_term_code()
     current_term = get_current_term()
-    departments = get_departments()
 
     try:
 
@@ -65,6 +64,8 @@ def update_course_data():
         logger.exception("Course sync cron job failed: Could not clear database.")
 
         return
+
+    departments = process_departments(current_year, current_term)
 
     for department in departments:
         try:
@@ -83,7 +84,10 @@ def update_course_data():
                 course_number = course.get("value")
                 logger.info(f"Processing course number: {course_number}")
 
+                corresponding_department = Department.objects.get(code=department)
+
                 course_obj, created = Course.objects.get_or_create(
+                    department_code=corresponding_department,
                     title=course.get("title", "Untitled Course"),
                     department=department,
                     course_number=course_number,
@@ -165,9 +169,10 @@ def update_course_data():
 
                                 corresponding_lecture_section = (LectureSection.
                                                                  objects.get(
-                                                                     course=course_obj,
-                                                                     professor=instructor,
-                                                                     title=section_title
+                                                                    course=course_obj,
+                                                                    professor=instructor,
+                                                                    title=section_title,
+                                                                    section_code=section_code,
                                                                  ))
 
                                 NonLectureSection.objects.update_or_create(
@@ -203,8 +208,28 @@ def update_course_data():
     logger.info("Course sync cron job completed.")
 
 
-def get_departments():
-    return ['cmpt']  # Update this list with all relevant departments
+def process_departments(current_year, current_term):
+
+    departments_url = f"https://www.sfu.ca/bin/wcm/course-outlines?{current_year}/{current_term}"
+
+    response = requests.get(departments_url)
+
+    for department_object in response.json():
+
+        department_code = department_object.get("text")
+
+        department_name = department_object.get("name")
+        Department.objects.update_or_create(
+            code=department_code,
+            defaults={
+                "code": department_code,
+                "name": department_name or "N/A"
+            }
+        )
+
+    departments = [department["value"] for department in response.json()]
+
+    return departments
 
 
 # Removes all old course data from database and clears every user's schedule
@@ -218,7 +243,7 @@ def clear_database():
         NonLectureSection.objects.all().delete()
         LectureSection.objects.all().delete()
         Course.objects.all().delete()
-
+        Department.objects.all().delete()
         users = User.objects.all()
 
         # Clear all user's schedules

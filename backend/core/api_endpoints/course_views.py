@@ -7,7 +7,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from core.models import Course, LectureSection, NonLectureSection
+from core.models import Course, LectureSection, NonLectureSection, Department
 from core.serializers import CourseSerializer
 
 
@@ -116,3 +116,26 @@ def get_non_lecture_sections(request, lecture_section_id):
 
     except Http404 as e:
         return Response({"error": "Lecture section not found"}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_departments(request):
+
+    departments = Department.objects.all().values()
+    return JsonResponse(list(departments), safe=False, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_department_courses(request, department_id):
+
+    try:
+
+        department = get_object_or_404(Department, id=department_id)
+        courses = department.courses.all()
+        return JsonResponse(list(courses), safe=False, status=status.HTTP_200_OK)
+
+    except Http404 as e:
+
+        return Response({"error": "Department not found"}, status=status.HTTP_404_NOT_FOUND)

@@ -86,13 +86,27 @@ def get_lecture_sections(request, course_id: int):
         course = get_object_or_404(Course, id=course_id)
 
         lecture_sections = course.lecture_sections.all()  # Fetch related lecture sections
-        data = [{"id": ls.id, "department": ls.department, "number": ls.number, "title": ls.title,
+
+        # Non-lecture sections which are meant to be taken on their own (e.g, physics labs)
+        standalone_non_lecture_sections = NonLectureSection.objects.filter(lecture_section=None, title=course.title)
+
+        lectures = [{"id": ls.id, "department": ls.department, "number": ls.number, "title": ls.title,
                  "section_code": ls.section_code, "professor": ls.professor, "schedule": ls.schedule,
                  "start_date": ls.start_date, "end_date": ls.end_date, "campus": ls.campus}
                 for ls in lecture_sections
                 ]
 
-        return JsonResponse(data, safe=False, status=status.HTTP_200_OK)
+        non_lectures = [{"id": ls.id, "department": ls.department, "number": ls.number, "title": ls.title,
+                 "section_code": ls.section_code, "professor": ls.professor, "schedule": ls.schedule,
+                 "start_date": ls.start_date, "end_date": ls.end_date, "campus": ls.campus}
+                for ls in standalone_non_lecture_sections
+                ]
+
+        print(non_lectures)
+
+        lectures.extend(non_lectures)
+
+        return JsonResponse(lectures, safe=False, status=status.HTTP_200_OK)
 
     except Http404 as e:
 
@@ -102,20 +116,21 @@ def get_lecture_sections(request, course_id: int):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_non_lecture_sections(request, lecture_section_id):
-    try:
 
-        lecture_section = get_object_or_404(LectureSection, id=lecture_section_id)
-        non_lecture_sections = lecture_section.non_lecture_sections.all()  # Use the new related_name
-        data = [
-            {"id": nls.id, "department": nls.department, "number": nls.number, "title": nls.title, "section_code": nls.section_code,
-             "professor": nls.professor, "schedule": nls.schedule,
-             "start_date": nls.start_date, "end_date": nls.end_date, "campus": nls.campus}
-            for nls in non_lecture_sections
-        ]
-        return JsonResponse(data, safe=False, status=status.HTTP_200_OK)
+    lecture_section = LectureSection.objects.filter(id=lecture_section_id).first()
+    if not lecture_section:
 
-    except Http404 as e:
-        return Response({"error": "Lecture section not found"}, status=status.HTTP_404_NOT_FOUND)
+        return JsonResponse([], safe=False, status=status.HTTP_200_OK)
+
+    non_lecture_sections = lecture_section.non_lecture_sections.all()  # Use the new related_name
+
+    data = [
+        {"id": nls.id, "department": nls.department, "number": nls.number, "title": nls.title, "section_code": nls.section_code,
+         "professor": nls.professor, "schedule": nls.schedule,
+         "start_date": nls.start_date, "end_date": nls.end_date, "campus": nls.campus}
+        for nls in non_lecture_sections
+    ]
+    return JsonResponse(data, safe=False, status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])
@@ -134,7 +149,17 @@ def get_department_courses(request, department_id):
 
         department = get_object_or_404(Department, id=department_id)
         courses = department.courses.all()
-        return JsonResponse(list(courses), safe=False, status=status.HTTP_200_OK)
+        course_data = [
+            {
+                "id": course.id,
+                "title": course.title,
+                "department": course.department,
+                "course_number": course.course_number
+            }
+            for course in courses
+        ]
+
+        return JsonResponse(list(course_data), safe=False, status=status.HTTP_200_OK)
 
     except Http404 as e:
 

@@ -55,7 +55,7 @@ class Course(models.Model):
         return f"{self.department} {self.course_number} - {self.title}"
 
     def save(self, *args, **kwargs):
-        self.department = self.department.upper()
+        self.department = self.department
         super().save(*args, **kwargs)
 
 
@@ -89,7 +89,7 @@ class LectureSection(models.Model):
         return f"{self.title} - {self.section_code} (Lecture)"
 
     def save(self, *args, **kwargs):
-        self.department = self.department.upper()
+        self.department = self.department
         super().save(*args, **kwargs)
 
 
@@ -123,7 +123,7 @@ class NonLectureSection(models.Model):
         return f"{self.title} - {self.section_code} ({self.class_type})"
 
     def save(self, *args, **kwargs):
-        self.department = self.department.upper()
+        self.department = self.department
         super().save(*args, **kwargs)
 
 

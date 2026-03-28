@@ -7,14 +7,13 @@ import {
 
 // Component for a search + selection bar
 // Takes in props for the data to be listed and a callback to be fired when an option is selected
-function SearchSelection({ data, onSelect }) {
+function SearchSelectionBar({ data, onSelect }) {
   const { contains } = useFilter({ sensitivity: "base" })
 
   const { collection, filter } = useListCollection({
     initialItems: data,
     filter: contains,
   })
-
   return (
     <Combobox.Root
       collection={collection}
@@ -35,7 +34,12 @@ function SearchSelection({ data, onSelect }) {
       <Combobox.Control>
         <Combobox.Input placeholder="Type to search" />
         <Combobox.IndicatorGroup>
-          <Combobox.ClearTrigger />
+          <Combobox.ClearTrigger
+            onClick={() => {
+              filter("")          // reset results
+              if (onSelect) onSelect(null)
+            }}
+          />
           <Combobox.Trigger />
         </Combobox.IndicatorGroup>
       </Combobox.Control>
@@ -58,4 +62,4 @@ function SearchSelection({ data, onSelect }) {
   )
 }
 
-export default SearchSelection;
+export default SearchSelectionBar;

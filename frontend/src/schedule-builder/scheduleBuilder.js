@@ -6,17 +6,19 @@ import {Spinner} from "@chakra-ui/react";
 import CourseCalendar from "../calendar/CourseCalendar";
 import { BsListUl, BsCalendar3, BsTrash, BsPlusLg, BsXLg } from "react-icons/bs";
 import Dialog from "../components/dialog";
-
+import SearchSelectionBar from "../components/searchSelectionBar";
 
 export function ScheduleBuilder() {
-  const [availableCourses, setAvailableCourses] = useState([]);
+  const [availableDepartments, setAvailableDepartments] = useState([]);
+  const [selectedDepartment, setSelectedDepartment] = useState(null);
   const [selectedCourse, setSelectedCourse] = useState(null);
+  const [courses, setCourses] = useState([]);
   const [lectureSections, setLectureSections] = useState([]);
   const [selectedLectureSection, setSelectedLectureSection] = useState(null);
   const [nonLectureSections, setNonLectureSections] = useState([]);
   const [selectedNonLectureSection, setSelectedNonLectureSection] = useState(null);
   const [selectedCourses, setSelectedCourses] = useState([]);
-  const [selectionStage, setSelectionStage] = useState("course"); // "course", "lecture", or "non-lecture"
+  const [selectionStage, setSelectionStage] = useState("department"); // "department", "course", "lecture", or "non-lecture"
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState("list");
   const [error, setError] = useState("");
@@ -25,7 +27,8 @@ export function ScheduleBuilder() {
   useEffect(() => {
 
     (async function(){
-      await fetchAvailableCourses();
+      await fetchAllDepartments();
+      // await fetchAvailableCourses();
       await fetchUserCourses(); // Fetch user courses on mount
     })()
 
@@ -43,22 +46,23 @@ export function ScheduleBuilder() {
     toast.error(`${conflicting_section.department} ${conflicting_section.number} ${conflicting_section.section_code} conflicts with ${conflicts.join(" | ")}`);
   }
 
-  // Fetch all available courses
-  const fetchAvailableCourses = useCallback(async () => {
+  const fetchAllDepartments = useCallback(async () => {
     try {
-      const response = await apiClient.get('/api/courses/get/all/', {
-      });
-      const data = await response.data;  // Convert the response to JSON
-      setAvailableCourses(Array.isArray(data) ? data : []);  // Set the parsed data to state
+
+      const response = await apiClient.get('/api/departments/get/all/');
+
+      const departments = await response.data;
+      setAvailableDepartments(departments);
+
     } catch (err) {
-      toast.error("Failed to load courses", {
+      toast.error("Failed to load departments", {
         duration: 2000,
       });
       setError(err);
     } finally {
       setLoading(false);
     }
-  }, []);
+  });
 
   const uniqueLectureSections = useMemo(() => {
     // uses a map to deduplicate by section_code
@@ -75,161 +79,145 @@ export function ScheduleBuilder() {
   const fetchUserCourses = useCallback(async () => {
 
     try {
-      const response = await apiClient.get(`/api/user/courses/`, {
+
+      const response = await apiClient.get(`/api/user/courses/`);
+
+      const data = await response.data;
+
+      const combined = new Map();
+
+      // Flatten the lecture and non-lecture sections into a single array for the UI
+
+      // Add lecture sections to the array
+      (data.lecture_sections || []).map(lec => {
+        combined.set(lec.id, {
+          course: lec.course,
+          lecture: lec,
+          nonLecture: null
+        })
       });
 
-      if (response.status === 200) {
+      // Add non lecture sections to the array
+      (data.non_lecture_sections || []).map(nls => {
 
-        const data = await response.data;
-
-        const combined = new Map();
-
-        // Flatten the lecture and non-lecture sections into a single array for the UI
-
-        // Add lecture sections to the array
-        (data.lecture_sections || []).map(lec => {
-          combined.set(lec.id, {
-            course: lec.course,
-            lecture: lec,
-            nonLecture: null
+        // If the corresponding lecture section already exists, just add to the existing entry
+        if (combined.has(nls.lecture_section.id)){
+          combined.get(nls.lecture_section.id).nonLecture = nls;
+        } else {
+          combined.set(nls.lecture_section.id, {
+            course: nls.lecture_section?.course,
+            lecture: nls.lecture_section,
+            nonLecture: nls
           })
-        });
+        }
+      });
 
-        // Add non lecture sections to the array
-        (data.non_lecture_sections || []).map(nls => {
+      setSelectedCourses([...combined.values()]);
 
-          // If the corresponding lecture section already exists, just add to the existing entry
-          if (combined.has(nls.lecture_section.id)){
-            combined.get(nls.lecture_section.id).nonLecture = nls;
-          } else {
-            combined.set(nls.lecture_section.id, {
-              course: nls.lecture_section?.course,
-              lecture: nls.lecture_section,
-              nonLecture: nls
-          })
-          }
-        });
-
-
-        setSelectedCourses([...combined.values()]);
-
-      } else {
-        toast.error("Failed to load your courses.");
-      }
     } catch (err) {
       toast.error("Failed to load your courses.");
     }
   }, [username]);
 
-  useEffect(() => {
-    fetchAvailableCourses();
-    fetchUserCourses(); // Fetch user courses on mount
-  }, [fetchAvailableCourses, fetchUserCourses]);
+  // useEffect(() => {
+  //   fetchAllDepartments();
+  //   fetchUserCourses(); // Fetch user courses on mount
+  // }, [fetchAllDepartments, fetchUserCourses]);
 
   // Handle adding a course with non-lecture sections
   const handleAddCourse = async () => {
-      if (selectedCourse && selectedLectureSection) {
-        const courseToAdd = {
-          course: selectedCourse,
-          lecture: selectedLectureSection,
-          nonLecture: selectedNonLectureSection || null,
-        };
-
-        // Build the payload to send to the backend.
-        const request = {
-          department: selectedCourse.department,
-          course_number: selectedCourse.course_number,
-          lecture_section_code: selectedLectureSection.section_code,
-          non_lecture_section_code: selectedNonLectureSection?.section_code || null
-        };
-
-        try {
-          // Send the POST request to persist the course on the backend.
-          await apiClient.post(
-            `/api/user/courses/add/`,
-            request,
-            {
-              withCredentials: true,
-            }
-          );
-
-          // On success, update the local state
-          setSelectedCourses([...selectedCourses, courseToAdd]);
-          toast.success(`${selectedCourse.title} added to schedule`);
-          // Reset the selection process
-          setSelectedCourse(null);
-          setSelectedLectureSection(null);
-          setSelectedNonLectureSection(null);
-          setSelectionStage("course");
-        } catch (error) {
-          if (error.response && error.response.status === 409) {
-            displayCourseConflicts(error.response.data);
-          } else {
-            toast.error(error.response?.data?.error || "Error adding course to schedule");
-          }
-          console.error("Error in handleAddCourse:", error);
-
-          // Reset selection state so the user is returned to the schedule builder
-          setSelectedCourse(null);
-          setSelectedLectureSection(null);
-          setSelectedNonLectureSection(null);
-          setSelectionStage("course");
-        }
-      } else {
-        toast.error("Please complete all selections");
-      }
-    };
-
-
-
-  // Handle removing a course
-  const handleRemoveCourse = async (course, indexToRemove) => {
-      // Remove the specific course entry using its index.
-      const updatedCourses = selectedCourses.filter((_, idx) => idx !== indexToRemove);
-      setSelectedCourses([...updatedCourses]);
-
-      // Extract data from normalized entry
-      const courseData = course.course;
-      const sectionData = course.lecture || course.nonLecture;
-
-      // Build payload for backend deletion.
-      let post_request = {
-        username: username,
-        department: courseData.department,
-        course_number: courseData.course_number,
-        section_code: sectionData.section_code,
+    if (selectedCourse && selectedLectureSection) {
+      const courseToAdd = {
+        course: selectedCourse,
+        lecture: selectedLectureSection,
+        nonLecture: selectedNonLectureSection || null,
       };
 
-      console.log("Removing course with payload:", post_request);
+      // Build the payload to send to the backend.
+      const request = {
+        department: selectedCourse.department,
+        course_number: selectedCourse.course_number,
+        lecture_section_code: selectedLectureSection.section_code,
+        non_lecture_section_code: selectedNonLectureSection?.section_code || null
+      };
 
       try {
+        // Send the POST request to persist the course on the backend.
         await apiClient.post(
-          `/api/user/courses/remove/`,
-          post_request,
+          `/api/user/courses/add/`,
+          request,
           {
             withCredentials: true,
           }
         );
-        toast.success(`${courseData.title} ${sectionData.section_code} removed from schedule`);
-      } catch (err) {
-        console.error("Error in remove API:", err);
-        toast.error(err.response?.data?.error || "Error removing course");
-      }
 
-      try {
-        const response = await apiClient("/api/courses/get/all/");
-        const data = await response.data;
-        setAvailableCourses(Array.isArray(data) ? data : []);
-      } catch (err) {
-        toast.error("Failed to load available courses");
-        setError(err);
+        // On success, update the local state
+        setSelectedCourses([...selectedCourses, courseToAdd]);
+        toast.success(`${selectedCourse.title} added to schedule`);
+        // Reset the selection process
+        setSelectedLectureSection(null);
+        setSelectedNonLectureSection(null);
+        setSelectionStage("course");
+      } catch (error) {
+        if (error.response && error.response.status === 409) {
+          displayCourseConflicts(error.response.data);
+        } else {
+          toast.error(error.response?.data?.error || "Error adding course to schedule");
+        }
+
+        // Reset selection state so the user is returned to the schedule builder
+        setSelectedNonLectureSection(null);
+        setSelectionStage("course");
       }
+    } else {
+      toast.error("Please complete all selections");
+    }
+  };
+
+  // Handle removing a course
+  const handleRemoveCourse = async (course, indexToRemove) => {
+    // Remove the specific course entry using its index.
+    const updatedCourses = selectedCourses.filter((_, idx) => idx !== indexToRemove);
+    setSelectedCourses([...updatedCourses]);
+
+    // Extract data from normalized entry
+    const courseData = course.course;
+    const sectionData = course.lecture || course.nonLecture;
+
+    // Build payload for backend deletion.
+    let post_request = {
+      username: username,
+      department: courseData.department,
+      course_number: courseData.course_number,
+      section_code: sectionData.section_code,
     };
+
+    try {
+      await apiClient.post(
+        `/api/user/courses/remove/`,
+        post_request,
+        {
+          withCredentials: true,
+        }
+      );
+      toast.success(`${courseData.title} ${sectionData.section_code} removed from schedule`);
+    } catch (err) {
+      console.error("Error in remove API:", err);
+      toast.error(err.response?.data?.error || "Error removing course");
+    }
+
+    try {
+      const response = await apiClient("/api/departments/get/all/");
+      const data = await response.data;
+      setAvailableDepartments(Array.isArray(data) ? data : []);
+    } catch (err) {
+      toast.error("Failed to load available departments");
+      setError(err);
+    }
+  };
 
   // Handle removing all courses from the schedule
   const handleRemoveAllCourses = async () => {
-    // if (!window.confirm("Are you sure you want to clear your entire schedule?")) return;
-
     try {
       await apiClient.post(
         `/api/user/courses/remove/all/`,
@@ -241,87 +229,158 @@ export function ScheduleBuilder() {
       setSelectedCourses([]);
       toast.success("All courses removed from schedule");
     } catch (err) {
-      console.error("Error removing all courses:", err);
       toast.error(err.response?.data?.error || "Error removing all courses");
     }
 
     try {
-      const response = await apiClient("/api/courses/get/all/");
+      const response = await apiClient("/api/departments/get/all/");
       const data = await response.data;
-      setAvailableCourses(Array.isArray(data) ? data : []);
+      setAvailableDepartments(Array.isArray(data) ? data : []);
     } catch (err) {
       toast.error("Failed to load available courses");
     }
   };
 
+  const resetCourseStage = () => {
+    setCourses([]);
+    setSelectionStage('department');
+  }
+
+  // Fetch all available courses
+  const fetchCourses = async (departmentId) => {
+    try {
+      if (!departmentId) {
+        resetCourseStage();
+        return;
+      }
+
+      const response = await apiClient.get(`/api/departments/${departmentId}/courses/`);
+      const data = await response.data;
+
+      if (Array.isArray(data) && data.length > 0) {
+        setCourses(data);
+      } else {
+        resetCourseStage();
+      }
+
+      setLectureSections([]);
+      setNonLectureSections([]);
+      setSelectedCourse(null);
+      setSelectedLectureSection(null);
+      setSelectedNonLectureSection(null);
+
+    } catch (err) {
+      toast.error("Failed to retrieve courses for department", {
+        duration: 2000,
+      });
+      setError(err);
+    }
+
+  };
+
+  const resetLectureSectionStage = () => {
+    setLectureSections([]);
+    setSelectionStage('course');
+  }
 
   // Fetch lecture sections for a given course
   const fetchLectureSections = async (courseId) => {
-
     try {
-      const response = await apiClient.get(`/api/courses/${courseId}/lectures/`, {
-      });
+      if (!courseId) {
+        resetLectureSectionStage();
+        return;
+      }
 
+      const response = await apiClient.get(`/api/courses/${courseId}/lectures/`, {});
       const data = await response.data;
       if (Array.isArray(data) && data.length > 0) {
         setLectureSections(data);
-        setSelectionStage("lecture");
       } else {
+        resetLectureSectionStage();
         toast.error("No lecture sections found for this course");
       }
+      setNonLectureSections([]);
+      setSelectedLectureSection(null);
+      setSelectedNonLectureSection(null);
     } catch (err) {
       toast.error("Failed to load lecture sections");
     }
   };
 
+  const resetNonLectureSectionStage = () => {
+    setNonLectureSections([]);
+    setSelectionStage('lecture');
+  }
+
   // Fetch non-lecture sections for a given lecture section
   const fetchNonLectureSections = async (lectureId) => {
-
     try {
-      const response = await apiClient.get(`/api/courses/lectures/${lectureId}/non-lectures/`, {
-      });
-
+      if (!lectureId) {
+        resetNonLectureSectionStage();
+        return;
+      }
+      const response = await apiClient.get(`/api/courses/lectures/${lectureId}/non-lectures/`);
       const data = await response.data;
-      
-      // Update the list regardless of whether it is empty or populated
-      updateSectionList(data);
+      console.log(data)
+      if (Array.isArray(data) && data.length > 0) {
+        setNonLectureSections(data);
+      } else {
+        resetNonLectureSectionStage();
+      }
     } catch (err) {
       toast.error("Failed to load non-lecture sections");
     }
   };
 
+  const handleDepartmentSelection = async (selectedItem) => {
+    const departmentId = selectedItem?.department?.id;
+    const department = availableDepartments.find((course) => course.id === parseInt(departmentId));
+    setSelectedDepartment(department);
+    setSelectedCourse(null);
+    setSelectedLectureSection(null);
+    setSelectedNonLectureSection(null);
+    setLectureSections([]);
+    setNonLectureSections([]);
+    setSelectionStage('course');
+    await fetchCourses(departmentId);
+  }
+
   // Handle course selection from dropdown
-  const handleCourseSelection = async (e) => {
-    const courseId = e.target.value;
-    const course = availableCourses.find((course) => course.id === parseInt(courseId));
+  const handleCourseSelection = async (selectedItem) => {
+    const courseId = selectedItem?.course?.id;
+    const course = courses.find(course => course.id === parseInt(courseId));
     setSelectedCourse(course);
     setSelectedLectureSection(null);
     setSelectedNonLectureSection(null);
     setLectureSections([]);
     setNonLectureSections([]);
+    setSelectionStage('lecture');
     await fetchLectureSections(courseId);
   };
 
   // Handle lecture section selection from dropdown
-  const handleLectureSelection = (e) => {
-    const lectureId = e.target.value;
-    const lecture = lectureSections.find((lecture) => lecture.id === parseInt(lectureId));
+  const handleLectureSelection = async (selectedItem) => {
+    const lectureId = selectedItem?.lecture?.id;
+    const lecture = lectureSections.find(lecture => lecture.id === parseInt(lectureId));
     setSelectedLectureSection(lecture);
     setSelectedNonLectureSection(null);
-    fetchNonLectureSections(lectureId);
+    setSelectionStage('non-lecture');
+    await fetchNonLectureSections(lectureId);
   };
 
   // Handle non-lecture section selection from dropdown
-  const handleNonLectureSelection = (e) => {
-    const nonLectureId = e.target.value;
-    const nonLecture = nonLectureSections.find((nonLecture) => nonLecture.id === parseInt(nonLectureId));
+  const handleNonLectureSelection = (selectedItem) => {
+    const nonLectureId = selectedItem?.nonLecture?.id;
+    const nonLecture = nonLectureSections.find(nonLecture => nonLecture.id === parseInt(nonLectureId));
     setSelectedNonLectureSection(nonLecture);
   };
 
   const handleCancelSelection = () => {
+    setSelectedDepartment(null);
     setSelectedCourse(null);
     setSelectedLectureSection(null);
     setSelectedNonLectureSection(null);
+    setCourses([]);
     setLectureSections([]);
     setNonLectureSections([]);
     setSelectionStage("course");
@@ -359,6 +418,49 @@ export function ScheduleBuilder() {
     ].join(" | ");
   }
 
+  function prepareSelectionData(data, type) {
+    switch (type) {
+      case "department":
+
+        return data.map(department => {
+          return {
+            value: `${department.code} - ${department.name}`,
+            label: `${department.code} - ${department.name}`,
+            department: department
+          }
+        });
+
+      case "course":
+        return data.map(course => {
+          return {
+            value: `${course.department} ${course.course_number} - ${course.title}`,
+            label: `${course.department} ${course.course_number} - ${course.title}`,
+            course: course
+          }
+        });
+
+      case "lecture":
+
+        return data.map(lecture => {
+          return {
+            value: `${lecture.section_code} - ${flattenScheduleField(lecture)}`,
+            label: `${lecture.section_code} - ${flattenScheduleField(lecture)}`,
+            lecture: lecture
+          }
+        });
+
+      case "non-lecture":
+
+        return data.map(nonLecture => {
+          return {
+            value: `${nonLecture.section_code} - ${flattenScheduleField(nonLecture)}`,
+            label: `${nonLecture.section_code} - ${flattenScheduleField(nonLecture)}`,
+            nonLecture: nonLecture
+          }
+        });
+    }
+  }
+
   return (
     <>
       <Toaster position="top-center" duration={5000} reverseOrder={false} />
@@ -373,67 +475,34 @@ export function ScheduleBuilder() {
         <Card className="shadow-sm border-0 mb-5">
           <Card.Body className="p-4">
             <Row className="align-items-end">
-              <Col md={selectionStage === "course" ? 12 : 4}>
-                <Form.Group controlId="courseSelect">
-                  <Form.Label className="small fw-bold text-uppercase text-muted">1. Select Course</Form.Label>
-                  <Form.Control
-                    as="select"
-                    className="form-select-lg"
-                    onChange={handleCourseSelection}
-                    value={selectedCourse ? selectedCourse.id : ""}
-                  >
-                    <option value="">Choose a course...</option>
-                    {Array.isArray(availableCourses) && availableCourses.map((course) => (
-                      <option key={course.id} value={course.id}>
-                        {course.department} {course.course_number}: {course.title}
-                      </option>
-                    ))}
-                  </Form.Control>
-                </Form.Group>
-              </Col>
 
-              {selectionStage !== "course" && uniqueLectureSections.length > 0 && (
+              <Col md={selectionStage === "course" || selectionStage === "department" ? 12 : 4}>
+
+                <Form.Group controlId="departmentSelection">
+                  <Form.Label className="small fw-bold text-uppercase text-muted">1. Select Department</Form.Label>
+                  <SearchSelectionBar data={prepareSelectionData(availableDepartments, 'department')} onSelect={handleDepartmentSelection}/>
+                </Form.Group>
+
+                {selectedDepartment && courses.length > 0 && (
+                  <Form.Group controlId="courseSelection">
+                    <Form.Label className="small fw-bold text-uppercase text-muted">2. Select Course</Form.Label>
+                    <SearchSelectionBar data={prepareSelectionData(courses, 'course')} onSelect={handleCourseSelection}/>
+                  </Form.Group>
+                )}
+              </Col>
+              {selectedCourse && uniqueLectureSections.length > 0 && (
                 <Col md={4}>
                   <Form.Group controlId="lectureSectionSelect">
-                    <Form.Label className="small fw-bold text-uppercase text-muted">2. Lecture Section</Form.Label>
-                    <Form.Control
-                      as="select"
-                      className="form-select-lg"
-                      onChange={handleLectureSelection}
-                      value={selectedLectureSection ? selectedLectureSection.id : ""}
-                    >
-                      <option value="">Choose a lecture...</option>
-                      {Array.isArray(uniqueLectureSections) && uniqueLectureSections.map((lecture) => (
-                          <option key={lecture.id} value={lecture.id}>
-                            {lecture.section_code}{" - "}
-                            ({
-                            flattenScheduleField(lecture)
-                          })
-                          </option>
-                      ))}
-                    </Form.Control>
+                    <Form.Label className="small fw-bold text-uppercase text-muted">3. Select a Lecture</Form.Label>
+                      <SearchSelectionBar data={prepareSelectionData(lectureSections, 'lecture')} onSelect={handleLectureSelection}/>
                   </Form.Group>
                 </Col>
               )}
-
-              {selectionStage === "non-lecture" && nonLectureSections.length > 0 && (
+              {selectedLectureSection && nonLectureSections.length > 0 && (
                 <Col md={4}>
                   <Form.Group controlId="nonLectureSectionSelect">
-                    <Form.Label className="small fw-bold text-uppercase text-muted">3. Lab/Tutorial</Form.Label>
-                    <Form.Control 
-                      as="select" 
-                      className="form-select-lg"
-                      onChange={handleNonLectureSelection} 
-                      value={selectedNonLectureSection ? selectedNonLectureSection.id : ""}
-                    >
-                      <option value="">Choose a section...</option>
-                      {Array.isArray(nonLectureSections) && nonLectureSections.map((nonLecture) => (
-                        <option key={nonLecture.id} value={nonLecture.id}>
-                          {nonLecture.section_code}{" - "}
-                          ({flattenScheduleField(nonLecture)})
-                        </option>
-                      ))}
-                    </Form.Control>
+                    <Form.Label className="small fw-bold text-uppercase text-muted">4. Select a Lab/Tutorial</Form.Label>
+                    <SearchSelectionBar data={prepareSelectionData(nonLectureSections, 'non-lecture')} onSelect={handleNonLectureSelection}/>
                   </Form.Group>
                 </Col>
               )}
@@ -448,7 +517,7 @@ export function ScheduleBuilder() {
               <Col className="d-flex gap-2">
                 {((selectionStage === "non-lecture" && selectedNonLectureSection) ||
                   (selectionStage === "lecture" && nonLectureSections.length === 0 && selectedLectureSection)) && (
-                  <Button 
+                  <Button
                     variant="primary"
                     size="lg"
                     style={{ width: 'max-content' }}
@@ -458,7 +527,7 @@ export function ScheduleBuilder() {
                     <BsPlusLg/>Add to Schedule
                   </Button>
                 )}
-                <Button 
+                <Button
                   variant="outline-secondary"
                   size="lg"
                   style={{ width: 'max-content' }}

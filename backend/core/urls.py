@@ -26,6 +26,8 @@ urlpatterns = [
     path('courses/<int:course_id>/lectures/', course_views.get_lecture_sections, name='get-lecture-sections'),
     path('courses/lectures/<int:lecture_section_id>/non-lectures/', course_views.get_non_lecture_sections,
          name='get-non-lecture-sections'),
+    path('departments/get/all/', course_views.get_departments, name='get-departments'),
+    path('departments/<int:department_id>/courses/', course_views.get_department_courses, name='get-department-course'),
     path('cookie/approve/', cookie_views.approve_cookie, name='approve-cookie'),
     path('cookie/set/', cookie_views.set_cookie, name='set-cookie'),
     path('cookie/get/info/', cookie_views.get_user_info_from_cookie, name='get-cookie-info'),

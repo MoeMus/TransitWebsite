@@ -34,7 +34,7 @@ async function getUserInfoFromBackend() {
 
 async function getNextClassFromBackend() {
     try {
-        const response = await apiClient.get('/api/user/next-class/');
+        const response = await apiClient.get('/user/next-class/');
         if (response.status === 204) return null;
         return response.data;
     } catch (err) {
@@ -86,7 +86,7 @@ const geocodeAddress = (address) => {
 // Get notification for new semester
 async function getNotification() {
 
-    const response = await apiClient.get('api/user/notification/');
+    const response = await apiClient.get('/user/notification/');
 
     const notification = response.data;
 

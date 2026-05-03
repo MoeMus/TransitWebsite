@@ -55,7 +55,7 @@ function PasswordResetForm() {
 
         try {
 
-            await apiClient.post("/api/password/reset/", request);
+            await apiClient.post("/password/reset/", request);
 
             navigate("/registration", { replace: true, state: {from: location.pathname} })
 

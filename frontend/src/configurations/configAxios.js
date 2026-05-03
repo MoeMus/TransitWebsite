@@ -2,7 +2,9 @@ import axios from 'axios';
 
 // Create an Axios instance
 const apiClient = axios.create({
-  baseURL: 'http://127.0.0.1:8000', // Adjust base URL as needed
+  // baseURL: '/api', // Adjust base URL as needed, this assumes you are running the app with NGINX
+  // baseURL: 'http://localhost:8080/api', // Use this if running without Docker
+  baseURL: 'http://django:8080/api', // Use this if running with Docker without NGINX
 });
 
 // Set default headers if needed

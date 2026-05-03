@@ -2,6 +2,28 @@
 
 services:
 
+  react:
+
+    container_name: transit_client
+
+    build:
+      context: ./frontend
+
+    ports:
+      - "3000:3000"
+
+    environment:
+      REACT_APP_GOOGLE_MAPS_API_KEY: ${REACT_APP_GOOGLE_MAPS_API_KEY}
+      REACT_APP_GOOGLE_MAPS_ID: ${REACT_APP_GOOGLE_MAPS_ID}
+      REACT_APP_TRANSLINK_API_KEY: ${REACT_APP_TRANSLINK_API_KEY}
+      REACT_APP_TURNSTILE_SITE_KEY: ${REACT_APP_TURNSTILE_SITE_KEY}
+
+    volumes:
+      - ./frontend:/usr/src/frontend # For development, may need to be removed for production
+
+    depends_on:
+      - django
+
   django:
 
     container_name: transit_server
@@ -11,7 +33,7 @@ services:
 
     volumes:
       - transit_server_data:/data
-      - ./backend:/usr/src/backend
+      - ./backend:/usr/src/backend # For development, may need to be removed for production
 
     environment:
       DJANGO_SETTINGS_MODULE: backend.settings
@@ -38,31 +60,6 @@ services:
 
     ports:
       - 8000:8000
-
-#  cron:
-#
-#    container_name: cron_scheduler
-#    build:
-#      context: ./backend
-#
-#    environment:
-#      DJANGO_SETTINGS_MODULE: backend.settings
-#      TRANSIT_DB_HOST: mysql
-#      TRANSIT_DB_PORT: 3306
-#      TRANSIT_DB_NAME: ${TRANSIT_DB_NAME}
-#      TRANSIT_DB_PASSWORD: ${TRANSIT_DB_PASSWORD}
-#      TRANSIT_DB_USER: ${TRANSIT_DB_USER}
-#      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
-#      TRANSLINK_API_KEY: ${TRANSLINK_API_KEY}
-#
-#    volumes:
-#      - transit_server_data:/data
-#      - ./backend:/usr/src/backend
-#    command: >
-#      sh -c "python manage.py migrate django_cron && python manage.py runcrons"
-#    depends_on:
-#      - django
-#      - mysql
 
   redis:
 

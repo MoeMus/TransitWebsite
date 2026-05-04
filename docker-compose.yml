@@ -10,7 +10,7 @@ services:
       context: ./frontend
 
     ports:
-      - "3000:8080"
+      - 3000:8080
 
     environment:
       REACT_APP_GOOGLE_MAPS_API_KEY: ${REACT_APP_GOOGLE_MAPS_API_KEY}
@@ -19,9 +19,9 @@ services:
       REACT_APP_TURNSTILE_SITE_KEY: ${REACT_APP_TURNSTILE_SITE_KEY}
       BACKEND_URL: ${BACKEND_URL}
 
+    # For development, remove these for production
     volumes:
-      - ./frontend:/frontend # For development, may need to be removed for production
-      - /usr/src/frontend/node_modules
+      - ./frontend:/frontend
 
     depends_on:
       - django
@@ -32,10 +32,6 @@ services:
 
     build:
       context: ./backend
-
-    volumes:
-      - transit_server_data:/data
-      - ./backend:/backend # For development, may need to be removed for production
 
     environment:
       DJANGO_SETTINGS_MODULE: backend.settings
@@ -62,6 +58,10 @@ services:
 
     ports:
       - 8000:8000
+
+    volumes:
+      - transit_server_data:/data
+      - ./backend:/backend # For development, remove this for production
 
   redis:
 

@@ -7,6 +7,6 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.SUCCESS('Running cron job'))
 
-        cron.update_course_data()
+        cron.seed_course_data_job.delay()
 
         self.stdout.write(self.style.SUCCESS('Finished cron job'))

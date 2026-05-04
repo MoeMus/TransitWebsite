@@ -10,16 +10,18 @@ services:
       context: ./frontend
 
     ports:
-      - "3000:3000"
+      - "3000:8080"
 
     environment:
       REACT_APP_GOOGLE_MAPS_API_KEY: ${REACT_APP_GOOGLE_MAPS_API_KEY}
       REACT_APP_GOOGLE_MAPS_ID: ${REACT_APP_GOOGLE_MAPS_ID}
       REACT_APP_TRANSLINK_API_KEY: ${REACT_APP_TRANSLINK_API_KEY}
       REACT_APP_TURNSTILE_SITE_KEY: ${REACT_APP_TURNSTILE_SITE_KEY}
+      BACKEND_URL: ${BACKEND_URL}
 
     volumes:
-      - ./frontend:/usr/src/frontend # For development, may need to be removed for production
+      - ./frontend:/frontend # For development, may need to be removed for production
+      - /usr/src/frontend/node_modules
 
     depends_on:
       - django
@@ -33,7 +35,7 @@ services:
 
     volumes:
       - transit_server_data:/data
-      - ./backend:/usr/src/backend # For development, may need to be removed for production
+      - ./backend:/backend # For development, may need to be removed for production
 
     environment:
       DJANGO_SETTINGS_MODULE: backend.settings
@@ -88,7 +90,7 @@ services:
       TRANSIT_DB_PASSWORD: ${TRANSIT_DB_PASSWORD}
       TRANSIT_DB_USER: ${TRANSIT_DB_USER}
 
-    command: celery -A backend worker -l info
+    command: celery -A backend worker -Q seeding -l info --concurrency=4
 
     volumes:
       - ./backend:/usr/src/backend

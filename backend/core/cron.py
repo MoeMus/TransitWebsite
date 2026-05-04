@@ -15,7 +15,7 @@ import requests
 import logging
 from django.utils.dateparse import parse_time
 from dateutil import parser
-from celery import shared_task
+from celery import shared_task, group, chord
 from celery.utils.log import get_task_logger
 
 # Course.objects.all().delete()  # TODO: For debugging only
@@ -46,12 +46,11 @@ def remove_expired_otps():
     OneTimePassword.objects.filter(otp_expiry_date__lt=timezone.now()).delete()
 
 
-@shared_task(name="core.cron.update_course_data")
-def update_course_data():
+@shared_task(name="core.cron.seed_database_course_info_job")
+def seed_database_course_info_job():
     logger.info("Starting course sync cron job.")
 
     current_year = get_current_year()
-    current_term_code = get_current_term_code()
     current_term = get_current_term()
 
     try:
@@ -64,20 +63,20 @@ def update_course_data():
 
         return
 
-    departments = process_departments(current_year, current_term)
+    department_ids = seed_departments(current_year, current_term)
 
-    for department in departments:
+    # Break departments list into three batches
+    batches = [department_ids[i:i + 3] for i in range(0, len(department_ids), 3)]
 
-        courses = process_courses(current_year, current_term, department)
+    # Run each batch concurrently
+    job = chord(
+        seed_course_data_job.s(batch, current_year, current_term) for batch in batches
+    )(seed_database_course_info_job_completed.s())
 
-        for course in courses:
-
-            process_course_sections(current_year, current_term, course, department)
-
-    logger.info("Course sync cron job completed.")
+    return job.id
 
 
-def process_departments(current_year, current_term):
+def seed_departments(current_year, current_term):
     departments_url = f"https://www.sfu.ca/bin/wcm/course-outlines?{current_year}/{current_term}"
     response = requests.get(departments_url)
     departments = []
@@ -94,12 +93,34 @@ def process_departments(current_year, current_term):
             }
         )
 
-        departments.append(department_model)
+        departments.append(department_model.id)
 
     return departments
 
 
-def process_courses(current_year, current_term, department):
+@shared_task(
+    autoretry_for=(Exception,),
+    retry_backoff=True,
+    retry_kwargs={"max_retries": 3},
+)
+def seed_course_data_job(department_ids, current_year, current_term):
+    total_courses = 0
+    total_course_sections = 0
+    for department_id in department_ids:
+
+        courses = seed_courses(current_year, current_term, department_id)
+        total_courses += len(courses)
+
+        for course in courses:
+
+            course_section_count = seed_course_sections(current_year, current_term, course, department_id)
+            total_course_sections += course_section_count
+
+    return total_courses + total_course_sections + len(department_ids)
+
+
+def seed_courses(current_year, current_term, department_id):
+    department = Department.objects.filter(id=department_id).first()
     department_code = department.code.upper()
     try:
         logger.info(f"Fetching courses for department: {department_code}")
@@ -116,21 +137,25 @@ def process_courses(current_year, current_term, department):
 
             corresponding_department = Department.objects.get(code=department_code)
 
-            course_model, _ = Course.objects.update_or_create(
-                department_code=corresponding_department,
-                title=course.get("title", "Untitled Course"),
-                department=department_code,
-                course_number=course_number,
-            )
+            with transaction.atomic():
+                course_model, _ = Course.objects.update_or_create(
+                    department_code=corresponding_department,
+                    title=course.get("title", "Untitled Course"),
+                    department=department_code,
+                    course_number=course_number,
+                )
 
-            courses.append(course_model)
+                courses.append(course_model.id)
 
         return courses
     except requests.exceptions.RequestException as err:
         logger.error(f"Could not sync courses for {department_code}: {err}")
+        return []
 
 
-def process_course_sections(current_year, current_term, course, department):
+def seed_course_sections(current_year, current_term, course_id, department_id):
+    course = Course.objects.filter(id=course_id).first()
+    department = Department.objects.filter(id=department_id).first()
     course_number = course.course_number
     department_code = department.code.upper()
     try:
@@ -138,6 +163,8 @@ def process_course_sections(current_year, current_term, course, department):
         sections_response = requests.get(sections_url)
         sections_response.raise_for_status()
         sections = sections_response.json()
+
+        total_section_count = 0
 
         for section in sections:
             section_code = section.get("text")
@@ -174,28 +201,29 @@ def process_course_sections(current_year, current_term, course, department):
             if section.get("sectionCode") in ["LEC", "IND", "OLC", "SEM"] and text_value == info.get("section"):
                 # Create Lecture Section
 
-                lecture_section, lec_created = LectureSection.objects.update_or_create(
-                    course=course,
-                    section_code=section_code,
-                    defaults={
-                        "start_time": start_time,
-                        "start_date": start_date,
-                        "end_time": end_time,
-                        "end_date": end_date,
-                        # "days": schedule.get("days", ""),
-                        "schedule": schedule,
-                        "campus": campus,
-                        "class_type": section.get("classType", ""),
-                        "professor": first_instructor.get("name", "Unknown"),
-                        "associated_class": associated_class,
-                        "title": section_title or "Untitled",
-                        "department": department_code,
-                        "number": info.get("number", "000"),
-                        "delivery_method": section_details.get("deliveryMethod", "")
-                    },
-                )
-
-                logger.info(f"LectureSection created: {department_code} {course_number} {section_code}")
+                with transaction.atomic():
+                    lecture_section, lec_created = LectureSection.objects.update_or_create(
+                        course=course,
+                        section_code=section_code,
+                        defaults={
+                            "start_time": start_time,
+                            "start_date": start_date,
+                            "end_time": end_time,
+                            "end_date": end_date,
+                            # "days": schedule.get("days", ""),
+                            "schedule": schedule,
+                            "campus": campus,
+                            "class_type": section.get("classType", ""),
+                            "professor": first_instructor.get("name", "Unknown"),
+                            "associated_class": associated_class,
+                            "title": section_title or "Untitled",
+                            "department": department_code,
+                            "number": info.get("number", "000"),
+                            "delivery_method": section_details.get("deliveryMethod", "")
+                        },
+                    )
+                    total_section_count += 1
+                    logger.info(f"LectureSection created: {department_code} {course_number} {section_code}")
             else:
                 # Check if the section is non-lecture (Lab, Tutorial, etc.)
                 if section.get("sectionCode") in ["LAB", "TUT", 'RQL', 'OPL', 'OLC', 'WKS']:
@@ -210,35 +238,47 @@ def process_course_sections(current_year, current_term, course, department):
                         title=section_title,
                         associated_class=associated_class
                     ).first()
+                    with transaction.atomic():
 
-                    NonLectureSection.objects.update_or_create(
-                        lecture_section=corresponding_lecture_section or None,
-                        section_code=section_code,
-                        defaults={
-                            "start_time": start_time,
-                            "start_date": start_date,
-                            "end_time": end_time,
-                            "end_date": end_date,
-                            # "days": schedule.get("days", ""),
-                            "campus": campus,
-                            "schedule": schedule,
-                            "class_type": section.get("classType", ""),
-                            "professor": instructor,
-                            "title": section_title,
-                            "associated_class": associated_class,
-                            "department": department_code,
-                            "number": info.get("number")
-                        }
-                    )
-                    logger.info(
-                        f"NonLectureSection created: {department_code} {course_number} {section_code}")
-
+                        NonLectureSection.objects.update_or_create(
+                            lecture_section=corresponding_lecture_section or None,
+                            section_code=section_code,
+                            defaults={
+                                "start_time": start_time,
+                                "start_date": start_date,
+                                "end_time": end_time,
+                                "end_date": end_date,
+                                # "days": schedule.get("days", ""),
+                                "campus": campus,
+                                "schedule": schedule,
+                                "class_type": section.get("classType", ""),
+                                "professor": instructor,
+                                "title": section_title,
+                                "associated_class": associated_class,
+                                "department": department_code,
+                                "number": info.get("number")
+                            }
+                        )
+                        logger.info(
+                            f"NonLectureSection created: {department_code} {course_number} {section_code}")
+                        total_section_count += 1
                 else:
                     logger.info(f"Skipping section {section_code}, no non-lecture component.")
+
+        return total_section_count
 
     except requests.exceptions.RequestException as e:
         logger.error(
             f"Section(s) for {department_code} {course_number} not found. Error: {e}, skipping")
+
+        return 0
+
+
+@shared_task
+def seed_database_course_info_job_completed(results):
+    total = sum(results)
+    logger.info(f"Course sync cron job completed. Finished seeding {total} records")
+    return total
 
 
 # Removes all old course data from database and clears every user's schedule

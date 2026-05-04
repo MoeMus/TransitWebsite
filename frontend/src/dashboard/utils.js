@@ -6,7 +6,7 @@ async function getUserInfoFromBackend() {
     try {
 
         const user_data = await apiClient.get(
-        `/api/user/`,
+        `/user/`,
         {
             method: "GET",
         });

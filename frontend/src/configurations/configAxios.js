@@ -2,10 +2,9 @@ import axios from 'axios';
 
 // Create an Axios instance
 const apiClient = axios.create({
-  baseURL: 'http://127.0.0.1:8000', // Adjust base URL as needed
+  baseURL: 'http://localhost:8000/api', // Change to /api for NGINX
 });
 
-// Set default headers if needed
 apiClient.defaults.headers.common['Content-Type'] = 'application/json';
 
 // Request interceptor to include token

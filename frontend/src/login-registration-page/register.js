@@ -139,7 +139,7 @@ export function Register(){
                 turnstile_token: turnstileToken
             };
 
-            await apiClient.post('/api/user/validate-credentials/', userCredentials);
+            await apiClient.post('/user/validate-credentials/', userCredentials);
             setValidCredentials(true);
             setAlertOpen(true);
             setTimeLeft(30);
@@ -165,7 +165,7 @@ export function Register(){
             otp: verificationCode
         }
 
-        await apiClient.post("/api/user/validate-registration-code/", request);
+        await apiClient.post("/user/validate-registration-code/", request);
 
         const userCredentials = {
             username: username,
@@ -174,7 +174,7 @@ export function Register(){
             turnstile_token: turnstileToken
         };
 
-        await apiClient.post("/api/user/", userCredentials);
+        await apiClient.post("/user/", userCredentials);
 
         await loginUser(userCredentials);
 

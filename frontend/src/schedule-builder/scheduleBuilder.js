@@ -49,7 +49,7 @@ export function ScheduleBuilder() {
   const fetchAllDepartments = useCallback(async () => {
     try {
 
-      const response = await apiClient.get('/api/departments/get/all/');
+      const response = await apiClient.get('/departments/get/all/');
 
       const departments = await response.data;
       setAvailableDepartments(departments);
@@ -80,7 +80,7 @@ export function ScheduleBuilder() {
 
     try {
 
-      const response = await apiClient.get(`/api/user/courses/`);
+      const response = await apiClient.get(`/user/courses/`);
 
       const data = await response.data;
 
@@ -144,7 +144,7 @@ export function ScheduleBuilder() {
       try {
         // Send the POST request to persist the course on the backend.
         await apiClient.post(
-          `/api/user/courses/add/`,
+          `/user/courses/add/`,
           request,
           {
             withCredentials: true,
@@ -194,7 +194,7 @@ export function ScheduleBuilder() {
 
     try {
       await apiClient.post(
-        `/api/user/courses/remove/`,
+        `/user/courses/remove/`,
         post_request,
         {
           withCredentials: true,
@@ -207,7 +207,7 @@ export function ScheduleBuilder() {
     }
 
     try {
-      const response = await apiClient("/api/departments/get/all/");
+      const response = await apiClient("/departments/get/all/");
       const data = await response.data;
       setAvailableDepartments(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -220,7 +220,7 @@ export function ScheduleBuilder() {
   const handleRemoveAllCourses = async () => {
     try {
       await apiClient.post(
-        `/api/user/courses/remove/all/`,
+        `/user/courses/remove/all/`,
         {},
         {
           withCredentials: true,
@@ -233,7 +233,7 @@ export function ScheduleBuilder() {
     }
 
     try {
-      const response = await apiClient("/api/departments/get/all/");
+      const response = await apiClient("/departments/get/all/");
       const data = await response.data;
       setAvailableDepartments(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -254,7 +254,7 @@ export function ScheduleBuilder() {
         return;
       }
 
-      const response = await apiClient.get(`/api/departments/${departmentId}/courses/`);
+      const response = await apiClient.get(`/departments/${departmentId}/courses/`);
       const data = await response.data;
 
       if (Array.isArray(data) && data.length > 0) {
@@ -291,7 +291,7 @@ export function ScheduleBuilder() {
         return;
       }
 
-      const response = await apiClient.get(`/api/courses/${courseId}/lectures/`, {});
+      const response = await apiClient.get(`/courses/${courseId}/lectures/`, {});
       const data = await response.data;
       if (Array.isArray(data) && data.length > 0) {
         setLectureSections(data);
@@ -319,7 +319,7 @@ export function ScheduleBuilder() {
         resetNonLectureSectionStage();
         return;
       }
-      const response = await apiClient.get(`/api/courses/lectures/${lectureId}/non-lectures/`);
+      const response = await apiClient.get(`/courses/lectures/${lectureId}/non-lectures/`);
       const data = await response.data;
       console.log(data)
       if (Array.isArray(data) && data.length > 0) {

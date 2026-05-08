@@ -25,7 +25,7 @@ export default function ServiceAlerts(){
 
         try{
 
-            const response = await apiClient.get('/api/translink/alerts/', {
+            const response = await apiClient.get('/translink/alerts/', {
                 responseType: 'arraybuffer'
             });
             const byteBuffer = response.data;

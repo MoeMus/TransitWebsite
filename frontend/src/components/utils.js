@@ -3,7 +3,7 @@ import apiClient from "../configurations/configAxios";
 async function deleteAccount(){
 
     try {
-        await apiClient.delete("/api/user/", {
+        await apiClient.delete("/user/", {
             withCredentials: true
         });
 
@@ -19,7 +19,7 @@ async function logout(request){
 
     try {
 
-        await apiClient.post("/api/logout/", request, {
+        await apiClient.post("/logout/", request, {
             withCredentials: true
         });
 

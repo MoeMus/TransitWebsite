@@ -123,7 +123,7 @@ def check_time_conflicts(new_course, user_courses):
 # Checks if course data in the DB is from a previous semester and runs the cron job if so
 def refresh_courses_if_stale():
     from core.models import LectureSection
-    from core.cron import update_course_data
+    from core.cron import seed_course_data_job
 
     first_section = LectureSection.objects.first()
     current_year = get_current_year()
@@ -137,4 +137,4 @@ def refresh_courses_if_stale():
     )
 
     if is_stale:
-        update_course_data.delay()
+        seed_course_data_job.delay()

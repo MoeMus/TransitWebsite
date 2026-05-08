@@ -216,9 +216,51 @@ AUTH_USER_MODEL = 'core.User'
 # Logging settings
 # TODO: Change levels from DEBUG to WARNING for production
 # https://docs.djangoproject.com/en/5.1/topics/logging/
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'formatters': {
+#         'verbose': {
+#             'format': '{levelname} {asctime} {module} {message}',
+#             'style': '{',
+#         },
+#         'simple': {
+#             'format': '{levelname} {message}',
+#             'style': '{',
+#         },
+#     },
+#     'handlers': {
+#         'file': {
+#             'level': 'DEBUG',
+#             'class': 'logging.FileHandler',
+#             'filename': 'debug.log',
+#             'formatter': 'verbose',
+#         },
+#         'console': {
+#             'level': 'DEBUG',
+#             'class': 'logging.StreamHandler',
+#             'formatter': 'verbose',
+#         },
+#     },
+#     'loggers': {
+#         'django': {
+#             'handlers': ['file', 'console'],
+#             'level': 'DEBUG',
+#             'propagate': True,
+#         },
+#         'core': {
+#             'handlers': ['file', 'console'],
+#             'level': 'DEBUG',
+#             'propagate': True,
+#         },
+#     },
+# }
+
+# Disable writing to debug.log
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+
     'formatters': {
         'verbose': {
             'format': '{levelname} {asctime} {module} {message}',
@@ -229,27 +271,23 @@ LOGGING = {
             'style': '{',
         },
     },
+
     'handlers': {
-        'file': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': 'debug.log',
-            'formatter': 'verbose',
-        },
         'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
             'formatter': 'verbose',
         },
     },
+
     'loggers': {
         'django': {
-            'handlers': ['file', 'console'],
+            'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': True,
         },
         'core': {
-            'handlers': ['file', 'console'],
+            'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': True,
         },
@@ -264,8 +302,8 @@ LOGGING = {
 
 # This registers the cron jobs for Celery to execute
 CELERY_BEAT_SCHEDULE = {
-    "update_course_data": {
-        "task": "core.cron.update_course_data",
+    "seed_database_course_info_job": {
+        "task": "core.cron.seed_database_course_info_job",
         "schedule": crontab(hour=0, minute=0, day_of_month='1', month_of_year='1,5,9')  # Every 4 months (Jan, May, Sept)
     },
     "remove_blacklisted_tokens": {
@@ -278,6 +316,11 @@ CELERY_BEAT_SCHEDULE = {
     }
 }
 
+CELERY_TASK_ROUTES = {
+    "core.cron.seed_database_course_info_job": {"queue": "seeding"},
+    "core.cron.seed_course_data_job": {"queue": "seeding"},
+    "core.cron.seed_database_course_info_job_completed": {"queue": "seeding"},
+}
 
 # Production Security Settings
 if not DEBUG: 

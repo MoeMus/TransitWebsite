@@ -70,7 +70,7 @@ function EmailForm() {
 
         try {
 
-            await apiClient.post("/api/password/reset/request/", request);
+            await apiClient.post("/password/reset/request/", request);
 
             setError("");
             setRequestSuccessful(true);
@@ -99,7 +99,7 @@ function EmailForm() {
 
         };
 
-        await apiClient.post("/api/password/otp/validate/", request);
+        await apiClient.post("/password/otp/validate/", request);
 
         navigate("/password/reset", {replace: true, state: {email: email}});
 

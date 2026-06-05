@@ -34,3 +34,4 @@ if ! docker exec -i "$CONTAINER" mysql \
 fi
 
 echo "Database restore complete from $LATEST_BACKUP"
+exit 0

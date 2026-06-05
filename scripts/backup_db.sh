@@ -5,9 +5,10 @@ CONTAINER="transit_server_mysql_db"
 BACKUP_DIR="$(dirname "$0")/backups"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 BACKUP_FILE="$BACKUP_DIR/transit_db_$TIMESTAMP.sql"
+PARENT_DIR=$(realpath ..)
 
 # Load .env variables
-ENV_FILE="$(dirname "$0")/.env"
+ENV_FILE="$PARENT_DIR/.env"
 if [[ ! -f "$ENV_FILE" ]]; then
   echo "ERROR: .env file not found at $ENV_FILE"
   exit 1

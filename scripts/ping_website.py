@@ -1,12 +1,12 @@
-# Pings the website to determine if it is up or down. If the website is down, it will attempt to restart the
-# docker containers
+# Pings the website to determine if it is up or down. If the website is down,
+# it will attempt to restart the docker containers
 
 import time
 import subprocess
 import requests
 import dotenv
 
-dotenv.load_dotenv('.env')
+dotenv.load_dotenv('../.env')
 
 def ping_website(url):
     try:
@@ -53,7 +53,7 @@ def restart_docker_containers():
 
 
 if __name__ == "__main__":
-    website_url = dotenv.get_key('.env', 'WEBSITE_URL')
+    website_url = dotenv.get_key('../.env', 'WEBSITE_URL')
     if not website_url:
         print("WEBSITE_URL not found in .env file.")
         exit(1)

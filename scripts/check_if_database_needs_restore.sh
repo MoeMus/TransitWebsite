@@ -1,8 +1,9 @@
 #!/usr/bin/bash
 
 CONTAINER="transit_server_mysql_db"
+PARENT_DIR=$(realpath ..)
 
-ENV_FILE="$(dirname "$0")/.env"
+ENV_FILE="$PARENT_DIR/.env"
 if [[ ! -f "$ENV_FILE" ]]; then
   echo "ERROR: .env file not found at $ENV_FILE"
   exit 1

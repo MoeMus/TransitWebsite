@@ -3,6 +3,7 @@
 CONTAINER="transit_server_mysql_db"
 BACKUP_DIR="$(dirname "$0")/backups"
 LATEST_BACKUP=$(ls -t "$BACKUP_DIR"/transit_db_*.sql 2>/dev/null | head -n 1)
+PARENT_DIR=$(realpath ..)
 
 if [ -z "$LATEST_BACKUP" ]; then
     echo "No backup files found"
@@ -15,7 +16,7 @@ if ! docker inspect --format='{{.State.Running}}' "$CONTAINER" 2>/dev/null | gre
   exit 1
 fi
 
-ENV_FILE="$(dirname "$0")/.env"
+ENV_FILE="$PARENT_DIR/.env"
 if [[ ! -f "$ENV_FILE" ]]; then
   echo "ERROR: .env file not found at $ENV_FILE"
   exit 1
